@@ -1,139 +1,19 @@
 Видео: WML
-/fulladd GdFl01, shimmer 88%, https://www.youtube.com/watch?v=auSXb7bHqdk
-/try GdFl01, shimmer 88%
+/fulladd Ikkyseen, Wild Rose, https://www.youtube.com/watch?v=fTP2aBbzGJM
+/try Ikkyseen, Wild Rose
 
 Видео: WML
-/fulladd Coheton, Shutdown, https://www.youtube.com/watch?v=bHLZo6rwboI
-/try Coheton, Shutdown
+/fulladd StarTheFer519, Sonic Wave, https://www.youtube.com/watch?v=MTXdXnk0WX4
+/try StarTheFer519, Sonic Wave
 
 Видео: WML
-/fulladd Noxop, Yatagarasu, https://www.youtube.com/watch?v=HDLkKbi7e_A
-/try Noxop, Yatagarasu
+/fulladd bearybubs, Hyper Paradox, https://www.youtube.com/watch?v=68kIoky_5m8
+/try bearybubs, Hyper Paradox
 
 Видео: WML
-/fulladd v1nt, shimmer 94%, https://www.youtube.com/watch?v=hwA2zjxiUpw
-/try v1nt, shimmer 94%
+/fulladd Ceri, CHROMA II, https://www.youtube.com/watch?v=QjcmQXaseOg
+/try Ceri, CHROMA II
 
 Видео: WML
-/fulladd DashY, kowareta, https://www.youtube.com/watch?v=hcorzdx9L0w
-/try DashY, kowareta
-
-Видео: WML
-/fulladd itzsalty, Kuzureta, https://www.youtube.com/watch?v=UuuOlAbMVec
-/try itzsalty, Kuzureta
-
-Видео: WML
-/fulladd itzsalty, Sky Shredder 60%, https://www.youtube.com/watch?v=PVk8ySlvzx8
-/try itzsalty, Sky Shredder 60%
-
-Видео: WML
-/fulladd vowtz, Auditory Breaker, https://www.youtube.com/watch?v=Bb6kWDrFNok
-/try vowtz, Auditory Breaker
-
-Видео: WML
-/fulladd GatoGeometrico9, Bausha Vortex, https://www.youtube.com/watch?v=viyz1mobxlU
-/try GatoGeometrico9, Bausha Vortex
-
-Видео: WML
-/fulladd Kl4Dzvrr, Cognition 97%, https://www.youtube.com/watch?v=3fIS1rqbhzM
-/try Kl4Dzvrr, Cognition 97%
-
-Видео: WML
-/fulladd Clickdash, Cold Sweat 61%, https://www.youtube.com/watch?v=227GdGObLHw
-/try Clickdash, Cold Sweat 61%
-
-Видео: WML
-/fulladd Leonardolo, The Golden 57%, https://www.youtube.com/watch?v=9BS9j3L4b9k
-/try Leonardolo, The Golden 57%
-
-Видео: WML
-/fulladd Thanaw, Black Blizzard, https://www.youtube.com/watch?v=_ZjodbsLJ8g
-/try Thanaw, Black Blizzard
-
-Видео: WML
-/fulladd Demonbeater17, qoUEO 42%, https://www.youtube.com/watch?v=p6cwNk2SIVg
-/try Demonbeater17, qoUEO 42%
-
-Видео: WML
-/fulladd Greenfire, Renevant 57%, https://www.youtube.com/watch?v=PiQNi23bpAc
-/try Greenfire, Renevant 57%
-
-Видео: WML
-/fulladd Belw, Zodiac 56%, https://www.youtube.com/watch?v=ShGgpp0EYto
-/try Belw, Zodiac 56%
-
-Видео: WML
-/fulladd Zekki, Zodiac 58%, https://www.youtube.com/watch?v=hoRsongEQoA
-/try Zekki, Zodiac 58%
-
-Видео: WML
-/fulladd L3gend, Bloodlust, https://www.youtube.com/watch?v=1RBhkJ_LRYQ
-/try L3gend, Bloodlust
-
-Видео: WML
-/fulladd TeoZin, Blade of Justice, https://www.youtube.com/watch?v=vSfqd1MYBcY
-/try TeoZin, Blade of Justice
-
-Видео: WML
-/fulladd paranoia, aether, https://www.youtube.com/watch?v=fa1oA0lnrOA
-/try paranoia, aether
-
-Видео: WML
-/fulladd Aguzz, Shardscapes 67%, https://www.youtube.com/watch?v=NYBwv81PjiY
-/try Aguzz, Shardscapes 67%
-
-Видео: WML
-/fulladd NiQSaIL, Jesse Pinkman, https://www.youtube.com/watch?v=goMsu0vJ0Sk
-/try NiQSaIL, Jesse Pinkman
-
-Видео: WML
-/fulladd EwanEvers, Fever Dream, https://www.youtube.com/watch?v=ZlDbz1ttioE
-/try EwanEvers, Fever Dream
-
-Видео: WML
-/fulladd venfy, The Mainframe, https://www.youtube.com/watch?v=Fj9YyW7nwvg
-/try venfy, The Mainframe
-
-Видео: WML
-/fulladd L_9mn0, Cobwebs 66%, https://www.youtube.com/watch?v=YzRrcTLnRZM
-/try L_9mn0, Cobwebs 66%
-
-Видео: WML
-/fulladd SimYunhu, BuTiTi III, https://www.youtube.com/watch?v=NVjJmh_6rms
-/try SimYunhu, BuTiTi III
-
-Видео: WML
-/fulladd DanoXQuick71, Biohazard, https://www.youtube.com/watch?v=pmFAvHX-r4w
-/try DanoXQuick71, Biohazard
-
-Видео: WML
-/fulladd DanoXQuick71, vaenstep, https://www.youtube.com/watch?v=3F-syX0Rer4
-/try DanoXQuick71, vaenstep
-
-Видео: WML
-/fulladd zyphyr77, Sapphire Angel, https://www.youtube.com/watch?v=6KvyRlEGhOE
-/try zyphyr77, Sapphire Angel
-
-Видео: WML
-/fulladd t, BuTiTi III, https://www.youtube.com/watch?v=e3lCIpTABQY
-/try t, BuTiTi III
-
-Видео: WML
-/fulladd MRZoom, CHROMA II, https://www.youtube.com/watch?v=3Kmt5XtPtvw
-/try MRZoom, CHROMA II
-
-Видео: WML
-/fulladd minelo, distraught, https://www.youtube.com/watch?v=SzH_9e1ahos
-/try minelo, distraught
-
-Видео: WML
-/fulladd SILVER062, ErebuS (Platnuu), https://www.youtube.com/watch?v=cD5cOXBiVDc
-/try SILVER062, ErebuS (Platnuu)
-
-Видео: WML
-/fulladd Gilza, Fever Dream 61%, https://www.youtube.com/watch?v=GjYdgmg-ccE
-/try Gilza, Fever Dream 61%
-
-Видео: WML
-/fulladd BleskGD, Edelweiss, https://www.youtube.com/watch?v=uM7S0hLbIAA
-/try BleskGD, Edelweiss
+/fulladd extreme_0nly, Freedom08, https://www.youtube.com/watch?v=IsQPfY1D3CQ
+/try extreme_0nly, Freedom08
