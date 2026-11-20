@@ -6,8 +6,7 @@
 Шаги:
   1. coreboard-parse.py all    -> cbd.txt, cbd_ids.json        (основной топ + Топ РК мобильной доски CoreBoard, каждый игрок один раз)
   2. mobile-levels.py          -> mobile/levels_mobile.json    (уровни, T, t и свои ID уровней)
-  3. mobile-rating.py --ids    -> gdr.txt, gdr_videos.json     (наш рейтинг по WML; ники из cbd -> WML-ID в ids_mobile.json)
-     mobile-id-map.py          -> mobile/coreboard_id_map.json (ID игрока на CoreBoard -> ник и WML-ID, как у ПК доски)
+  3. mobile-rating.py --ids    -> gdr.txt, gdr_videos.json     (наш рейтинг по WML; заодно ведёт mobile/coreboard_id_map.json: ID игрока на CoreBoard -> ник и WML-ID)
   4. compare in-cbd-not-in-gdr -> mobile/my_extras.json        (что есть на CoreBoard, а на WML нет; сравнение с gdr_wml.txt, без экстрас)
   5. compare in-gdr-not-in-cbd -> mobile/cbd/                  (что есть у нас, а на CoreBoard нет, с видео из WML):
        missing_achievements.json, missing_achievements_with_nicks.json, missing_players.json, commands.txt
@@ -38,7 +37,6 @@ import wml as site  # noqa: E402  (normalize_link)
 CBD_DIR = DATA / "cbd"
 EXTRAS = DATA / "my_extras.json"
 LEVELS = DATA / "levels_mobile.json"
-IDS = DATA / "ids_mobile.json"
 ID_MAP = DATA / "coreboard_id_map.json"
 PUBLISHED = ("missing_achievements.json", "missing_achievements_with_nicks.json", "commands.txt", "missing_players.json")
 RECORDS_FILES = ("missing_achievements.json", "missing_achievements_with_nicks.json")
@@ -249,8 +247,6 @@ def main():
         if not f.exists() or f.stat().st_size == 0:
             sys.exit(f"Нет файла {f.name} (или он пустой). Останавливаюсь.")
 
-    run([py, HERE / "mobile-id-map.py", "--cbd", cbd_txt], "Карта ID игроков CoreBoard -> coreboard_id_map.json")
-
     cbd_ids = HERE / "cbd_ids.json"
     extra = []
     if cbd_ids.exists():
@@ -298,7 +294,7 @@ def main():
     if args.commit:
         msg = (f"mobile: my_extras +{added}/{improved}↑/{lowered}↓/{removed}−, cbd {total} записей, "
                f"новых игроков {players} (авто)")
-        commit_and_push(msg, [EXTRAS, LEVELS, IDS, ID_MAP, *published])
+        commit_and_push(msg, [EXTRAS, LEVELS, ID_MAP, *published])
 
 
 main()
