@@ -39,8 +39,8 @@ PAGE_SIZE = 50
 # Панель игрока (лёгкий запрос, который сайт делает при клике на игрока, около 9 КБ вместо 42 КБ у всей страницы)
 PLAYER_URL = SITE + "/demonlist/statsviewer/pane/player/{id}"
 
-LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
-IDS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/gdr-ids.json"
+LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
+IDS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/gdr-ids.json"
 GLOBAL_LIST_URL = "https://api.demonlist.org/level/classic/list?limit={limit}&offset={offset}"
 
 API_TRIES = 4
