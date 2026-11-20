@@ -95,7 +95,7 @@ NICK_KEY_PREFIX = "nick:"
 
 API_TRIES = 4  # сколько раз пробовать запрос к API, прежде чем сдаться
 
-LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
+LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
 
 # Полный список уровней глобала (нужен, чтобы найти ID уровня по названию)
 GLOBAL_LIST_URL = "https://api.demonlist.org/level/classic/list?limit={limit}&offset={offset}"
