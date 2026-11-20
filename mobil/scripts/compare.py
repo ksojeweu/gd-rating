@@ -99,7 +99,6 @@ API_TRIES = 4  # сколько раз пробовать запрос к API, �
 # МОБИЛЬНАЯ ВЕРСИЯ: ID игроков и уровни лежат в папке mobile/ (рядом с scripts/), с GitHub и из глобала ничего не берётся.
 _DATA = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEVELS_FILE = os.path.join(_DATA, "levels_mobile.json")   # {"next_id": N, "levels": {"ID": {"name", "place", "T", "t"}}}
-IDS_FILE = os.path.join(_DATA, "ids_mobile.json")         # ник -> ID игрока (ID = ID аккаунта на WML)
 
 # Полный список уровней глобала (нужен, чтобы найти ID уровня по названию)
 GLOBAL_LIST_URL = "https://api.demonlist.org/level/classic/list?limit={limit}&offset={offset}"
@@ -315,21 +314,8 @@ def fetch_json(url):
 # Загружаем ID игроков (ник -> ID): gdr-ids.json ТОЛЬКО с GitHub
 # =========================
 
-print(f"ids_mobile.json: беру из {IDS_FILE}")
-
-try:
-    with open(IDS_FILE, encoding="utf-8") as _f:
-        raw_ids = json.load(_f)
-except Exception as error:
-    sys.exit(f"ids_mobile.json: не удалось прочитать ({error}). Сначала запусти mobile-rating.py. Останавливаюсь.")
-
-if not isinstance(raw_ids, dict) or not raw_ids:
-    sys.exit("ids_mobile.json: не словарь или пустой файл. Останавливаюсь.")
-
-nick_to_id = {
-    normalize_nick(nick): normalize_id(player_id)
-    for nick, player_id in raw_ids.items()
-}
+# ник -> ID игрока (ID = ID аккаунта на WML) берётся из coreboard_id_map.json (читается ниже, ids_mobile.json больше нет)
+nick_to_id = {}
 
 
 # =========================
@@ -382,6 +368,7 @@ if os.path.exists(id_map_file):
                 gdr_id = row.get("gdr_id") if isinstance(row, dict) else None
                 if gdr_id:
                     if row.get("nick"):
+                        nick_to_id.setdefault(normalize_nick(str(row["nick"])), normalize_id(gdr_id))
                         gdr_by_map_nick.setdefault(normalize_nick(str(row["nick"])), normalize_id(gdr_id))
                         map_nicks.setdefault(normalize_nick(str(row["nick"])), set()).add(normalize_id(gdr_id))
                     gdr_by_cb_id[cb_id] = normalize_id(gdr_id)
@@ -389,6 +376,8 @@ if os.path.exists(id_map_file):
     except (OSError, ValueError, AttributeError) as error:
         sys.exit(f"{id_map_file}: не удалось прочитать ({error}). Останавливаюсь.")
     print(f"coreboard_id_map.json: {len(cb_id_by_gdr)} игроков, самый большой ID {max_cb_id}")
+if not nick_to_id:
+    sys.exit(f"coreboard_id_map.json ({id_map_file}): нет файла или он пустой. Сначала запусти mobile-rating.py --check-cbd. Останавливаюсь.")
 if not (cb_id_by_nick or cb_id_by_gdr):
     print("ID CoreBoard не найдены (нет ни cbd_ids.json, ни coreboard_id_map.json): ключи в missing_players.json остаются нашими")
 
@@ -814,7 +803,7 @@ if args.mode == "in-gdr-not-in-cbd":
     # (в порядке рейтинга gdr). Если игрок уже есть в карте (а на CoreBoard его нет), он сохраняет свой ID.
     # Мобильная доска: нумерация новых игроков начинается со следующего номера после числа игроков в cbd (в cbd 200 игроков:
     # новые получают 201, 202, ...). Занятые ID (уже выданные в карте или найденные на сайте) пропускаются.
-    # Карта (mobile-id-map.py) нумерует игроков cbd подряд, без пропусков: новые идут сразу за её последним ID. Карты нет:
+    # Карта (её ведёт mobile-rating.py) нумерует игроков cbd подряд, без пропусков: новые идут сразу за её последним ID. Карты нет:
     # за числом игроков в cbd.
     next_cb_id = (max([int(k) for k in gdr_by_cb_id if k.isdigit()] or [0]) or len(players2)) + 1
     used_cb_ids = set(cb_id_by_gdr.values()) | set(cb_id_by_nick.values())
