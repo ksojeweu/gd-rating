@@ -38,6 +38,10 @@ RANKING_URL = SITE + "/api/v1/players/ranking/?after={after}"   # по 50 игр
 PAGE_SIZE = 50
 # Панель игрока (лёгкий запрос, который сайт делает при клике на игрока, около 9 КБ вместо 42 КБ у всей страницы)
 PLAYER_URL = SITE + "/demonlist/statsviewer/pane/player/{id}"
+# Страница уровня: число в адресе = место уровня в списке WML (на ней рекорды, «first beaten by» и игровой ID уровня)
+LEVEL_URL = SITE + "/demonlist/{place}"
+LEVEL_REV = 1          # ревизия разбора страницы уровня: поправил парсер, увеличь число, и кеш уровней перекачается
+LEVELS_TOP = 300       # сколько уровней с верха списка WML берём (места 1..300)
 
 LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
 # ID игроков: coreboard_id_map.json в папке mobil/ (на уровень выше scripts/), {"<ID>": {"nick": ник, "gdr_id": WML-ID}}
@@ -217,6 +221,141 @@ def parse_panel(page):
         "country": cc.group(1) if cc else "",
         "records": records,
     }
+
+
+# =========================
+# Страницы уровней (топ WML): рекорды, first beaten by, игровой ID уровня
+# =========================
+
+_LEVEL_H1 = re.compile(r"<h1\b[^>]*>(.*?)</h1>", re.S | re.I)
+_LEVEL_TITLE = re.compile(r"<title>\s*#\d+\s*-\s*(.*?)\s*-\s*World Mobile", re.S | re.I)
+_LEVEL_GD = re.compile(r'<button\b[^>]*id="copy-id"[^>]*>', re.I)
+_DATA_COPY = re.compile(r'data-copy="(\d+)"')
+_RECORDS_OL = re.compile(r'<ol\b[^>]*id="records"[^>]*>(.*?)</ol>', re.S | re.I)
+_REC_LI = re.compile(r'<li\b[^>]*class="(?:[^"]*\s)?rec(?:\s[^"]*)?"[^>]*>(.*?)</li>', re.S | re.I)
+_REC_PLAYER = re.compile(r'href="/demonlist/player/(\d+)"[^>]*>\s*<b>(.*?)</b>', re.S | re.I)
+_REC_CC = re.compile(r'data-cc="([A-Za-z]{2})"')
+_REC_PCT = re.compile(r'<b\b[^>]*class="tn"[^>]*>\s*(\d+(?:\.\d+)?)\s*%', re.I)
+_REC_PCT2 = re.compile(r"--p:\s*(\d+(?:\.\d+)?)\s*%")
+_REC_VIDEO = re.compile(r'<a\b[^>]*class="rec-video"[^>]*href="([^"]*)"|<a\b[^>]*href="([^"]*)"[^>]*class="rec-video"', re.I)
+_FIRST_BY = re.compile(r'first beaten by\s*<a\b[^>]*href="/demonlist/player/(\d+)"[^>]*>(.*?)</a>', re.S | re.I)
+
+
+def _plain(text):
+    return html.unescape(re.sub(r"<[^>]+>", "", text or "")).strip()
+
+
+def parse_level(page):
+    """Страница уровня WML -> {"gd": игровой ID или None, "name": название,
+    "recs": [[ID игрока на WML, ник, страна, процент, видео], ...], "first": [ID игрока, ник] или None}.
+    None, если название уровня на странице не нашлось. Скрытые записи (hidden, «Показать все N узлов») лежат в том же HTML и тоже читаются."""
+    m = _LEVEL_H1.search(page)
+    name = _plain(m.group(1)) if m else ""
+    if not name:
+        m = _LEVEL_TITLE.search(page)
+        name = _plain(m.group(1)) if m else ""
+    if not name:
+        return None
+    gd = None
+    m = _LEVEL_GD.search(page)
+    if m:
+        d = _DATA_COPY.search(m.group(0))
+        gd = int(d.group(1)) if d else None
+    recs = []
+    ol = _RECORDS_OL.search(page)
+    for li in _REC_LI.finditer(ol.group(1) if ol else ""):
+        body = li.group(1)
+        pl = _REC_PLAYER.search(body)
+        pc = _REC_PCT.search(body) or _REC_PCT2.search(body)
+        if not pl or not pc:
+            continue
+        pct = float(pc.group(1))
+        pct = int(pct) if pct == int(pct) else pct
+        cc = _REC_CC.search(body)
+        v = _REC_VIDEO.search(body)
+        video = html.unescape(((v.group(1) or v.group(2)) if v else "") or "").strip()
+        recs.append([pl.group(1), _plain(pl.group(2)), cc.group(1).upper() if cc else None, pct, video])
+    fb = _FIRST_BY.search(page)
+    first = [fb.group(1), _plain(fb.group(2))] if fb else None
+    return {"gd": gd, "name": name, "recs": recs, "first": first}
+
+
+def fetch_levels(store, top=LEVELS_TOP, workers=3, pause=0.4, ttl=900, max_failed=10, log=print):
+    """Качает страницы уровней 1..top и возвращает {место: parse_level(...)} (без отсутствующих). Кеш в store (ключ lvl:<место>):
+    страница моложе ttl секунд не качается заново (mobile-levels.py и mobile-rating.py идут друг за другом и берут одно и то же).
+    Не скачалась страница: берётся старый кеш этого уровня, даже просроченный. Если без данных осталось больше max_failed уровней
+    или записей нет совсем, возвращает None (рейтинг по неполным данным не строим)."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    now = time.time()
+    entries, todo = {}, []
+    for place in range(1, top + 1):
+        c = store.get(f"lvl:{place}")
+        if c and c.get("rev") == LEVEL_REV and now - c.get("at", 0) < ttl:
+            entries[place] = c
+        else:
+            todo.append(place)
+    log(f"  WML: страниц уровней {top}, из кеша {len(entries)}, скачать {len(todo)}")
+    stale = []
+
+    def job(place):
+        key = f"lvl:{place}"
+        try:
+            try:
+                lv = parse_level(http_get(LEVEL_URL.format(place=place)))
+                if lv is None:
+                    raise RuntimeError("на странице нет названия уровня")
+                entry = {"at": time.time(), "rev": LEVEL_REV, **lv}
+            except urllib.error.HTTPError as e:
+                if e.code != 404:
+                    raise
+                entry = {"at": time.time(), "rev": LEVEL_REV, "missing": True}   # уровня с таким местом нет
+            store.put(key, entry)
+            return place, entry
+        except Exception:  # noqa: BLE001
+            old = store.get(key)
+            if old and old.get("rev") == LEVEL_REV:
+                stale.append(place)
+                return place, old
+            return place, None
+        finally:
+            time.sleep(pause)
+
+    for round_no in range(2):
+        if not todo:
+            break
+        if round_no:
+            log(f"  WML: не скачано {len(todo)}, пауза 10 с и повтор")
+            time.sleep(10)
+        failed, done = [], 0
+        with ThreadPoolExecutor(max(1, workers)) as ex:
+            for fut in as_completed([ex.submit(job, p) for p in todo]):
+                place, entry = fut.result()
+                if entry is None:
+                    failed.append(place)
+                else:
+                    entries[place] = entry
+                done += 1
+                if done % 25 == 0:
+                    store.save()
+                    log(f"  WML: {done}/{len(todo)}")
+        store.save()
+        todo = failed
+    if len(todo) > max_failed:
+        log(f"  WML: уровней без данных {len(todo)} (больше {max_failed}), в этом запуске пропускаю. Места: {', '.join(map(str, sorted(todo)[:20]))}")
+        return None
+    if todo:
+        log(f"  WML: уровни без данных (повторю в следующий раз): {', '.join(map(str, sorted(todo)))}")
+    if stale:
+        log(f"  WML: страница не скачалась, взят старый кеш уровней: {', '.join(map(str, sorted(stale)))}")
+    levels = {p: e for p, e in entries.items() if not e.get("missing")}
+    if not levels or not any(e.get("recs") for e in levels.values()):
+        log("  WML: на страницах уровней не нашлось ни одной записи (разметка изменилась?), в этом запуске пропускаю")
+        return None
+    with store.lock:   # игроков в кеше больше нет: убираем старые записи, чтобы файл не рос
+        for k in [k for k in store.data if not k.startswith("lvl:")]:
+            del store.data[k]
+    store.save()
+    return levels
 
 
 def step_records(players, out_dir, url_template, limit, delay):
