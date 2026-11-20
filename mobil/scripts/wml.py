@@ -5,11 +5,11 @@ World Mobile List -> наш формат, всё в одном файле.
 Один запуск делает три шага:
   1. топ игроков (API сайта /api/v1/players/ranking/?after=N)          -> wml/wml_top.json
   2. рекорды каждого игрока (панель игрока, парсится из HTML)          -> wml/wml_records.jsonl
-  3. перевод в наш формат (ID игрока по gdr-ids.json, ID уровня по названию, сверху топа вниз):
+  3. перевод в наш формат (ID игрока по coreboard_id_map.json, ID уровня по названию, сверху топа вниз):
        wml/wml_achievements.json            {"users": {"ID": [[ID уровня, процент, "ссылка"], ...]}}
        wml/wml_achievements_with_nicks.json {"users": {"ID — ник": [[ID уровня, процент, "название", "ссылка"], ...]}}
        wml/wml_levels_not_found.txt         уровни, ID которых по названию не нашёлся
-       wml/wml_players_no_id.txt            игроки, которых нет в gdr-ids.json (в JSON не попадают)
+       wml/wml_players_no_id.txt            игроки, которых нет в coreboard_id_map.json (в JSON не попадают)
 
 Запуск:
   python wml.py                  всё сразу
@@ -40,7 +40,8 @@ PAGE_SIZE = 50
 PLAYER_URL = SITE + "/demonlist/statsviewer/pane/player/{id}"
 
 LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
-IDS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/gdr-ids.json"
+# ID игроков: coreboard_id_map.json в папке mobil/ (на уровень выше scripts/), {"<ID>": {"nick": ник, "gdr_id": WML-ID}}
+ID_MAP_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "coreboard_id_map.json")
 GLOBAL_LIST_URL = "https://api.demonlist.org/level/classic/list?limit={limit}&offset={offset}"
 
 API_TRIES = 4
@@ -347,9 +348,16 @@ def convert(players, nick_to_id, resolver):
 def step_convert(records, out_dir, by_rank):
     print("=== Шаг 3. Перевод в наш формат ===")
     print(f"Игроков с рекордами: {len(records)}")
-    print("gdr-ids.json и levels_tp.json: беру с GitHub (raw кешируется до ~5 минут после правки)")
-    raw_ids = get_json(IDS_URL)
-    nick_to_id = {normalize_nick(n): str(i).strip().casefold() for n, i in raw_ids.items()}
+    print(f"coreboard_id_map.json: беру из {ID_MAP_FILE}; levels_tp.json: с GitHub (raw кешируется до ~5 минут после правки)")
+    try:
+        with open(ID_MAP_FILE, encoding="utf-8") as f:
+            id_map = json.load(f)
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"coreboard_id_map.json: не удалось прочитать ({error}). Сначала запусти mobile-rating.py --check-cbd.")
+    nick_to_id = {normalize_nick(str(row["nick"])): str(row["gdr_id"]).strip().casefold()
+                  for row in id_map.values() if isinstance(row, dict) and row.get("nick") and row.get("gdr_id")}
+    if not nick_to_id:
+        raise SystemExit("coreboard_id_map.json пустой. Останавливаюсь.")
     resolver = LevelResolver(get_json(LEVELS_URL)["levels"])
 
     users, users_nicks, not_found, no_id = convert(records, nick_to_id, resolver)
@@ -368,7 +376,7 @@ def step_convert(records, out_dir, by_rank):
         f.write("\n".join(no_id) + ("\n" if no_id else ""))
 
     print(f"\nИгроков с рекордами в JSON: {len(users)}; записей: {sum(map(len, users.values()))}")
-    print(f"Игроков без ID в gdr-ids.json: {len(no_id)}")
+    print(f"Игроков без ID в coreboard_id_map.json: {len(no_id)}")
     print(f"Уровней, не найденных по названию: {len(not_found)}")
     print("Названия найдены:", {k: v for k, v in resolver.stats.items() if v})
     print(f"Файлы лежат в папке {out_dir}")
