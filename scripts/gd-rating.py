@@ -34,7 +34,7 @@ import lists_core as L  # реестр листов
 HERE = Path(__file__).resolve().parent
 DL = "https://api.demonlist.org/"
 PC = "https://pointercrate.com/api/"
-RAW = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/"
+RAW = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/"
 FILE_SOURCES = {}
 LIST_SOURCES = [s.name for s in L.sources()]  # листы из реестра, которые умеют качать данные сами (wml и т.д.)
 ALL_SOURCES = {"pointercrate", "my_extras", *LIST_SOURCES}
