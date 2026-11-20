@@ -19,11 +19,10 @@
   [{"rank": 1, "name": "Bacon", "country": "Казахстан", "flag": "KZ", "points": 13.39,
     "records": [{"level": "Tidal Wave", "percent": 100}, ...], "raw": "Tidal Wave, ..."}]
 
-ID игроков. Пока ссылки на игроков идут по нику (/main/world/player/SerVax), ID нет: поле "id" пустое, а
-сопоставление с нашим рейтингом идёт по нику, как раньше. Когда автор сайта заменит ник в ссылке на ID
-(/main/world/player/123), он подхватится сам: ID берётся из последней части ссылки, если это число.
-CSV от автора (--csv table.csv) тоже даёт ID. В cbd.txt (его читает compare.py) ID НЕ пишется: формат файла
-прежний. ID лежат в cbd.json (поле "id") и в cbd_ids.json (ник -> ID).
+ID игроков. Ссылки на игроков на CoreBoard идут по числовому ID (/mobile/board/player/123): ID берётся из последней части ссылки,
+если это число (если ссылка по нику, поле "id" пустое). CSV от автора (--csv table.csv) тоже даёт ID. В cbd.txt (его читает
+compare.py) ID пишется в [скобках] в конце строки, как у gdr.txt; если сайт ID не дал, берётся из coreboard_id_map.json по нику.
+ID также лежат в cbd.json (поле "id") и в cbd_ids.json (ник -> ID).
 Слово No в списке рекордов значит "уровня нет" и в записи не попадает; всё остальное (в том числе
 UNKNOWN) названия уровней.
 
@@ -244,18 +243,35 @@ def merge(world, rc):
     return sorted(people.values(), key=lambda p: (p["points"], p["world_rank"] or 10 ** 9))
 
 
+def load_id_map():
+    """coreboard_id_map.json (папка выше scripts/): {нормализованный ник: ID CoreBoard}. Нет файла: пусто."""
+    try:
+        data = json.loads((HERE.parent / "coreboard_id_map.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for key, row in data.items():
+        if isinstance(row, dict) and row.get("nick") and str(key).strip().isdigit():
+            out.setdefault(re.sub(r"\s+", " ", str(row["nick"])).strip().casefold(), str(key).strip())
+    return out
+
+
 def save(rows, out_name):
     """Пишет JSON и рядом .txt в формате строк gd-rating (его читает compare.py):
-    '5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%) - 14.41'. ID в строке нет."""
+    '5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%) - 14.41 [123]'. [123] = ID CoreBoard (если известен)."""
     out = HERE / out_name
     out.write_text(json.dumps(rows, ensure_ascii=False, indent=1), "utf-8")
-    lines = []
+    lines, id_map, with_id = [], load_id_map(), 0
     for i, r in enumerate(rows, 1):
         flag = r.get("flag") or ""
         emoji = "".join(chr(0x1F1E6 + ord(c) - 65) for c in flag) if len(flag) == 2 else ""
+        # ID CoreBoard в [скобках] в конце, как ID у gdr.txt: с сайта (если ссылки по ID), иначе из coreboard_id_map.json по нику
+        cb_id = r.get("id") or id_map.get(re.sub(r"\s+", " ", r["name"]).strip().casefold())
+        with_id += bool(cb_id)
         lines.append(f"{r.get('rank', i)}) {emoji + ' ' if emoji else ''}{r['name']} "
-                     f"({r['raw']}) - {r['points']:.2f}")
+                     f"({r['raw']}) - {r['points']:.2f}" + (f" [{cb_id}]" if cb_id else ""))
     out.with_suffix(".txt").write_text("\n".join(lines), "utf-8")
+    print(f"{out.with_suffix('.txt').name}: ID CoreBoard у {with_id} игроков из {len(rows)}")
     ids = {r["name"]: r["id"] for r in rows if r.get("id")}
     ids_file = out.with_name(out.stem + "_ids.json")
     if ids:
