@@ -9,9 +9,9 @@ place, T и t берутся из mobile/levels_mobile.json (его делает
 СВОЯ СИСТЕМА ID:
   игрок  - ID его аккаунта на WML (одно число на человека, ник может меняться);
   уровень - число из levels_mobile.json (1, 2, 3...).
-mobile/ids_mobile.json (ник -> ID игрока) этот скрипт ведёт сам, ТОЛЬКО для тех, кто есть в cbd.txt (--check-cbd): ник как на
-CoreBoard, ID = ID аккаунта на WML. Пропавших из cbd он убирает. Ники, которые на WML написаны иначе, дописываются руками:
-"ник на CoreBoard": WML-ID (пока игрок в cbd, строка остаётся). Без cbd.txt файл не меняется.
+mobile/coreboard_id_map.json (ID на CoreBoard -> ник и WML-ID) этот скрипт ведёт сам, ТОЛЬКО для тех, кто есть в cbd.txt (--check-cbd): ник как на
+CoreBoard, gdr_id = ID аккаунта на WML. Пропавших из cbd он убирает. Ники, которые на WML написаны иначе, дописываются руками прямо
+в карту: {"любой номер": {"nick": "ник на CoreBoard", "gdr_id": "WML-ID"}} (номера при пересборке расставятся заново). Без cbd.txt файл не меняется.
 Названия уровней, которые на WML отличаются от CoreBoard, задаются в mobile/level_aliases.json:
   {"название на WML": "название на CoreBoard"}.
 
@@ -161,26 +161,30 @@ if unresolved:
 (OUT / "mobile_levels_not_found.txt").write_text(
     "".join(f"{n} | записей: {c}\n" for n, c in sorted(unresolved.items(), key=lambda kv: -kv[1])), "utf-8")
 
-# ---------- ids_mobile.json: ник -> ID игрока, ТОЛЬКО те, кто есть в cbd.txt ----------
-# Ник берётся как на CoreBoard (из cbd.txt), ID = ID аккаунта на WML. Игроки, которых нет в cbd, в файл не попадают, а
-# уже лежащие в нём и пропавшие из cbd убираются. Нет cbd.txt (--check-cbd не передан или файл пустой): файл не трогаем.
-ids_path = DATA / "ids_mobile.json"
-ids = read_json(ids_path, {})
-if not isinstance(ids, dict):
-    sys.exit("ids_mobile.json: ожидался словарь ник -> ID. Останавливаюсь, чтобы его не затереть.")
+# ---------- coreboard_id_map.json: {ID на CoreBoard: {"nick": ник, "gdr_id": ID аккаунта на WML}} ----------
+# Это единственный файл с ID игроков (ids_mobile.json больше нет). Ник берётся как на CoreBoard (из cbd.txt), gdr_id = WML-ID.
+# Уже записанная в карте пара ник -> WML-ID главнее (так можно поправить руками). Новые ники из cbd ищутся среди игроков WML.
+# Карта пересобирается целиком: номера идут по порядку рейтинга CoreBoard без пропусков, только для тех, кто есть в cbd и у кого
+# нашёлся WML-ID. Выпавшие из cbd убираются. Нет cbd.txt (--check-cbd не передан или файл пустой): файл не трогаем.
+map_path = DATA / "coreboard_id_map.json"
+cur_map = read_json(map_path, {})
+if not isinstance(cur_map, dict):
+    sys.exit("coreboard_id_map.json: ожидался словарь. Останавливаюсь, чтобы его не затереть.")
 CBD_ROW = re.compile(r"^\s*\d+\)\s*(?:[\U0001F1E6-\U0001F1FF]{2}\s*)?(.*?)\s\(.*\)\s-\s(\d+(?:\.\d+)?)\s*$")
-cbd_nicks = {}
+cbd_nicks = {}   # нормализованный ник -> ник как на CoreBoard, в порядке рейтинга CoreBoard
 if args.check_cbd and Path(args.check_cbd).exists():
     for line in Path(args.check_cbd).read_text("utf-8").splitlines():
         m = CBD_ROW.match(line)
         if m:
-            cbd_nicks.setdefault(levelsearch.normalize(m.group(1)), m.group(1).strip())
+            cbd_nicks.setdefault(levelsearch.normalize(FLAG_RE.sub("", m.group(1))), FLAG_RE.sub("", m.group(1)).strip())
 if not cbd_nicks:
-    print("ids_mobile.json: cbd.txt не передан или пустой (--check-cbd), файл не изменён")
+    print("coreboard_id_map.json: cbd.txt не передан или пустой (--check-cbd), файл не изменён")
 else:
-    kept = {n: v for n, v in ids.items() if levelsearch.normalize(FLAG_RE.sub("", n)) in cbd_nicks}
-    removed = len(ids) - len(kept)
-    taken = {levelsearch.normalize(FLAG_RE.sub("", n)): str(v).strip() for n, v in kept.items()}
+    taken = {}   # нормализованный ник -> WML-ID
+    for row in cur_map.values():
+        if isinstance(row, dict) and row.get("nick") and row.get("gdr_id"):
+            taken.setdefault(levelsearch.normalize(FLAG_RE.sub("", str(row["nick"]))), str(row["gdr_id"]).strip())
+    old_nicks = set(taken)
     added, clashes = 0, []
     for aid, pl in sorted(data["players"].items(), key=lambda kv: (kv[1].get("r") is None, kv[1].get("r") or 0)):
         nick = src.display_nick(pl["n"]) or pl["n"]
@@ -188,23 +192,26 @@ else:
         if nk not in cbd_nicks:
             continue
         if nk not in taken:
-            kept[cbd_nicks[nk]] = str(aid)
             taken[nk] = str(aid)
             added += 1
-        elif taken[nk] != str(aid):
-            clashes.append(f"{nick}: в файле ID {taken[nk]}, на WML ID {aid}")
-    if added or removed:
-        tmp = ids_path.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(kept, ensure_ascii=False, indent=1) + "\n", "utf-8")
-        tmp.replace(ids_path)
-    ids = kept
-    print(f"ids_mobile.json: ников {len(ids)} (в cbd {len(cbd_nicks)}), дописано {added}, убрано {removed}")
+        elif taken[nk] != str(aid) and nk in old_nicks:
+            clashes.append(f"{nick}: в карте WML-ID {taken[nk]}, на WML ID {aid}")
+    new_map = {}
+    for nk, nick in cbd_nicks.items():
+        if nk in taken:
+            new_map[str(len(new_map) + 1)] = {"nick": nick, "gdr_id": taken[nk]}
+    removed = len({k for k in old_nicks if k not in cbd_nicks})
+    if new_map != cur_map:
+        tmp = map_path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(new_map, ensure_ascii=False, indent=1) + "\n", "utf-8")
+        tmp.replace(map_path)
+    print(f"coreboard_id_map.json: игроков {len(new_map)} (в cbd {len(cbd_nicks)}), дописано {added}, убрано {removed}")
     missing = [n for k, n in cbd_nicks.items() if k not in taken]
     if missing:
-        print(f"  в cbd есть, а ID нет (на WML такого ника нет, допиши руками \"ник\": WML-ID): {len(missing)}, первые 5: "
+        print(f"  в cbd есть, а WML-ID нет (на WML такого ника нет, допиши в карту руками \"gdr_id\"): {len(missing)}, первые 5: "
               + ", ".join(missing[:5]))
     if clashes:
-        print(f"  ВНИМАНИЕ: ник уже занят другим ID у {len(clashes)} игроков (в файле оставлен прежний), первые 5:")
+        print(f"  ВНИМАНИЕ: ник уже привязан к другому WML-ID у {len(clashes)} игроков (в карте оставлен прежний), первые 5:")
         for c in clashes[:5]:
             print("    " + c)
 
