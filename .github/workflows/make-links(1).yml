@@ -1,0 +1,102 @@
+name: make-links
+
+on:
+  schedule:
+    # Каждые 6 часов (время UTC). Минуты не круглые, чтобы не попадать в пик нагрузки GitHub.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "Дополнительные аргументы make-links.py (например --no-yt-id или --all-videos)"
+        required: false
+        default: ""
+
+# Нужно, чтобы запуск мог сам коммитить в репозиторий
+permissions:
+  contents: write
+
+# Два запуска одновременно не нужны: второй подождёт первого
+concurrency:
+  group: make-links
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350  # лимит GitHub на один запуск 360 минут
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Кэш каналов игроков (YouTube/Twitch/...) переживает запуски: каналы почти не меняются,
+      # а без кэша каждый запуск заново спрашивал бы YouTube про тысячи видео.
+      # cache_list_*.json - кэш страниц игроков других листов (WML и любых будущих): маска подхватывает
+      # новый лист сама, в workflow для него ничего дописывать не нужно.
+      # Рекорды demonlist и Pointercrate в кэш не кладём: их нужно качать заново каждый раз.
+      - name: Restore channels cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            cache_channels.json
+            cache_level_names.json
+            cache_list_*.json
+          key: channels-${{ github.run_id }}
+          restore-keys: channels-
+
+      # --refresh стирает кэш рекордов, чтобы данные были свежими (кэш каналов он не трогает).
+      # Путь scripts/make-links.py поменяй, если скрипт лежит в другом месте.
+      - name: Run make-links.py
+        env:
+          EXTRA_ARGS: ${{ github.event.inputs.args }}
+        run: python scripts/make-links.py --refresh --workers=8 $EXTRA_ARGS
+
+      # Кэш каналов сохраняем всегда, даже если запуск упал или не уложился по времени:
+      # так следующий запуск продолжит с места остановки.
+      - name: Save channels cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            cache_channels.json
+            cache_level_names.json
+            cache_list_*.json
+          key: channels-${{ github.run_id }}
+
+      # Коммитим links.json, карту ID CoreBoard и журнал склеек по общим каналам (он дописывается при каждой склейке,
+      # поэтому должен жить в репозитории, иначе после запуска он пропадёт)
+      - name: Commit links.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add links.json
+          # gdr-ids.json скрипт правит сам, когда у игрока без глобала появляется глобал (pc... -> настоящий ID)
+          if [ -f gdr-ids.json ]; then git add gdr-ids.json; fi
+          # coreboard_id_map.json скрипт правит сам: у игрока, у которого появился глобал, gdr_id pc... меняется на настоящий ID
+          if [ -f coreboard_id_map.json ]; then git add coreboard_id_map.json; fi
+          if [ -f links_channel_merges.txt ]; then git add links_channel_merges.txt; fi
+          if git diff --cached --quiet; then
+            echo "ничего не изменилось, коммитить нечего"
+            exit 0
+          fi
+          git commit -m "Auto: update links.json, coreboard_id_map.json"
+          # Если ты правил файлы руками, пока шёл запуск, подтягиваем их перед отправкой
+          git pull --rebase
+          git push
+
+      # Файлы для проверки глазами (спорные случаи и непонятные ссылки) в репозиторий не коммитим,
+      # их можно скачать на странице запуска во вкладке Actions
+      - name: Upload review files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            links_review.txt
+            links_other_sites.txt
+            links_channel_conflicts.txt
+            links_*_hints.txt
+          if-no-files-found: ignore
+          retention-days: 14
