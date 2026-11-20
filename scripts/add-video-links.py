@@ -48,7 +48,7 @@ _HERE = Path(__file__).resolve().parent
 ID_MAP_FILE = Path(args.id_map) if args.id_map else next(
     (p for p in (_HERE.parent / "coreboard_id_map.json", _HERE / "coreboard_id_map.json") if p.exists()),
     _HERE.parent / "coreboard_id_map.json")
-LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"  # названия уровней (нужны для команд), только GitHub
+LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"  # названия уровней (нужны для команд), только GitHub
 
 # Особые названия уровней (ID в глобале -> как их писать в командах) лежат в levels.py, общем для всех
 # скриптов. Для этих уровней API не спрашивается, берётся название оттуда. Дописали там - работает здесь.
@@ -58,8 +58,8 @@ GLOBAL_API = "https://api.demonlist.org"
 DEMONLIST_LEVEL_URL = "https://demonlist.org/demonlist/level/{level_id}"
 POINTERCRATE_API = "https://pointercrate.com/api/v1"
 POINTERCRATE_DEMONS_API = "https://pointercrate.com/api/v2/demons"
-LINKS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/refs/heads/main/links.json"
-FIX_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/fix.json"  # склейки аккаунтов глобала (merges)
+LINKS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/refs/heads/main/links.json"
+FIX_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/fix.json"  # склейки аккаунтов глобала (merges)
 
 LIMIT = 100
 DELAY = 0.15
