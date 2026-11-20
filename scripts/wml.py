@@ -43,7 +43,7 @@ PLAYER_URL = SITE + "/demonlist/statsviewer/pane/player/{id}"
 # (у того же уровня в list-data может быть 1136): с внутренним ID откроется чужой уровень или 404.
 LEVEL_URL = SITE + "/demonlist/{pos}"
 
-LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
+LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
 _HERE = os.path.dirname(os.path.abspath(__file__))
 # Карта игроков лежит в корне репозитория (папка выше scripts/), запасной вариант: рядом со скриптом
 ID_MAP_FILE = next((p for p in (os.path.join(os.path.dirname(_HERE), "coreboard_id_map.json"),
