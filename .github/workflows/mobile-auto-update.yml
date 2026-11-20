@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Кеш страниц игроков WML (иначе каждый запуск качает всех игроков заново).
+      # Кеш страниц уровней WML (запасной вариант, если страница уровня не скачалась).
       - name: Restore WML cache
         uses: actions/cache/restore@v4
         with:
