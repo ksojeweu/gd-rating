@@ -51,8 +51,8 @@ ap.add_argument("--n", type=int, default=6, help="сколько лучших з
 ap.add_argument("--cap", type=float, default=300, help="макс. стоимость записи; недостающие добираются этим значением")
 ap.add_argument("--show", type=int, default=30, help="сколько игроков печатать")
 ap.add_argument("--ids", action="store_true", help="добавлять ID игрока в конец строки (нужно для compare.py)")
-ap.add_argument("--list-conc", type=int, default=3, help="сколько страниц игроков WML качать одновременно")
-ap.add_argument("--list-ttl", type=int, default=7 * 86400, help="секунд, пока страница игрока считается свежей")
+ap.add_argument("--list-conc", type=int, default=3, help="сколько страниц уровней WML качать одновременно")
+ap.add_argument("--list-ttl", type=int, default=7 * 86400, help="не используется (страницы уровней считаются свежими 15 минут)")
 ap.add_argument("--extras", default=str(DATA / "my_extras.json"), help="my_extras.json: записи CoreBoard, которых нет на WML; идут в gdr_full.*")
 ap.add_argument("--check-cbd", default="", help="файл cbd.txt: сверить наши очки с очками CoreBoard")
 ap.add_argument("--out-dir", default=str(HERE), help="куда писать gdr.txt и остальное (по умолчанию scripts/)")
@@ -113,6 +113,8 @@ for wml_name, cb_name in (read_json(DATA / "level_aliases.json", {}) or {}).item
     else:
         index.add_alias(wml_name, key)
 index.stats.clear()
+# игровой ID уровня -> ключ уровня (gd_id пишет mobile-levels.py): по нему записи находят уровень без оглядки на название
+gd_key = {str(e["gd_id"]): str(k) for k, e in levels_data.items() if isinstance(e, dict) and e.get("gd_id") and str(k) in meta}
 
 # ---------- WML ----------
 src = L.get("wml")
@@ -130,10 +132,12 @@ best_by, videos, unresolved = {}, {}, {}
 found = {}
 for r in data["records"]:
     name = r["l"]
-    fk = (name, r.get("pl"))
-    if fk not in found:
-        found[fk] = index.find(name, r.get("pl"))
-    k = found[fk]
+    k = gd_key.get(str(r["i"])) if r.get("i") else None
+    if k is None:
+        fk = (name, r.get("pl"))
+        if fk not in found:
+            found[fk] = index.find(name, r.get("pl"))
+        k = found[fk]
     if k is None:
         label = f"{name} (#{r['pl']})" if r.get("pl") else name
         unresolved[label] = unresolved.get(label, 0) + 1
