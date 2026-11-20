@@ -1,7 +1,7 @@
 name: mobile-auto-update
 
 # Автообновление МОБИЛЬНОГО рейтинга (отдельно от auto-update): записи только с WML, топ с coreboard .../mobil/world.
-# Всё лежит в папке mobil/ в корне репозитория (скрипты, levels_mobile.json, ids_mobile.json, my_extras.json, cbd/).
+# Всё лежит в папке mobil/ в корне репозитория (скрипты, levels_mobile.json, coreboard_id_map.json, my_extras.json, cbd/).
 # Один шаг делает всё: топ CoreBoard -> уровни -> рейтинг по WML -> my_extras.json (чего нет у нас) -> cbd/ (чего нет у них).
 # Этот файл должен лежать именно в .github/workflows/: GitHub не запускает workflow из других папок.
 
