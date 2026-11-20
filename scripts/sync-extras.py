@@ -75,7 +75,7 @@ args = ap.parse_args()
 
 LEVELS_URL = "https://coreboard.pythonanywhere.com/main/levels"
 LEVELS_UA = "gl-ext-top6"
-LEVELS_RAW = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
+LEVELS_RAW = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
 GLOBAL_API = "https://api.demonlist.org/level/classic/list"
 
 
