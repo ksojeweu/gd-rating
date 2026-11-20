@@ -260,7 +260,7 @@
   "gdr_id": "93"
  },
  "66": {
-  "nick": "Ikkyseen",
+  "nick": "ikkyseen",
   "gdr_id": "3988"
  },
  "67": {
@@ -305,7 +305,7 @@
  },
  "77": {
   "nick": "JustCoal",
-  "gdr_id": "736"
+  "gdr_id": 736
  },
  "78": {
   "nick": "Demonbeater17",
@@ -444,7 +444,7 @@
   "gdr_id": "1112"
  },
  "112": {
-  "nick": "NiQSaIL",
+  "nick": "NiQsaIL",
   "gdr_id": "350"
  },
  "113": {
@@ -633,7 +633,7 @@
  },
  "159": {
   "nick": "bullsigmaaurafarm",
-  "gdr_id": "2163"
+  "gdr_id": "330"
  },
  "160": {
   "nick": "BENeNsik",
@@ -831,6 +831,10 @@
   "nick": "PierceSpuffy",
   "gdr_id": "3094"
  },
+ "209": {
+  "nick": "piky12l",
+  "gdr_id": "2168"
+ },
  "210": {
   "nick": "LeRat2905",
   "gdr_id": "749"
@@ -848,142 +852,138 @@
   "gdr_id": "3098"
  },
  "214": {
-  "nick": "piky12l",
-  "gdr_id": "2168"
- },
- "215": {
   "nick": "hydronium",
   "gdr_id": "1077"
  },
- "216": {
+ "215": {
   "nick": "IanGMD",
   "gdr_id": "5112"
  },
- "217": {
+ "216": {
   "nick": "cranberry",
   "gdr_id": "417"
  },
- "218": {
+ "217": {
   "nick": "Neckloover777",
   "gdr_id": "418"
  },
- "219": {
+ "218": {
   "nick": "Jebking",
   "gdr_id": "420"
  },
- "220": {
+ "219": {
   "nick": "ElectroDaemon",
   "gdr_id": "422"
  },
- "221": {
+ "220": {
   "nick": "Carina",
   "gdr_id": "2344"
  },
- "222": {
+ "221": {
   "nick": "Enter8909",
   "gdr_id": "1180"
  },
- "223": {
+ "222": {
   "nick": "listless",
   "gdr_id": "1069"
  },
- "224": {
+ "223": {
   "nick": "yogurt",
   "gdr_id": "883"
  },
- "225": {
+ "224": {
   "nick": "hardysnail",
   "gdr_id": "987"
  },
- "226": {
+ "225": {
   "nick": "Leducbang",
   "gdr_id": "3575"
  },
- "227": {
+ "226": {
   "nick": "Davios",
   "gdr_id": "3114"
  },
- "228": {
+ "227": {
   "nick": "Jonnu",
   "gdr_id": "664"
  },
- "229": {
+ "228": {
   "nick": "Stefan Boss",
   "gdr_id": "142"
  },
- "230": {
+ "229": {
   "nick": "YtTanel",
   "gdr_id": "541"
  },
- "231": {
+ "230": {
   "nick": "Bolnine",
   "gdr_id": "1111"
  },
- "232": {
+ "231": {
   "nick": "dnzzn",
   "gdr_id": "509"
  },
- "233": {
+ "232": {
   "nick": "700trillion",
   "gdr_id": "5239"
  },
- "234": {
+ "233": {
   "nick": "Tipito",
   "gdr_id": "292"
  },
- "235": {
+ "234": {
   "nick": "notlsa",
   "gdr_id": "478"
  },
- "236": {
+ "235": {
   "nick": "Amananka",
   "gdr_id": "916"
  },
- "237": {
+ "236": {
   "nick": "Hayzn",
   "gdr_id": "1109"
  },
- "238": {
+ "237": {
   "nick": "GochuJang",
   "gdr_id": "1160"
  },
- "239": {
+ "238": {
   "nick": "Kelvin707",
   "gdr_id": "4690"
  },
- "240": {
+ "239": {
   "nick": "WhiteEmerald",
   "gdr_id": "794"
  },
- "241": {
+ "240": {
   "nick": "Kkbleeblob",
   "gdr_id": "743"
  },
- "242": {
+ "241": {
   "nick": "Sadius",
   "gdr_id": "1064"
  },
- "243": {
+ "242": {
   "nick": "zHorizonGD",
   "gdr_id": "3559"
  },
- "244": {
+ "243": {
   "nick": "Chipsnotfoundfr",
   "gdr_id": "4724"
  },
- "245": {
+ "244": {
   "nick": "ddddr",
   "gdr_id": "2325"
  },
- "246": {
+ "245": {
   "nick": "Ahn",
   "gdr_id": "767"
  },
- "247": {
+ "246": {
   "nick": "Blarix",
   "gdr_id": "2778"
  },
- "248": {
+ "247": {
   "nick": "pupipe",
   "gdr_id": "4697"
  }
