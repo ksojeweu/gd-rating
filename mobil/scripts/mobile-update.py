@@ -4,7 +4,8 @@
 Записи только с WML, топ с https://coreboard.pythonanywhere.com/mobile/world, ID и уровни свои (см. mobile-rating.py).
 
 Шаги:
-  1. coreboard-parse.py all    -> cbd.txt, cbd_ids.json        (основной топ + Топ РК мобильной доски CoreBoard, каждый игрок один раз)
+  1. coreboard-parse.py all    -> cbd.txt, cbd_ids.json        (основной топ + Топ РК мобильной доски CoreBoard, каждый игрок один раз;
+                                                              в конце строки ID CoreBoard с сайта в [скобках], как у gdr.txt)
   2. mobile-levels.py          -> mobile/levels_mobile.json    (уровни, T, t и свои ID уровней)
   3. mobile-rating.py --ids    -> gdr.txt, gdr_videos.json     (наш рейтинг по WML; заодно ведёт mobile/coreboard_id_map.json: ID игрока на CoreBoard -> ник и WML-ID)
   4. compare in-cbd-not-in-gdr -> mobile/my_extras.json        (что есть на CoreBoard, а на WML нет; сравнение с gdr_wml.txt, без экстрас)
