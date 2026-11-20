@@ -5,9 +5,9 @@
 ID уровня = название уровня на CoreBoard (без "x"). Алиасы с CoreBoard ("Имя = Уровень (T=.., t=..)") получают ключ "xИмя".
 
 Порядок работы:
-  1. берём топ WML (по умолчанию 300 уровней, --limit);
+  1. берём топ WML со страниц уровней /demonlist/<место> (по умолчанию места 1..300, --limit): название и игровой ID уровня;
   2. берём список уровней CoreBoard (/mobile/levels);
-  3. сопоставляем построчно. Скобки в названиях не читаются (на CoreBoard название может быть "Имя (что-то)"):
+  3. сначала пары, которые уже были (игровой ID уровня = gd_id в levels_mobile.json, --rebuild игнорирует их), остальное сопоставляем построчно. Скобки в названиях не читаются (на CoreBoard название может быть "Имя (что-то)"):
        - на позиции i уровень WML и уровень CoreBoard называются одинаково -> пара;
        - иначе ищем этот уровень WML в списке CoreBoard сверху вниз (среди ещё не занятых) -> пара;
        - не нашли -> уровень остаётся без ID, в пары не попадает, попадает в отчёт;
@@ -18,7 +18,7 @@ ID уровня = название уровня на CoreBoard (без "x"). А�
 
 Файлы:
   levels_mobile.json          {"levels": {"<название CoreBoard>": {"place": место на CoreBoard, "name", "T", "t", "wml": место на WML или null,
-                                                                   "wml_name": название на WML}, "xАлиас": {...}}}
+                                                                   "wml_name": название на WML, "gd_id": игровой ID уровня}, "xАлиас": {...}}}
   mobile_levels_report.txt    отчёт: уровни WML без ID, уровни CoreBoard без пары на WML, места, где позиции не совпали
 
 Запуск:
@@ -39,16 +39,15 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+import wml as site  # noqa: E402  (fetch_levels: страницы уровней WML)
+from lists_core import JsonStore  # noqa: E402
 DATA = HERE.parent                      # mobile/
 LEVELS_FILE = DATA / "levels_mobile.json"
 ALIASES_FILE = DATA / "level_aliases.json"
 REPORT_FILE = DATA / "mobile_levels_report.txt"
 CB_URL = "https://coreboard.pythonanywhere.com/mobile/levels"
-WML_SITE = "https://worldmobilelist.com"
-# ВНИМАНИЕ: адрес списка уровней WML не проверен (в остальных скриптах используется только рейтинг игроков).
-# Если оба адреса не отвечают, дай файл через --wml-json или поправь здесь.
-WML_LEVEL_URLS = [WML_SITE + "/api/v2/demons/listed/?limit=100&after={after}",
-                  WML_SITE + "/api/v1/levels/ranking/?after={after}"]
 UA = "gl-ext-top6"
 
 NUM = r"\d+(?:\.\d+)?"
@@ -167,28 +166,35 @@ def _wml_rows(items):
 
 
 def fetch_wml(limit):
-    """Топ уровней WML: [(место, название)] по возрастанию места, не больше limit."""
-    errors = []
-    for tpl in WML_LEVEL_URLS:
-        rows, after = [], 0
-        try:
-            for _ in range(50):
-                got = _wml_rows(_wml_items(json.loads(http_get(tpl.format(after=after)))))
-                if not got:
-                    break
-                rows += got
-                if len(rows) >= limit:
-                    break
-                after += len(got)
-                time.sleep(0.3)
-        except Exception as e:  # noqa: BLE001
-            errors.append(f"{tpl}: {e}")
+    """Топ уровней WML со страниц /demonlist/<место>: ([(место, название)], {место: игровой ID уровня})."""
+    levels = site.fetch_levels(JsonStore(str(HERE / "wmlcache.json")), top=limit)
+    if not levels:
+        sys.exit("Не удалось получить страницы уровней WML. CoreBoard не трогаю, levels_mobile.json не изменён.")
+    places = sorted(levels)
+    return [(p, levels[p]["name"]) for p in places], {p: levels[p].get("gd") for p in places}
+
+
+def prepair(wml, wml_gd, cb, old_levels):
+    """Пары по игровому ID уровня: если уровень WML с этим ID раньше уже был связан с уровнем CoreBoard (gd_id в levels_mobile.json),
+    а такой уровень CoreBoard всё ещё есть, пара остаётся прежней (даже если места и названия сдвинулись).
+    -> {индекс cb: индекс wml}."""
+    old_by_gd = {}
+    for e in old_levels.values():
+        if isinstance(e, dict) and e.get("gd_id") and "like" not in e and e.get("name"):
+            old_by_gd[str(e["gd_id"])] = e
+    pre, used = {}, set()
+    for i, (place, _name) in enumerate(wml):
+        gd = wml_gd.get(place)
+        e = old_by_gd.get(str(gd)) if gd else None
+        if not e:
             continue
-        if rows:
-            rows.sort()
-            return rows[:limit]
-    sys.exit("Не удалось получить список уровней WML:\n  " + "\n  ".join(errors or ["пустой ответ"])
-             + "\nCoreBoard не трогаю, levels_mobile.json не изменён. Дай топ файлом (--wml-json) или поправь WML_LEVEL_URLS.")
+        cands = [j for j, r in enumerate(cb) if j not in used and r[1] == e["name"]]
+        if not cands:
+            continue
+        j = min(cands, key=lambda j: abs(cb[j][0] - (e.get("place") or 0)))
+        used.add(j)
+        pre[j] = i
+    return pre
 
 
 # ---------- сопоставление ----------
@@ -255,10 +261,11 @@ def save(entries, path):
 
 def main():
     ap = argparse.ArgumentParser(description="Уровни мобильной доски: WML top + CoreBoard -> levels_mobile.json")
-    ap.add_argument("--limit", type=int, default=300, help="сколько уровней брать из топа WML")
+    ap.add_argument("--limit", type=int, default=300, help="сколько уровней брать с верха списка WML (места 1..N)")
+    ap.add_argument("--rebuild", action="store_true", help="не держаться за прежние пары по игровому ID уровня, сопоставить заново по названиям")
     ap.add_argument("--url", default=CB_URL)
     ap.add_argument("--cb-html", help="страница CoreBoard из файла вместо скачивания")
-    ap.add_argument("--wml-json", help="топ WML из файла вместо скачивания")
+    ap.add_argument("--wml-json", help="топ WML из файла вместо скачивания (без игровых ID уровней)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
@@ -266,8 +273,9 @@ def main():
     # 1. WML первым
     if args.wml_json:
         wml = sorted(_wml_rows(_wml_items(json.loads(Path(args.wml_json).read_text("utf-8")))))[:args.limit]
+        wml_gd = {}
     else:
-        wml = fetch_wml(args.limit)
+        wml, wml_gd = fetch_wml(args.limit)
     print(f"WML: уровней {len(wml)}")
 
     # 2. потом CoreBoard
@@ -296,15 +304,26 @@ def main():
     aliases_map = {norm(k): v for k, v in al.items()}
 
     # 3. сопоставление
-    pairs, wml_no_id, cb_no_pair, shifts, dups = align(wml, cb, aliases_map)
+    try:
+        old_levels = json.loads(LEVELS_FILE.read_text("utf-8")).get("levels") or {}
+    except (OSError, ValueError, AttributeError):
+        old_levels = {}
+    pre = {} if args.rebuild else prepair(wml, wml_gd, cb, old_levels)
+    rem_w = [i for i in range(len(wml)) if i not in set(pre.values())]
+    rem_c = [j for j in range(len(cb)) if j not in pre]
+    sub, wml_no_id, cb_no_pair, shifts, dups = align([wml[i] for i in rem_w], [cb[j] for j in rem_c], aliases_map)
+    pairs = dict(pre)
+    for jj, ii in sub.items():
+        pairs[rem_c[jj]] = rem_w[ii]
 
     entries, taken_keys, same_names = [], set(), []
     for j, (place, name, T, t) in enumerate(cb):
         e = {"place": place, "name": name, "T": T, "t": t}
         if j in pairs:
             e["wml"], e["wml_name"] = wml[pairs[j]][0], wml[pairs[j]][1]
+            e["gd_id"] = wml_gd.get(wml[pairs[j]][0])
         else:
-            e["wml"], e["wml_name"] = None, None
+            e["wml"], e["wml_name"], e["gd_id"] = None, None, None
         key = name                  # ID = название на CoreBoard
         if key in taken_keys:       # два уровня с совсем одинаковым названием на CoreBoard: второму ID "Название #место"
             key = f"{name} #{place}"
@@ -316,7 +335,7 @@ def main():
         entries.append(("x" + alias, {"name": alias, "like": like, "place": place_of[like], "T": T, "t": t}))
 
     # 4. отчёт
-    rep = [f"WML: {len(wml)}, CoreBoard: {len(cb)}, пар: {len(pairs)}",
+    rep = [f"WML: {len(wml)}, CoreBoard: {len(cb)}, пар: {len(pairs)} (из них по прежнему игровому ID уровня: {len(pre)})",
            f"Уровни WML без ID (на CoreBoard не найдены, в пары не попали): {len(wml_no_id)}"]
     rep += [f"  WML {p}. {n}" for p, n in wml_no_id]
     rep.append(f"Уровни CoreBoard без пары на WML: {len(cb_no_pair)}")
