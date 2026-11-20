@@ -14,11 +14,12 @@ Workflow: `.github/workflows/mobile-auto-update.yml` (запуск каждые 
 | `scripts/lists_core.py`, `wml.py`, `list_wml.py` | WML: данные берутся со страниц уровней `/demonlist/1` … `/demonlist/300` (рекорды, «first beaten by», игровой ID уровня); топ игроков и страницы игроков не качаются |
 | `levels_mobile.json` | уровни: ключ = название CoreBoard, место, T, t, место и название на WML, игровой ID уровня `gd_id` (сам обновляется) |
 | `level_aliases.json` | `{"название на WML": "название на CoreBoard"}` (руками) |
-| `coreboard_id_map.json` | ID игроков CoreBoard mobile -> ник и WML-ID (`{"<ID>": {"nick", "gdr_id"}}`), единственный файл с ID игроков: сам ведётся по cbd.txt, можно править руками |
+| `coreboard_id_map.json` | ID игроков CoreBoard mobile -> ник и WML-ID (`{"<ID>": {"nick", "gdr_id"}}`), единственный файл с ID игроков: сам ведётся по cbd.txt, ключ = ID игрока на CoreBoard (из ссылок `/player/<ID>`), `gdr_id` пустой, пока на WML нет аккаунта; можно править руками |
 | `my_extras.json` | записи, которые есть на CoreBoard, а на WML нет (пересобирается целиком) |
 | `cbd/` | что есть у нас, а на CoreBoard нет: missing_achievements*.json, missing_players.json, commands.txt |
 
 ## Система ID
+- ID CoreBoard пишется в `cbd.txt` в [скобках] в конце строки (как ID WML в `gdr.txt`): `5) 🇵🇱 ник (Уровень, Уровень 88%) - 14.41 [123]`. Берётся с сайта (ссылки на игроков вида `/mobile/board/player/<ID>`), запасной вариант (нет ID на сайте) — `coreboard_id_map.json` по нику. `compare.py` сопоставляет игроков по нему.
 - Игрок: ID его аккаунта на WML. Ник на сайте может меняться, ID нет. Если ник на CoreBoard пишется иначе, чем на WML,
   допиши в `coreboard_id_map.json` запись `"любой номер": {"nick": "ник на CoreBoard", "gdr_id": "WML-ID"}`, номера при пересборке расставятся заново.
 - Уровень: ID = название уровня на CoreBoard (скобки в названии остаются в ID, но при сравнении не читаются). Алиасы с CoreBoard
