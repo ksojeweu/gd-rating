@@ -1,0 +1,103 @@
+name: auto-update
+
+# Один workflow на оба обновления:
+#   1. sync-extras.py: что есть в CoreBoard, а у нас нет  -> my_extras.json, levels_tp.json
+#   2. cbd-update.py:  что есть у нас, а в CoreBoard нет  -> cbd/ (missing_achievements, with_nicks, commands)
+# Старый sync-extras.yml нужно удалить, иначе sync-extras будет запускаться дважды.
+
+on:
+  workflow_dispatch:
+    inputs:
+      extras_args:
+        description: "Аргументы для sync-extras.py (например --dry-run или --force)"
+        required: false
+        default: ""
+      cbd_args:
+        description: "Аргументы для cbd-update.py (например --no-videos, но тогда без коммита)"
+        required: false
+        default: ""
+  # Запускается только после того, как закончился make-links (сам по расписанию больше не идёт).
+  # Файл workflow должен лежать в основной ветке, иначе workflow_run не сработает.
+  workflow_run:
+    workflows: ["make-links"]   # должно совпадать с name: в make-links.yml
+    types: [completed]
+
+# Листы (WML и любые будущие), которые автообновление НЕ трогает (через запятую, пусто = все включены).
+# cbd-update.py берёт рейтинг с --src all, поэтому новый лист попадает в него сам: пока лист проверяется,
+# впиши его сюда, а когда убедишься, что всё работает, убери название.
+env:
+  GL_LISTS_OFF: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-update
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # После make-links идём только если он закончился успешно; ручной запуск работает как раньше
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install requests
+        run: pip install requests
+
+      # Кеш gd-rating (профили игроков, страны, записи уровней). Без него каждый запуск
+      # заново качает всё, в том числе страну у тысяч игроков по одному запросу.
+      - name: Restore gd-rating cache
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/levelcache.json
+          key: levelcache-${{ github.run_id }}
+          restore-keys: levelcache-
+
+      - name: Run sync-extras.py
+        id: extras
+        run: python scripts/sync-extras.py --commit ${{ github.event.inputs.extras_args }}
+
+      # Выполняется и после сбоя первого шага, чтобы одно обновление не блокировало другое.
+      # Если sync-extras прошёл, он уже скачал cbd.txt и gdr.txt, и второй шаг берёт их готовыми.
+      - name: Run cbd-update.py
+        if: ${{ !cancelled() }}
+        env:
+          EXTRAS_OUTCOME: ${{ steps.extras.outcome }}
+          CBD_ARGS: ${{ github.event.inputs.cbd_args }}
+        run: |
+          if [ "$EXTRAS_OUTCOME" = "success" ] && [ -s scripts/cbd.txt ] && [ -s scripts/gdr.txt ]; then
+            python scripts/cbd-update.py --commit --skip-fetch $CBD_ARGS
+          else
+            python scripts/cbd-update.py --commit $CBD_ARGS
+          fi
+
+      # Промежуточные файлы запуска (gdr.txt, cbd.txt и вся папка cbd-update с gdr_not_in_cbd.txt и т.д.)
+      # в репозиторий не коммитятся. Чтобы их посмотреть, скачай артефакт "debug-files" на странице запуска:
+      # Actions -> нужный запуск -> внизу раздел Artifacts.
+      - name: Upload debug files
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-files
+          path: |
+            scripts/gdr.txt
+            scripts/cbd.txt
+            scripts/cbd.json
+            scripts/cbd_ids.json
+            scripts/cbd-update/
+          if-no-files-found: ignore
+          retention-days: 3
+
+      # Сохраняем и после сбоя, и если запуск не уложился в timeout-minutes (при таймауте задание считается
+      # отменённым, и !cancelled() его пропустил бы: кеш пропал бы, и следующий запуск начал бы всё заново).
+      - name: Save gd-rating cache
+        if: ${{ always() && hashFiles('scripts/levelcache.json') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/levelcache.json
+          key: levelcache-${{ github.run_id }}
