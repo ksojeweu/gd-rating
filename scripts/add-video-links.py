@@ -1,0 +1,1207 @@
+import argparse
+import html
+import json
+import re
+import sys
+import time
+from pathlib import Path
+
+import requests
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # levels.py лежит рядом с этим файлом
+import levels as levelsearch  # общий поиск уровней и особые названия
+import lists_core as L  # реестр листов (WML и любые будущие): по нему ищем видео и на них
+
+# Папку по умолчанию выбираем такую же, как у compare.py: он кладёт туда
+# missing_achievements.json, а этот скрипт читает его оттуда и складывает рядом
+# свои файлы (с видео, не найденные, источники, команды).
+parser = argparse.ArgumentParser(
+    description="Ищет видео для достижений из compare/missing_achievements.json "
+                "и собирает команды /fulladd и /try."
+)
+parser.add_argument("--out-dir", default="compare",
+                    help="папка compare.py: оттуда берётся missing_achievements.json, "
+                         "туда же пишутся все результаты (создаётся сама). По умолчанию compare. "
+                         "Чтобы работать в текущей папке: --out-dir .")
+parser.add_argument("--id-map", default="",
+                    help="coreboard_id_map.json ({ID CoreBoard: {nick, gdr_id}}): по нему в командах вместо нашего ID "
+                         "пишется ник CoreBoard. По умолчанию coreboard_id_map.json в корне репозитория "
+                         "(или рядом со скриптом)")
+parser.add_argument("--prev-players", default="",
+                    help="прошлый опубликованный missing_players.json (cbd/missing_players.json): ссылки, уже найденные "
+                         "в нём, берутся оттуда и заново не ищутся, так запуск каждые 30 минут не повторяет поиск")
+args = parser.parse_args()
+
+OUT_DIR = Path(args.out_dir)
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+INPUT_FILE = str(OUT_DIR / "missing_achievements.json")
+OUTPUT_FILE = str(OUT_DIR / "missing_achievements_with_videos.json")
+NICKS_FILE = str(OUT_DIR / "missing_achievements_with_nicks.json")  # его делает compare.py; сюда 4-м пунктом дописывается ссылка
+NOT_FOUND_FILE = str(OUT_DIR / "missing_video_links.txt")
+SOURCES_FILE = str(OUT_DIR / "video_link_sources.txt")  # откуда взято каждое найденное видео
+COMMANDS_FILE = str(OUT_DIR / "commands.txt")           # команды /fulladd и /try
+PLAYERS_FILE = str(OUT_DIR / "missing_players.json")    # новые игроки (делает compare.py); сюда дописываются ссылки
+PLAYERS_NOT_FOUND_FILE = str(OUT_DIR / "missing_players_video_links.txt")  # где видео не нашлось
+_HERE = Path(__file__).resolve().parent
+# Карта ищется в корне репозитория (папка выше scripts/), запасной вариант: рядом со скриптом
+ID_MAP_FILE = Path(args.id_map) if args.id_map else next(
+    (p for p in (_HERE.parent / "coreboard_id_map.json", _HERE / "coreboard_id_map.json") if p.exists()),
+    _HERE.parent / "coreboard_id_map.json")
+LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"  # названия уровней (нужны для команд), только GitHub
+
+# Особые названия уровней (ID в глобале -> как их писать в командах) лежат в levels.py, общем для всех
+# скриптов. Для этих уровней API не спрашивается, берётся название оттуда. Дописали там - работает здесь.
+SPECIAL_LEVEL_NAMES = levelsearch.SPECIAL_LEVEL_NAMES
+
+GLOBAL_API = "https://api.demonlist.org"
+DEMONLIST_LEVEL_URL = "https://demonlist.org/demonlist/level/{level_id}"
+POINTERCRATE_API = "https://pointercrate.com/api/v1"
+POINTERCRATE_DEMONS_API = "https://pointercrate.com/api/v2/demons"
+LINKS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/refs/heads/main/links.json"
+FIX_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/fix.json"  # склейки аккаунтов глобала (merges)
+
+LIMIT = 100
+DELAY = 0.15
+TIMEOUT = 30
+TRIES = 5        # сколько раз пробовать запрос, если сервер не отвечает
+RETRY_PAUSE = 2  # базовая пауза между попытками (секунд), растёт с каждой попыткой
+
+session = requests.Session()
+session.headers.update({
+    "User-Agent": "GD-Video-Link-Finder/1.0",
+    "Accept": "application/json"
+})
+
+global_records_cache = {}
+links_dl_extra = {}   # ID человека из links.json -> его дополнительные аккаунты на глобале
+fix_absorbed = None   # ID главного аккаунта -> ID аккаунтов, склеенных в него (fix.json); None пока не загружен
+global_level_cache = {}
+pointer_demon_cache = {}
+pointer_records_cache = {}
+level_name_cache = {}       # ID уровня -> название (чтобы не искать дважды)
+name_failed_levels = []     # уровни, название которых не нашлось нигде
+
+# Сколько названий уровней откуда получили (для итоговой статистики)
+name_stats = {
+    "особые названия": 0,
+    "levels_tp.json": 0,
+    "API": 0,
+    "не найдено": 0,
+}
+
+
+def get_json(url, params=None):
+    """
+    Делает запрос и возвращает (json, response).
+    Если сервер не отвечает или вернул временную ошибку, пробует ещё раз,
+    до TRIES попыток, с растущей паузой между ними.
+    """
+    last_error = None
+
+    for attempt in range(1, TRIES + 1):
+        try:
+            response = session.get(url, params=params, timeout=TIMEOUT)
+            response.raise_for_status()
+            return response.json(), response
+        except (requests.RequestException, ValueError) as error:
+            # Код ответа сервера, если он вообще был (иначе None).
+            # Не проверяем response через "if response", потому что
+            # у ответов с ошибкой такая проверка даёт False.
+            status = getattr(getattr(error, "response", None), "status_code", None)
+
+            # 404, 403 и подобные - повторять бессмысленно, ответ не изменится.
+            # Повторяем только обрыв связи, таймаут, 429 и ошибки сервера (5xx).
+            if status is not None and status < 500 and status != 429:
+                raise
+
+            last_error = error
+
+            if attempt < TRIES:
+                pause = RETRY_PAUSE * attempt  # 2, 4, 6, 8 секунд
+                print(f"    Повтор {attempt}/{TRIES - 1} через {pause} с: {error}")
+                time.sleep(pause)
+
+    raise last_error
+
+
+def get_video(record):
+    for field in ("video_url", "video", "video_link"):
+        value = record.get(field)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def parse_percent(value):
+    """
+    Приводит процент к int. Пустое значение = 100
+    (у 100% прохождений процент в файле не пишется).
+    Возвращает None, если значение не удалось разобрать.
+    """
+    text = str(value if value is not None else "").strip().replace("%", "")
+    if text == "":
+        return 100
+    try:
+        return int(float(text.replace(",", ".")))
+    except ValueError:
+        return None
+
+
+def record_percent(record, *fields):
+    """Достаёт процент из записи API (в GlobalList - percent, в Pointercrate - progress)."""
+    for field in fields:
+        value = record.get(field)
+        if value is not None:
+            try:
+                return int(float(value))
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+def player_id_from_key(key):
+    return str(key).split(" — ", 1)[0].strip()
+
+
+def is_pc(player_id):
+    return player_id.casefold().startswith("pc")
+
+
+def get_links():
+    """links.json -> {ID глобала: {лист: [ID аккаунтов]}}, например {"123": {"pointercrate": ["7"], "wml": ["5"]}}.
+    Формат записи (новый с блоком other_lists или старый) разбирает lists_core.accounts_of."""
+    data, _ = get_json(LINKS_URL)
+    links = {}
+
+    list_names = set(L.list_names())
+    links_dl_extra.clear()
+    for global_id, entry in data.items():
+        if isinstance(entry, dict):
+            links[str(global_id)] = L.accounts_of(entry)
+            # Доп. аккаунты того же человека на глобале: в links.json под сайтом, в названии которого
+            # есть demonlist/global (так же их читает gd-rating).
+            blocks = [{k: v for k, v in entry.items() if k not in ("_name", "channels", L.OTHER_BLOCK)}]
+            if isinstance(entry.get(L.OTHER_BLOCK), dict):
+                blocks.append(entry[L.OTHER_BLOCK])
+            for block in blocks:
+                for site, ids in block.items():
+                    if site in list_names or not any(w in str(site).lower() for w in ("demonlist", "global")):
+                        continue
+                    ids = ids if isinstance(ids, list) else [ids]
+                    bucket = links_dl_extra.setdefault(str(global_id), [])
+                    bucket.extend(str(x) for x in ids if x is not None and str(x) not in bucket)
+    return links
+
+
+# ---------------- GLOBAL DEMONLIST ----------------
+
+def get_global_records(user_id):
+    user_id = int(user_id)
+
+    if user_id in global_records_cache:
+        return global_records_cache[user_id]
+
+    records = []
+    offset = 0
+
+    while True:
+        data, _ = get_json(
+            f"{GLOBAL_API}/user/record/list",
+            {
+                "user_id": user_id,
+                "limit": 50,
+                "offset": offset
+            }
+        )
+
+        if data.get("message") != "success":
+            raise RuntimeError(f"Global API error: {data}")
+
+        payload = data.get("data", {})
+        page = payload.get("records", [])
+        records.extend(page)
+
+        total = payload.get("total_count", len(records))
+        if not page or len(records) >= total:
+            break
+
+        offset += len(page)
+        time.sleep(DELAY)
+
+    global_records_cache[user_id] = records
+    return records
+
+
+def get_global_level(level_id):
+    level_id = int(level_id)
+
+    if level_id not in global_level_cache:
+        data, _ = get_json(
+            f"{GLOBAL_API}/level/classic/get",
+            {"id": level_id}
+        )
+        if data.get("message") != "success":
+            raise RuntimeError(f"Global level API error: {data}")
+
+        global_level_cache[level_id] = data.get("data", {})
+
+    return global_level_cache[level_id]
+
+
+def get_first_beaten_by(level_id):
+    """
+    Извлекает игрока «first beaten by» со страницы уровня на demonlist.org.
+    Возвращает (player_id, nick) или (None, None).
+    """
+    try:
+        url = DEMONLIST_LEVEL_URL.format(level_id=level_id)
+        response = session.get(url, timeout=TIMEOUT)
+        response.raise_for_status()
+        page = response.text
+    except Exception as error:
+        print(f"    Не удалось загрузить страницу уровня {level_id}: {error}")
+        return None, None
+
+    m = FIRST_BEATEN_RE.search(page)
+    if not m:
+        return None, None
+
+    player_id = m.group(1)
+    nick = html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+    return player_id, nick
+
+
+def find_global_video(user_id, level_id, percent):
+    """
+    Ищет видео рекорда на этот уровень И с этим процентом.
+    Возвращает (video, status). Принятый рекорд (accepted) предпочтительнее
+    ожидающего (waiting); отклонённые (rejected) пропускаются.
+    """
+    waiting = None
+
+    for record in get_global_records(user_id):
+        level = record.get("level") or {}
+        if str(level.get("id")) != str(level_id):
+            continue
+
+        if record_percent(record, "percent") != percent:
+            continue
+
+        status = str(record.get("status") or "").strip().lower()
+        if status == "rejected":
+            continue
+
+        video = get_video(record)
+        if not video:
+            continue
+
+        if status == "waiting":
+            if waiting is None:
+                waiting = (video, "waiting")
+            continue
+
+        return video, status or "accepted"
+
+    return waiting if waiting else ("", "")
+
+
+def load_fix_absorbed():
+    """fix.json -> {главный ID: [ID склеенных в него аккаунтов]}. При сбое не запоминаем (попробуем снова)."""
+    global fix_absorbed
+    if fix_absorbed is not None:
+        return fix_absorbed
+    try:
+        data, _ = get_json(FIX_URL)
+    except Exception as error:
+        print(f"    fix.json не загрузился: {error}")
+        return {}
+    absorbed = {}
+    for merge in (data or {}).get("merges", []):
+        keep = str(merge.get("keep"))
+        for item in merge.get("absorb", []):
+            absorbed.setdefault(keep, []).append(str(item.get("id")))
+    fix_absorbed = absorbed
+    return absorbed
+
+
+def global_accounts(player_id):
+    """Все аккаунты человека на глобале: главный, склеенные в него по fix.json (в том числе по цепочке)
+    и дополнительные из links.json. Видео рекорда может лежать на любом из них."""
+    absorbed = load_fix_absorbed()
+    group, queue = [], [str(player_id)]
+    while queue:
+        account = queue.pop(0)
+        if account in group:
+            continue
+        group.append(account)
+        queue.extend(absorbed.get(account, []))
+    result = []
+    for account in group:
+        for item in [account] + links_dl_extra.get(account, []):
+            if item not in result:
+                result.append(item)
+    return result
+
+
+def find_global_video_any(player_id, level_id, percent):
+    """Видео на глобале у любого из аккаунтов человека. Порядок: принятый рекорд, затем видео верификации
+    уровня (верификация в списке рекордов не лежит, видео у самого уровня), затем рекорд в ожидании.
+    Если ни одного видео нет, а часть запросов упала, поднимаем ошибку: «не нашли» и «не смогли проверить» разные вещи."""
+    accounts = global_accounts(player_id)
+    waiting, first_error = None, None
+
+    for account in accounts:
+        try:
+            video, status = find_global_video(account, level_id, percent)
+        except Exception as error:
+            first_error = first_error or error
+            continue
+        if video and status != "waiting":
+            return video, status
+        if video and waiting is None:
+            waiting = (video, status)
+
+    if percent == 100:
+        try:
+            verification = get_global_level(level_id).get("verification") or {}
+            video = get_video(verification)
+            if video and str(verification.get("user_id")) in accounts:
+                return video, "accepted"
+        except Exception as error:
+            first_error = first_error or error
+
+    # Дополнительная попытка: рекорд игрока, указанного в «first beaten by» на странице уровня
+    fb_id, fb_nick = get_first_beaten_by(level_id)
+    if fb_id:
+        try:
+            fb_accounts = global_accounts(fb_id)
+            for account in fb_accounts:
+                video, status = find_global_video(account, level_id, percent)
+                if video:
+                    return video, f"GlobalList (first beaten by {fb_nick})"
+        except Exception as error:
+            first_error = first_error or error
+
+    if waiting:
+        return waiting
+    if first_error is not None:
+        raise first_error
+    return "", ""
+
+
+# ---------------- POINTERCRATE ----------------
+
+def get_pointer_demon(ingame_id):
+    ingame_id = int(ingame_id)
+
+    if ingame_id in pointer_demon_cache:
+        return pointer_demon_cache[ingame_id]
+
+    data, _ = get_json(
+        f"{POINTERCRATE_DEMONS_API}/",
+        {"level_id": ingame_id, "limit": LIMIT}
+    )
+
+    if isinstance(data, dict):
+        demons = data.get("data", data.get("demons", []))
+    else:
+        demons = data
+
+    if not isinstance(demons, list):
+        demons = []
+
+    found = None
+    for demon in demons:
+        level_id = demon.get("level_id")
+        if level_id is None and isinstance(demon.get("level"), dict):
+            level_id = demon["level"].get("id")
+        if level_id is None:
+            level_id = demon.get("ingame_id")
+
+        if str(level_id) == str(ingame_id):
+            found = demon
+            break
+
+    # Фильтр level_id уже ограничивает результат этим уровнем.
+    if found is None and len(demons) == 1:
+        found = demons[0]
+
+    pointer_demon_cache[ingame_id] = found
+    return found
+
+
+def get_pointer_demon_records(demon_id):
+    demon_id = int(demon_id)
+
+    if demon_id in pointer_records_cache:
+        return pointer_records_cache[demon_id]
+
+    records = []
+    after = None
+
+    while True:
+        params = {"demon_id": demon_id, "limit": LIMIT}
+        if after is not None:
+            params["after"] = after
+
+        data, _ = get_json(
+            f"{POINTERCRATE_API}/records/",
+            params
+        )
+
+        if isinstance(data, dict):
+            page = data.get("data", data.get("records", []))
+        else:
+            page = data
+
+        if not isinstance(page, list) or not page:
+            break
+
+        records.extend(page)
+
+        if len(page) < LIMIT:
+            break
+
+        last_id = page[-1].get("id")
+        if last_id is None or last_id == after:
+            break
+
+        after = last_id
+        time.sleep(DELAY)
+
+    pointer_records_cache[demon_id] = records
+    return records
+
+
+def find_pointer_video(pointer_player_id, ingame_id, percent):
+    demon = get_pointer_demon(ingame_id)
+    if not demon or demon.get("id") is None:
+        return ""
+
+    records = get_pointer_demon_records(demon["id"])
+
+    for record in records:
+        player = record.get("player") or {}
+        record_player_id = (
+            player.get("id") if isinstance(player, dict) else player
+        )
+
+        if str(record_player_id) != str(pointer_player_id):
+            continue
+
+        if record_percent(record, "progress", "percent") != percent:
+            continue
+
+        video = get_video(record)
+        if video:
+            return video
+
+    return ""
+
+
+# ---------------- ДРУГИЕ ЛИСТЫ (WML и любые будущие, см. lists_core.py) ----------------
+
+list_records_cache = {}  # (лист, аккаунт) -> записи игрока на листе
+list_index = None        # название уровня на листе -> ключ уровня (levels.py), строится один раз
+
+
+def get_list_index():
+    """Поиск уровня по названию, общий с gd-rating (levels.py): levels_tp.json, особые названия, глобал."""
+    global list_index
+    if list_index is None:
+        tp = {}
+        loaded = True
+        try:
+            tp = (get_json(LEVELS_URL)[0] or {}).get("levels", {})
+        except Exception as error:
+            loaded = False
+            print(f"    levels_tp.json для листов не загрузился: {error}")
+        index = levelsearch.LevelIndex.build(
+            tp=tp,
+            global_loader=lambda: levelsearch.fetch_global_levels(
+                lambda url: get_json(url)[0],
+                GLOBAL_API + "/level/classic/list?limit={limit}&offset={offset}",
+            ),
+        )
+        if not loaded:
+            # Не запоминаем неполный индекс: иначе весь запуск искал бы уровни без levels_tp.json,
+            # и видео с других листов терялись бы. При следующем вызове попробуем скачать заново.
+            return index
+        list_index = index
+    return list_index
+
+
+def find_list_video(src, account, level_id, percent):
+    """Видео записи игрока на другом листе: ищем у аккаунта запись с тем же уровнем и процентом."""
+    key = (src.name, str(account))
+    if key not in list_records_cache:
+        data = src.player(str(account))
+        list_records_cache[key] = (data or {}).get("records") or []
+        time.sleep(getattr(src, "pause", 0))
+
+    index = get_list_index()
+    for record in list_records_cache[key]:
+        try:
+            if int(float(record.get("percent"))) != percent:
+                continue
+        except (TypeError, ValueError):
+            continue
+        video = (record.get("video") or "").strip()
+        if video and index.find(record.get("level")) == str(level_id):
+            return video
+    return ""
+
+
+def list_sources_with_accounts(accounts):
+    """Листы из реестра, у которых человек имеет аккаунты и которые умеют отдавать страницу игрока."""
+    return [
+        (src, accounts[src.name])
+        for src in L.sources()
+        if accounts.get(src.name) and callable(getattr(src, "player", None))
+    ]
+
+
+def site_of(source_name):
+    """Как подписывать источник в команде («Видео: ...»): Pointercrate и листы - одним словом, без ID аккаунта."""
+    if source_name.startswith("Pointercrate"):
+        return "Pointercrate"
+    for src in L.all_lists():
+        if source_name.startswith(src.tag + " "):
+            return src.tag
+    return source_name
+
+
+def accounts_of_key_player(player_id, key_src, key_rest, links):
+    """Аккаунты игрока без глобала (ключ вида pc40667 / wml5).
+    Ключ называет только ОДИН аккаунт, а у человека их может быть несколько (например, два в Pointercrate),
+    и нужное видео лежит на другом. Поэтому к аккаунту из ключа добавляем всё, что links.json знает о человеке:
+    запись с этим ключом и любая запись, где этот аккаунт значится (так же делает gd-rating)."""
+    accounts = {key_src.name: [key_rest]}
+    wanted = str(player_id).casefold()
+    for link_key, per_list in links.items():
+        same_key = str(link_key).casefold() == wanted
+        has_account = key_rest in (per_list.get(key_src.name) or [])
+        if not (same_key or has_account):
+            continue
+        for list_name, ids in per_list.items():
+            bucket = accounts.setdefault(list_name, [])
+            for account in ids:
+                if account not in bucket:
+                    bucket.append(account)
+    return accounts
+
+
+def find_video(player_id, level_id, percent, links):
+    # Сюда складываем ошибки запросов, чтобы отличить
+    # "видео нет" от "не смогли проверить из-за сбоя".
+    request_errors = []
+
+    # Ключ вида pc7 / wml5 (игрок без глобала): лист и аккаунт названы самим ключом, глобал не нужен.
+    key_src, key_rest = L.key_parts(str(player_id).casefold())
+    if key_src is not None:
+        accounts = accounts_of_key_player(player_id, key_src, key_rest, links)
+    else:
+        accounts = links.get(str(player_id), {})
+
+        # Сначала проверяем Global Demonlist.
+        try:
+            video, status = find_global_video_any(player_id, level_id, percent)
+            if video:
+                if status == "waiting":
+                    return video, "GlobalList (статус: waiting)"
+                return video, "GlobalList"
+        except Exception as error:
+            print(f"    GlobalList API error: {error}")
+            request_errors.append("GlobalList")
+
+    pointer_ids = accounts.get("pointercrate", [])
+
+    # Для Pointercrate нужен ingame_id уровня из Global API.
+    ingame_note = ""
+    ingame_id = None
+    try:
+        level = get_global_level(level_id)
+        ingame_id = level.get("ingame_id")
+        if ingame_id is None:
+            ingame_note = "у уровня отсутствует ingame_id"
+    except Exception as error:
+        ingame_note = f"ошибка получения ingame_id: {error}"
+        request_errors.append("ingame_id")
+
+    if ingame_id is not None:
+        for pointer_id in pointer_ids:
+            try:
+                video = find_pointer_video(pointer_id, ingame_id, percent)
+                if video:
+                    return video, f"Pointercrate {pointer_id}"
+            except Exception as error:
+                print(f"    Pointercrate {pointer_id}: {error}")
+                request_errors.append(f"Pointercrate {pointer_id}")
+
+            time.sleep(DELAY)
+
+    # Другие листы (WML и т.д.). Новому листу здесь ничего дописывать не нужно: он берётся из реестра.
+    for src, account_ids in list_sources_with_accounts(accounts):
+        for account in account_ids:
+            try:
+                video = find_list_video(src, account, level_id, percent)
+                if video:
+                    return video, f"{src.tag} {account}"
+            except Exception as error:
+                print(f"    {src.tag} {account}: {error}")
+                request_errors.append(f"{src.tag} {account}")
+
+    if request_errors:
+        # Видео могло существовать, но проверить не удалось - стоит запустить ещё раз.
+        return "", (
+            "НЕ ПРОВЕРЕНО из-за ошибок запросов "
+            f"({', '.join(request_errors)}), запустите ещё раз"
+        )
+
+    if ingame_note:
+        return "", ingame_note
+
+    return "", f"видео с {percent}% не найдено"
+
+
+# Сколько раз перепроверять запись, если видео не нашлось из-за сбоя запросов (а не потому, что его нет),
+# и базовая пауза между такими проходами (секунд, растёт с каждым проходом: 15, 30, 45...).
+RECHECK_ROUNDS = 3
+RECHECK_PAUSE = 15
+
+
+def find_video_retry(player_id, level_id, percent, links):
+    """find_video + дополнительные проходы. Если видео не нашлось именно из-за ошибок запросов
+    («НЕ ПРОВЕРЕНО»), ждём и спрашиваем снова: сервер часто отвечает со второго-третьего раза.
+    Если видео просто нет, повторять незачем."""
+    video, source = find_video(player_id, level_id, percent, links)
+    for n in range(1, RECHECK_ROUNDS + 1):
+        if video or not source.startswith("НЕ ПРОВЕРЕНО"):
+            break
+        pause = RECHECK_PAUSE * n
+        print(f"    сбой запросов, перепроверка {n}/{RECHECK_ROUNDS} через {pause} с")
+        time.sleep(pause)
+        video, source = find_video(player_id, level_id, percent, links)
+    return video, source
+
+
+# ---------------- OUTPUT ----------------
+
+def save_json(users, filename):
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write('{\n  "users": {\n')
+        items = list(users.items())
+
+        for user_index, (player, achievements) in enumerate(items):
+            file.write(
+                "    " + json.dumps(player, ensure_ascii=False) + ": [\n"
+            )
+
+            for index, achievement in enumerate(achievements):
+                file.write(
+                    "      " + json.dumps(achievement, ensure_ascii=False)
+                )
+                if index < len(achievements) - 1:
+                    file.write(",")
+                file.write("\n")
+
+            file.write("    ]")
+            if user_index < len(items) - 1:
+                file.write(",")
+            file.write("\n")
+
+        file.write("  }\n}\n")
+
+
+def format_found_line(player_key, level_id, level_name, percent, video, source_name):
+    """Одна строка для файла с источниками."""
+    name = level_name if level_name else "-"
+    return (
+        f"{player_key} | level_id={level_id} | {name} | {percent}% | "
+        f"{video} | {source_name}"
+    )
+
+
+def save_sources(global_lines, pointer_lines, filename, other_lines=None):
+    """Пишет найденные видео блоками: GlobalList, Pointercrate и каждый другой лист (WML и т.д.)."""
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(f"=== GlobalList ({len(global_lines)}) ===\n")
+        for line in global_lines:
+            file.write(line + "\n")
+
+        file.write(f"\n=== Pointercrate ({len(pointer_lines)}) ===\n")
+        for line in pointer_lines:
+            file.write(line + "\n")
+
+        for tag, lines in (other_lines or {}).items():
+            file.write(f"\n=== {tag} ({len(lines)}) ===\n")
+            for line in lines:
+                file.write(line + "\n")
+
+
+# ---------------- КОМАНДЫ /fulladd И /try ----------------
+
+def normalize_id(player_id):
+    return str(player_id).strip().casefold()
+
+
+def load_id_to_nick():
+    """Читает coreboard_id_map.json ({ID CoreBoard: {nick, gdr_id}}) и делает {наш ID (gdr_id): ник CoreBoard}."""
+    try:
+        with open(ID_MAP_FILE, encoding="utf-8") as file:
+            id_map = json.load(file)
+    except FileNotFoundError:
+        print(f"ВНИМАНИЕ: не найден {ID_MAP_FILE}, в командах вместо ников будут ID")
+        return {}
+
+    id_to_nick = {}
+    for row in id_map.values():
+        if not isinstance(row, dict) or not row.get("gdr_id") or not row.get("nick"):
+            continue
+        # Если у одного ID несколько ников, берём первый.
+        id_to_nick.setdefault(normalize_id(row["gdr_id"]), row["nick"])
+    return id_to_nick
+
+
+def load_level_names():
+    """Скачивает levels_tp.json с GitHub и возвращает {ID уровня: название}."""
+    print("levels_tp.json: беру с GitHub (raw кешируется до ~5 минут после правки)")
+    try:
+        levels_data = get_json(LEVELS_URL)[0]["levels"]
+    except Exception as error:
+        print(f"ВНИМАНИЕ: не удалось загрузить levels_tp.json с GitHub ({error}), "
+              f"названия уровней возьмутся из API")
+        return {}
+
+    names = {}
+    for level_id, data in levels_data.items():
+        name = data.get("name")
+        if not name:
+            continue
+
+        # Обычные ID храним числами, а "x..." - строками.
+        key = str(level_id) if str(level_id).startswith("x") else int(level_id)
+        names.setdefault(key, name)
+    return names
+
+
+def get_level_name(level_id, level_names):
+    """
+    Порядок поиска названия уровня по ID:
+      1) особые названия (SPECIAL_LEVEL_NAMES);
+      2) levels_tp.json (быстро, без сети);
+      3) API (медленно, с повторными попытками).
+    """
+    key = str(level_id)
+
+    if key in level_name_cache:
+        return level_name_cache[key]
+
+    name = SPECIAL_LEVEL_NAMES.get(key)
+    found_in = "особые названия" if name else None
+
+    # levels_tp.json: ID там могут быть и числом, и строкой "x..."
+    if not name:
+        name = level_names.get(level_id) or level_names.get(key)
+        if not name and key.isdigit():
+            name = level_names.get(int(key))
+        if name:
+            found_in = "levels_tp.json"
+
+    # API. В нём есть только обычные числовые ID (у "x..." уровней его нет).
+    if not name and key.isdigit():
+        try:
+            name = get_global_level(level_id).get("name")
+            if name:
+                found_in = "API"
+        except Exception as error:
+            print(f"    Не удалось получить название уровня {level_id}: {error}")
+
+    if not name:
+        name_failed_levels.append(key)
+        name = f"УРОВЕНЬ {key}"
+        found_in = "не найдено"
+
+    name_stats[found_in] += 1
+    level_name_cache[key] = name
+    return name
+
+
+# Ровно 11 символов (буквы, цифры, "_" и "-") после одного из вариантов
+# начала ссылки: youtu.be/ID, youtube.com/watch?v=ID, /shorts/, /live/, /embed/.
+# Всё, что идёт после ID (?si=..., &t=... и т.д.), отбрасывается.
+YOUTUBE_ID_PATTERN = re.compile(
+    r'(?:youtu\.be/'
+    r'|youtube\.com/(?:watch\?(?:[^\s]*?&)?v=|shorts/|live/|embed/|v/))'
+    r'([A-Za-z0-9_-]{11})'
+)
+
+# "first beaten by <a href="/demonlist/player/3988">ikkyseen</a>" на странице уровня demonlist.org
+FIRST_BEATEN_RE = re.compile(
+    r'first beaten by\s*<a[^>]*href="/demonlist/player/(\d+)"[^>]*>(.*?)</a>',
+    re.S | re.I
+)
+
+
+def normalize_link(link):
+    """
+    Приводит YouTube-ссылку к виду https://www.youtube.com/watch?v=ID
+    Ссылки не с YouTube и пустые остаются как есть.
+    """
+    link = str(link).strip()
+    match = YOUTUBE_ID_PATTERN.search(link)
+
+    if not match:
+        return link
+
+    return f"https://www.youtube.com/watch?v={match.group(1)}"
+
+
+def build_commands(command_records, id_to_nick, level_names):
+    """
+    command_records: список (ключ игрока, ID игрока, ID уровня, процент, ссылка, источник).
+
+    На каждый рекорд - 2 команды, между рекордами пустая строка.
+    Если видео найдено, перед командами отдельной строкой пишется источник:
+        Видео: GlobalList
+        /fulladd Ник, Уровень, ссылка
+        /try Ник, Уровень
+
+    Если рекорд в GlobalList ещё ожидает проверки, это пишется явно:
+        Видео: GlobalList (статус: waiting)
+    """
+    blocks = []
+
+    for player_key, player_id, level_id, percent, link, site in command_records:
+        # Ник: сначала из coreboard_id_map.json, потом из ключа "ID — Ник", потом сам ID.
+        nick = id_to_nick.get(normalize_id(player_id))
+        if not nick and " — " in str(player_key):
+            nick = str(player_key).split(" — ", 1)[1].strip()
+        if not nick:
+            nick = player_id
+
+        level_name = get_level_name(level_id, level_names)
+        link = normalize_link(link)
+
+        # Если рекорд не на 100%, добавляем процент к названию
+        if percent != 100:
+            level_name = f"{level_name} {percent}%"
+
+        lines = []
+        if link and site:
+            lines.append(f"Видео: {site}")
+
+        lines.append(f"/fulladd {nick}, {level_name}, {link}".rstrip())
+        lines.append(f"/try {nick}, {level_name}")
+
+        blocks.append("\n".join(lines))
+
+    return "\n\n".join(blocks) + ("\n" if blocks else "")
+
+
+def write_commands(command_records, filename):
+    print("\nСобираю команды (названия уровней: особые -> levels_tp.json -> API)...")
+
+    id_to_nick = load_id_to_nick()
+    level_names = load_level_names()
+    text = build_commands(command_records, id_to_nick, level_names)
+
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(text)
+
+    print(f"Команды сохранены в {filename}")
+
+    print("Названия уровней получены:")
+    for source_name, count in name_stats.items():
+        if count:
+            print(f"  {source_name}: {count}")
+
+    if name_failed_levels:
+        print("Название не нашлось ни в levels_tp.json, ни в API для уровней:")
+        for level_id in sorted(set(name_failed_levels)):
+            print(" ", level_id)
+
+
+def add_links_to_file(command_records, filename, index):
+    """
+    Записывает в файл ссылку на видео (ту же, что в командах /fulladd, то есть
+    приведённую к youtube.com/watch?v=ID); не нашлась - "".
+      index=3: missing_achievements_with_nicks.json -> [ID уровня, процент, название, ссылка]
+      index=2: missing_achievements.json            -> [ID уровня, процент, ссылка]
+    Записи ищутся по (игрок, уровень, процент), а не по порядку. Повторный запуск
+    просто перезаписывает пункт со ссылкой, ничего не дублируется.
+    """
+    path = Path(filename)
+    if not path.exists():
+        print(f"ВНИМАНИЕ: нет {filename}, ссылки туда не добавлены")
+        return
+
+    link_map = {}
+    for _player_key, player_id, level_id, percent, link, _site in command_records:
+        link_map[(normalize_id(player_id), str(level_id), percent)] = normalize_link(link)
+
+    with path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    users = data.get("users", data)
+    filled = total = 0
+
+    for player_key, records in users.items():
+        player_id = normalize_id(player_id_from_key(player_key))
+
+        for record in records:
+            total += 1
+            while len(record) < index:
+                record.append("")
+
+            percent = parse_percent(record[1])
+            link = link_map.get((player_id, str(record[0]), percent), "")
+
+            if len(record) > index:
+                record[index] = link
+            else:
+                record.append(link)
+
+            if link:
+                filled += 1
+
+    save_json(users, filename)
+    print(f"Ссылки добавлены в {filename} (пункт {index + 1}): {filled} из {total}")
+
+
+def save_players_json(players, filename):
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write('{\n  "users": {\n')
+        items = list(players.items())
+        for index, (player, info) in enumerate(items):
+            file.write("    " + json.dumps(player, ensure_ascii=False) + ": " + json.dumps(info, ensure_ascii=False))
+            file.write(",\n" if index < len(items) - 1 else "\n")
+        file.write("  }\n}\n")
+
+
+def load_previous_players_links():
+    """Ссылки из прошлого опубликованного missing_players.json: (игрок, уровень, процент) -> ссылка."""
+    cache = {}
+    if not args.prev_players:
+        return cache
+    try:
+        data = json.loads(Path(args.prev_players).read_text("utf-8"))
+    except (OSError, ValueError):
+        return cache
+    for key, info in (data.get("users", data) or {}).items():
+        # Ключ файла может быть ID CoreBoard; наш ID лежит в gdr_id (в старых файлах ключ и есть наш ID)
+        owner = normalize_id((info.get("gdr_id") if isinstance(info, dict) else None) or key)
+        for record in (info.get("records", []) if isinstance(info, dict) else []):
+            if len(record) >= 3 and record[2]:
+                cache[(owner, str(record[0]), parse_percent(record[1]))] = record[2]
+    return cache
+
+
+def add_videos_to_players(links):
+    """Дописывает ссылку на видео в missing_players.json только у ПЕРВОЙ записи каждого игрока (третий пункт записи;
+    не нашлась - ""), у остальных записей ссылка пустая и видео для них не ищутся. Команд для новых игроков не создаёт."""
+    path = Path(PLAYERS_FILE)
+    if not path.exists():
+        print(f"Нет {PLAYERS_FILE}: новых игроков нет, пропускаю")
+        return
+
+    data = json.loads(path.read_text("utf-8"))
+    users = data.get("users", data)
+    previous = load_previous_players_links()
+
+    total = reused = found = 0
+    not_found = []
+    for key, info in users.items():
+        # Ключ - ID на CoreBoard (или наш, если ID CoreBoard нет); видео ищем по нашему ID из gdr_id
+        player_id = info.get("gdr_id") or player_id_from_key(key)
+        print(f"\nНовый игрок: {key} ({info.get('nick')}), наш ID {player_id}")
+
+        for record_index, record in enumerate(info.get("records", [])):
+            while len(record) < 3:
+                record.append("")
+            if record_index > 0:  # видео только у первой записи
+                record[2] = ""
+                continue
+            total += 1
+            level_id, raw_percent = record[0], record[1]
+            percent = parse_percent(raw_percent)
+
+            cached = previous.get((normalize_id(player_id), str(level_id), percent))
+            if cached:
+                record[2] = cached
+                reused += 1
+                continue
+
+            video, source_name = "", ""
+            try:
+                if percent is not None and str(level_id).strip().isdigit():
+                    video, source_name = find_video_retry(player_id, level_id, percent, links)
+                    time.sleep(DELAY)
+                else:
+                    source_name = "непонятный процент или ID уровня"
+            except Exception as error:
+                source_name = f"ОШИБКА: {error}"
+
+            record[2] = normalize_link(video) if video else ""
+            if record[2]:
+                found += 1
+                print(f"  {level_id} {raw_percent}%: найдено ({source_name})")
+            else:
+                not_found.append(f"{key} | {info.get('nick')} | level_id={level_id} | {raw_percent}% | {source_name}")
+                print(f"  {level_id} {raw_percent}%: не найдено ({source_name})")
+
+    save_players_json(users, PLAYERS_FILE)
+    Path(PLAYERS_NOT_FOUND_FILE).write_text(
+        "\n".join(not_found) + ("\n" if not_found else ""), encoding="utf-8")
+    print(f"\nНовые игроки: первых записей {total}, из прошлого файла {reused}, найдено видео {found}, "
+          f"без видео {len(not_found)}. JSON: {PLAYERS_FILE}")
+
+
+def main():
+    input_path = Path(INPUT_FILE)
+    if not input_path.exists():
+        raise SystemExit(
+            f"Не найден файл {INPUT_FILE}. Сначала запустите compare.py "
+            f"(или укажите папку через --out-dir)"
+        )
+
+    with input_path.open("r", encoding="utf-8") as file:
+        source = json.load(file)
+
+    users = source.get("users", source)
+
+    print("Загружаю links.json...")
+    links = get_links()
+    print(f"Привязок загружено: {len(links)}")
+
+    output_users = {}
+    not_found = []
+    global_lines = []   # видео, найденные в Global
+    pointer_lines = []  # видео, найденные в Pointercrate
+    other_lines = {}    # видео, найденные на других листах: метка листа -> строки
+    command_records = []  # всё, из чего потом сделаем команды /fulladd и /try
+
+    total = sum(len(records) for records in users.values())
+    processed = found_count = global_count = pointer_count = 0
+
+    for player_key, achievements in users.items():
+        player_id = player_id_from_key(player_key)
+        output_achievements = []
+
+        print(f"\nИгрок: {player_key}")
+
+        for achievement in achievements:
+            processed += 1
+            updated = list(achievement)
+
+            while len(updated) < 3:
+                updated.append("")
+
+            level_id, raw_percent, level_name = updated[:3]
+            percent = parse_percent(raw_percent)
+            shown_percent = percent if percent is not None else raw_percent
+
+            if percent is None:
+                not_found.append(
+                    f"{player_key} | {level_name} | level_id={level_id} "
+                    f"| {raw_percent} | не удалось разобрать процент"
+                )
+                output_achievements.append(updated)
+                print(f"  [{processed}/{total}] {level_name}: непонятный процент")
+                continue
+
+            if not str(level_id).strip().isdigit():
+                not_found.append(
+                    f"{player_key} | {level_name} | level_id={level_id} "
+                    f"| {percent}% | нечисловой ID уровня"
+                )
+                output_achievements.append(updated)
+                command_records.append(
+                    (player_key, player_id, level_id, percent, "", "")
+                )
+                print(f"  [{processed}/{total}] {level_name}: нечисловой ID")
+                continue
+
+            link, site = "", ""  # если видео не найдём, в команде ссылка будет пустой
+
+            try:
+                video, source_name = find_video_retry(player_id, level_id, percent, links)
+
+                if video:
+                    updated[2] = video
+                    link = video
+                    site = site_of(source_name)
+                    found_count += 1
+
+                    line = format_found_line(
+                        player_key, level_id, level_name,
+                        shown_percent, video, source_name
+                    )
+
+                    if source_name.startswith("GlobalList"):
+                        global_count += 1
+                        global_lines.append(line)
+                    elif site == "Pointercrate":
+                        pointer_count += 1
+                        pointer_lines.append(line)
+                    else:  # WML и любой другой лист
+                        other_lines.setdefault(site, []).append(line)
+
+                    print(
+                        f"  [{processed}/{total}] {level_name}: "
+                        f"найдено ({source_name})"
+                    )
+                else:
+                    not_found.append(
+                        f"{player_key} | {level_name} | level_id={level_id} "
+                        f"| {percent}% | {source_name}"
+                    )
+                    print(f"  [{processed}/{total}] {level_name}: не найдено ({source_name})")
+
+            except Exception as error:
+                not_found.append(
+                    f"{player_key} | {level_name} | level_id={level_id} "
+                    f"| {percent}% | ОШИБКА: {error}"
+                )
+                print(f"  [{processed}/{total}] {level_name}: ОШИБКА {error}")
+
+            output_achievements.append(updated)
+            command_records.append(
+                (player_key, player_id, level_id, percent, link, site)
+            )
+            time.sleep(DELAY)
+
+        output_users[player_key] = output_achievements
+
+    save_json(output_users, OUTPUT_FILE)
+    save_sources(global_lines, pointer_lines, SOURCES_FILE, other_lines)
+    write_commands(command_records, COMMANDS_FILE)
+    add_links_to_file(command_records, NICKS_FILE, 3)
+    add_links_to_file(command_records, INPUT_FILE, 2)
+    Path(NOT_FOUND_FILE).write_text(
+        "\n".join(not_found) + ("\n" if not_found else ""),
+        encoding="utf-8"
+    )
+
+    print("\n========== ИТОГ ==========")
+    print(f"Всего прогрессов: {total}")
+    print(f"Обработано: {processed}")
+    print(f"Найдено видео: {found_count}")
+    print(f"  GlobalList: {global_count}")
+    print(f"  Pointercrate: {pointer_count}")
+    for tag, lines in other_lines.items():
+        print(f"  {tag}: {len(lines)}")
+    print(f"Не найдено / ошибки: {len(not_found)}")
+    print(f"\nJSON: {OUTPUT_FILE}")
+    print(f"TXT (не найдено): {NOT_FOUND_FILE}")
+    print(f"TXT (источники видео): {SOURCES_FILE}")
+    print(f"TXT (команды): {COMMANDS_FILE}")
+    print(f"JSON (с никами и ссылками): {NICKS_FILE}")
+    print(f"JSON (обычный, со ссылками): {INPUT_FILE}")
+
+    add_videos_to_players(links)
+
+
+if __name__ == "__main__":
+    main()
