@@ -12,19 +12,13 @@ on:
         description: "Аргументы для sync-extras.py (например --dry-run или --force)"
         required: false
         default: ""
-      cbd_args:
-        description: "Аргументы для cbd-update.py (например --no-videos, но тогда без коммита)"
-        required: false
-        default: ""
-  # Запускается только после того, как закончился make-links (сам по расписанию больше не идёт).
+  # Запускается только после того, как закончился make-links.
   # Файл workflow должен лежать в основной ветке, иначе workflow_run не сработает.
   workflow_run:
     workflows: ["make-links"]   # должно совпадать с name: в make-links.yml
     types: [completed]
 
 # Листы (WML и любые будущие), которые автообновление НЕ трогает (через запятую, пусто = все включены).
-# cbd-update.py берёт рейтинг с --src all, поэтому новый лист попадает в него сам: пока лист проверяется,
-# впиши его сюда, а когда убедишься, что всё работает, убери название.
 env:
   GL_LISTS_OFF: ""
 
@@ -49,8 +43,7 @@ jobs:
       - name: Install requests
         run: pip install requests
 
-      # Кеш gd-rating (профили игроков, страны, записи уровней). Без него каждый запуск
-      # заново качает всё, в том числе страну у тысяч игроков по одному запросу.
+      # Кеш gd-rating (профили игроков, страны, записи уровней)
       - name: Restore gd-rating cache
         uses: actions/cache/restore@v4
         with:
@@ -59,25 +52,15 @@ jobs:
           restore-keys: levelcache-
 
       - name: Run sync-extras.py
-        id: extras
         run: python scripts/sync-extras.py --commit ${{ github.event.inputs.extras_args }}
 
       # Выполняется и после сбоя первого шага, чтобы одно обновление не блокировало другое.
-      # Если sync-extras прошёл, он уже скачал cbd.txt и gdr.txt, и второй шаг берёт их готовыми.
+      # Страницы CoreBoard, скачанные первым шагом, берутся из кеша (час), второй раз не качаются.
       - name: Run cbd-update.py
         if: ${{ !cancelled() }}
-        env:
-          EXTRAS_OUTCOME: ${{ steps.extras.outcome }}
-          CBD_ARGS: ${{ github.event.inputs.cbd_args }}
-        run: |
-          if [ "$EXTRAS_OUTCOME" = "success" ] && [ -s scripts/cbd.txt ] && [ -s scripts/gdr.txt ]; then
-            python scripts/cbd-update.py --commit --skip-fetch $CBD_ARGS
-          else
-            python scripts/cbd-update.py --commit $CBD_ARGS
-          fi
+        run: python scripts/cbd-update.py --commit
 
-      # Промежуточные файлы запуска (gdr.txt, cbd.txt и вся папка cbd-update с gdr_not_in_cbd.txt и т.д.)
-      # в репозиторий не коммитятся. Чтобы их посмотреть, скачай артефакт "debug-files" на странице запуска:
+      # Промежуточные файлы запуска в репозиторий не коммитятся. Чтобы их посмотреть, скачай артефакт "debug-files":
       # Actions -> нужный запуск -> внизу раздел Artifacts.
       - name: Upload debug files
         if: ${{ always() }}
@@ -93,8 +76,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
 
-      # Сохраняем и после сбоя, и если запуск не уложился в timeout-minutes (при таймауте задание считается
-      # отменённым, и !cancelled() его пропустил бы: кеш пропал бы, и следующий запуск начал бы всё заново).
+      # Сохраняем и после сбоя, и если запуск не уложился в timeout-minutes
       - name: Save gd-rating cache
         if: ${{ always() && hashFiles('scripts/levelcache.json') != '' }}
         uses: actions/cache/save@v4
