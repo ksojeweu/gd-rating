@@ -4,26 +4,22 @@
 
   {"users": {
     "<ID CoreBoard>": [
-      "ник игрока",
       ["Название уровня как на CoreBoard", процент, "ссылка"],
       ...
     ],
     ...
   }}
-Первая строка в списке игрока - его ник (не рекорд, при чтении пропускается).
 
 Шаги:
   1. coreboard-parse.py -> cbd.json (оба топа CoreBoard);
-  2. ID игрока: с сайта (cbd_ids.json) или из coreboard_id_map.json (по нику); у игроков без ID ключ "nick:<ник>";
+  2. ID игрока: с сайта (cbd_ids.json) или из coreboard_id_map.json (по нику); игрок без ID пропускается с предупреждением;
   3. для каждого рекорда: если в уже лежащем cbd/cbd_videos.json есть тот же игрок + уровень + ПРОЦЕНТ, берётся его ссылка
      (в том числе вписанная вручную: скрипт её не трогает); если процент изменился или рекорда не было, ссылка
      ищется заново (GlobalList, Pointercrate), не нашлась - "";
   4. с --commit коммитит и пушит cbd/cbd_videos.json.
 
 Ссылку можно вписать вручную прямо в cbd/cbd_videos.json: пока процент рекорда тот же, она сохраняется.
-Ссылки на Google Drive считаются запасными: для них видео ищется заново (GlobalList, Pointercrate), и если нормальное
-не нашлось, остаётся ссылка на Google Drive. Вложенные ссылки (a?v=https://b/...) обрезаются до последней.
-Не нашедшиеся ссылки ищутся заново при каждом запуске (кеша неудач нет).
+Не нашедшиеся ссылки перепроверяются не чаще раза в RETRY_DAYS дней (кеш scripts/videocache.json).
 Первый запуск ищет видео для тысяч рекордов, поэтому есть лимит времени --budget-min (по умолчанию 40 минут):
 что не успели, дойдёт в следующем запуске.
 
@@ -38,13 +34,14 @@ import time
 from pathlib import Path
 
 import levels as levelsearch
-from videos import find_video_retry, get_json, get_links, is_drive_link, normalize_link
+from videos import find_video_retry, get_json, get_links, normalize_link
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 OUT_FILE = ROOT / "cbd" / "cbd_videos.json"
+CACHE_FILE = HERE / "videocache.json"   # "ключ записи" -> когда в последний раз искали и не нашли
 LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
-NICK_PREFIX = "nick:"
+RETRY_DAYS = 3
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--commit", action="store_true")
@@ -80,18 +77,15 @@ def load_existing():
         m = out.setdefault(str(key), {})
         for r in rows:
             if isinstance(r, list) and len(r) >= 3 and r[2]:
-                m[(lvl_key(r[0]), fmt_pct(r[1]))] = normalize_link(r[2])
+                m[(lvl_key(r[0]), fmt_pct(r[1]))] = str(r[2])
     return out
 
 
-def save_users(users, nicks):
-    def order(kv):
-        return (kv[0].startswith(NICK_PREFIX), int(kv[0]) if kv[0].isdigit() else 0, kv[0])
-    items = sorted(users.items(), key=order)
+def save_users(users):
+    items = sorted(users.items(), key=lambda kv: int(kv[0]))
     lines = ['{', '  "users": {']
     for i, (key, rows) in enumerate(items):
         lines.append(f'    {json.dumps(key, ensure_ascii=False)}: [')
-        lines.append(f'      {json.dumps(nicks.get(key, ""), ensure_ascii=False)}' + ("," if rows else ""))
         for j, r in enumerate(rows):
             lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
         lines.append("    ]" + ("," if i < len(items) - 1 else ""))
@@ -141,27 +135,38 @@ def main():
     level_index = levelsearch.name_index(tp, [])  # название -> ключ уровня (ID глобала или x...)
 
     existing = load_existing()
+    cache = json.loads(CACHE_FILE.read_text("utf-8")) if CACHE_FILE.exists() else {}
     links = get_links()
 
-    players = []  # (ключ, наш ID или None, [(название, процент)], ник)
+    players = []  # (ID CoreBoard, наш ID или None, [(название, процент)])
+    no_id = []
     for row in rows:
         cb_id = row.get("id") or cb_by_nick.get(row["name"].casefold())
-        key = str(cb_id) if cb_id else NICK_PREFIX + row["name"]
-        gdr_id = (id_map.get(str(cb_id)) or {}).get("gdr_id") if cb_id else None
+        if not cb_id:
+            no_id.append(row["name"])
+            continue
+        key = str(cb_id)
+        gdr_id = (id_map.get(key) or {}).get("gdr_id")
         recs = [(r["level"], fmt_pct(r["percent"])) for r in row["records"]]
-        players.append((key, str(gdr_id) if gdr_id else None, recs, row["name"]))
+        players.append((key, str(gdr_id) if gdr_id else None, recs))
 
+    if no_id:
+        print(f"ВНИМАНИЕ: нет ID CoreBoard у {len(no_id)} игроков, пропущены: {', '.join(no_id[:10])}")
     found = {}  # (ключ игрока, уровень, процент) -> ссылка, найденная в этом запуске
-    searched = out_of_time = 0
-    for key, gdr_id, recs, name in players:
-        old = existing.get(key) or existing.get(NICK_PREFIX + name, {})
+    searched = skipped = out_of_time = 0
+    now = time.time()
+    for key, gdr_id, recs in players:
+        old = existing.get(key, {})
         for level, pct in recs:
-            old_link = old.get((lvl_key(level), pct))
-            if old_link and not is_drive_link(old_link):
-                continue  # рекорд не изменился: ссылка (в том числе ручная) остаётся; Google Drive ищем заново
+            if (lvl_key(level), pct) in old:
+                continue  # рекорд не изменился: ссылка (в том числе ручная) остаётся
             level_id = level_index.get(lvl_key(level))
             if not gdr_id or not level_id or not level_id.isdigit():
                 continue  # искать негде: нет нашего ID игрока или уровня нет в глобале
+            ck = f"{gdr_id}|{level_id}|{pct}"
+            if now - cache.get(ck, 0) < RETRY_DAYS * 86400:
+                skipped += 1
+                continue
             if time.time() > deadline:
                 out_of_time += 1
                 continue
@@ -173,27 +178,30 @@ def main():
             searched += 1
             if video:
                 found[(key, lvl_key(level), pct)] = normalize_link(video)
+            elif not source.startswith("НЕ ПРОВЕРЕНО"):
+                cache[ck] = time.time()  # видео реально нет: не ищем снова несколько дней
             if searched % 50 == 0:
                 print(f"  поиск: {searched}, найдено {len(found)}", flush=True)
+                CACHE_FILE.write_text(json.dumps(cache), "utf-8")
+    CACHE_FILE.write_text(json.dumps(cache), "utf-8")
 
     if args.commit:  # забираем чужие правки (ручные ссылки), пока мы искали
         git("pull", "--rebase", "--autostash", check=False)
     existing = load_existing()
 
-    users, nicks = {}, {}
-    for key, _gdr, recs, name in players:
-        old = existing.get(key) or existing.get(NICK_PREFIX + name, {})
+    users = {}
+    for key, _gdr, recs in players:
+        old = existing.get(key, {})
         out = []
         for level, pct in recs:
-            link = found.get((key, lvl_key(level), pct)) or old.get((lvl_key(level), pct), "")
+            link = old.get((lvl_key(level), pct)) or found.get((key, lvl_key(level), pct), "")
             out.append([level, pct, link])
         users[key] = out
-        nicks[key] = name
-    save_users(users, nicks)
+    save_users(users)
     with_link = sum(1 for v in users.values() for r in v if r[2])
     total = sum(len(v) for v in users.values())
     print(f"Игроков {len(users)}, записей {total}, со ссылкой {with_link}; искали {searched}, найдено {len(found)}, "
-          f"не хватило времени {out_of_time}")
+          f"пропущено из-за недавней неудачи {skipped}, не хватило времени {out_of_time}")
     if args.commit:
         commit_and_push(f"cbd_videos: {with_link}/{total} ссылок, найдено новых {len(found)} (авто)")
 

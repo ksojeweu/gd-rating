@@ -8,7 +8,7 @@ CoreBoard, а в нашем рейтинге их нет или процент �
   1. levels_tp.json: список уровней CoreBoard (/main/levels) -> levels_tp.json в корне репозитория;
   2. coreboard-parse.py -> cbd.txt; gd-rating.py --src pointercrate,wml --waiting -> gdr_gl_pc_wml.txt;
   3. compare.py in-cbd-not-in-gdr -> найденное;
-  4. my_extras.json и missing_achievements.json (корень репозитория: [ID уровня, процент, ""]), waiting_records*.json -> cbd/;
+  4. my_extras.json и missing_achievements.json (корень репозитория: [ID уровня, процент, ""]), waiting_records.json -> cbd/;
   5. с --commit коммитит и пушит.
 
   python scripts/sync-extras.py --commit [--dry-run] [--force] [--max N]
@@ -41,7 +41,7 @@ EXTRAS = ROOT / "my_extras.json"
 LEVELS = ROOT / "levels_tp.json"
 MISSING = ROOT / "missing_achievements.json"
 WAITING = ROOT / "cbd" / "waiting_records.json"                  # делает gd-rating --waiting
-WAITING_NICKS = ROOT / "cbd" / "waiting_records_with_nicks.json"
+OLD_FILES = ["cbd/waiting_records_with_nicks.json"]  # файлы, которых в репозитории больше быть не должно
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--dry-run", action="store_true")
@@ -393,7 +393,7 @@ def save_missing(found):
 
 def publish_waiting():
     """Копирует waiting_records*.json из scripts/ в cbd/ (если gd-rating их сделал)."""
-    for dst in (WAITING, WAITING_NICKS):
+    for dst in (WAITING,):
         src = HERE / dst.name
         if src.exists():
             dst.parent.mkdir(exist_ok=True)
@@ -416,6 +416,7 @@ def commit_and_push(message, files):
     for f in files:
         if f.exists():
             git("add", str(f.relative_to(ROOT)))  # путь от корня репозитория: нужен для файлов в подпапках (cbd/...)
+    git("rm", "-q", "--ignore-unmatch", "--", *OLD_FILES)  # старые файлы убираем из репозитория
     if git("diff", "--cached", "--quiet", check=False).returncode == 0:
         print("Нечего коммитить: файлы не изменились.")
         return
@@ -474,7 +475,7 @@ def main():
             save_missing(found)
             if args.commit:
                 commit_and_push("levels_tp / missing_achievements: обновление (авто, CoreBoard)",
-                                [LEVELS, MISSING, WAITING, WAITING_NICKS])
+                                [LEVELS, MISSING, WAITING])
         return
     # защита: файл перезаписывается целиком, поэтому считаем ВСЕ изменения, а не только новые
     if changes > args.max and not args.force:
@@ -496,7 +497,7 @@ def main():
         msg = f"my_extras: +{added} новых, {improved} повышено, {lowered} понижено, {removed} убрано (авто, CoreBoard)"
         if levels_changed:
             msg += "; levels_tp обновлён"
-        commit_and_push(msg, [EXTRAS, LEVELS, MISSING, WAITING, WAITING_NICKS])
+        commit_and_push(msg, [EXTRAS, LEVELS, MISSING, WAITING])
 
 
 main()

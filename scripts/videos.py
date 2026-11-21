@@ -1,4 +1,5 @@
 """Поиск видео рекордов: GlobalList (все аккаунты человека) и Pointercrate. Общий модуль add-video-links.py и cbd-videos.py."""
+import html
 import re
 import time
 
@@ -9,6 +10,7 @@ import lists_core as L
 LINKS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/refs/heads/main/links.json"
 FIX_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/fix.json"  # склейки аккаунтов глобала (merges)
 GLOBAL_API = "https://api.demonlist.org"
+DEMONLIST_LEVEL_URL = "https://demonlist.org/demonlist/level/{level_id}"
 POINTERCRATE_API = "https://pointercrate.com/api/v1"
 POINTERCRATE_DEMONS_API = "https://pointercrate.com/api/v2/demons"
 LIMIT = 100
@@ -26,7 +28,6 @@ global_records_cache = {}
 links_dl_extra = {}   # ID человека из links.json -> его дополнительные аккаунты на глобале
 fix_absorbed = None   # ID главного аккаунта -> ID аккаунтов, склеенных в него (fix.json); None пока не загружен
 global_level_cache = {}
-first_beaten_cache = {}
 pointer_demon_cache = {}
 pointer_records_cache = {}
 
@@ -36,6 +37,8 @@ YOUTUBE_ID_PATTERN = re.compile(
     r'|youtube\.com/(?:watch\?(?:[^\s]*?&)?v=|shorts/|live/|embed/|v/))'
     r'([A-Za-z0-9_-]{11})'
 )
+# "first beaten by <a href="/demonlist/player/3988">ikkyseen</a>" на странице уровня demonlist.org
+FIRST_BEATEN_RE = re.compile(r'first beaten by\s*<a[^>]*href="/demonlist/player/(\d+)"[^>]*>(.*?)</a>', re.S | re.I)
 
 
 def get_json(url, params=None):
@@ -97,18 +100,9 @@ def normalize_id(player_id):
     return str(player_id).strip().casefold()
 
 
-def is_drive_link(link):
-    """Ссылка на Google Drive / Docs: такое видео считаем запасным вариантом, сначала ищем нормальное."""
-    return bool(re.search(r"(?:drive|docs)\.google\.com", str(link), re.I))
-
-
 def normalize_link(link):
-    """Вложенную ссылку (https://youtube.com/watch?v=https://twitch.tv/...) обрезает до последней, YouTube приводит
-    к виду https://www.youtube.com/watch?v=ID. Остальное и пустое остаётся как есть."""
+    """YouTube-ссылку приводит к виду https://www.youtube.com/watch?v=ID. Остальное и пустое остаётся как есть."""
     link = str(link).strip()
-    starts = [m.start() for m in re.finditer(r"https?://", link, re.I)]
-    if len(starts) > 1:
-        link = link[starts[-1]:]
     match = YOUTUBE_ID_PATTERN.search(link)
     return f"https://www.youtube.com/watch?v={match.group(1)}" if match else link
 
@@ -171,28 +165,20 @@ def get_global_level(level_id):
 
 
 def get_first_beaten_by(level_id):
-    """Первый игрок, прошедший уровень, через API (level/classic/record/list): (player_id, nick) или (None, None).
-    Берётся первая запись на 100% в начале списка рекордов уровня (если 100% на первой странице нет, первая запись)."""
-    level_id = int(level_id)
-    if level_id in first_beaten_cache:
-        return first_beaten_cache[level_id]
-
-    result = (None, None)
+    """Игрок «first beaten by» со страницы уровня на demonlist.org: (player_id, nick) или (None, None)."""
     try:
-        data, _ = get_json(f"{GLOBAL_API}/level/classic/record/list", {"level_id": level_id, "limit": 50, "offset": 0})
-        if data.get("message") != "success":
-            raise RuntimeError(f"Global API error: {data}")
-        records = (data.get("data") or {}).get("records") or []
-        pick = next((r for r in records if record_percent(r, "percent") == 100), records[0] if records else None)
-        user = (pick or {}).get("user") or {}
-        if user.get("id") is not None:
-            result = (str(user["id"]), str(user.get("username") or "").strip())
+        response = session.get(DEMONLIST_LEVEL_URL.format(level_id=level_id), timeout=TIMEOUT)
+        response.raise_for_status()
+        page = response.text
     except Exception as error:
-        print(f"    Не удалось получить рекорды уровня {level_id} через API: {error}")
-        return None, None  # сбой не запоминаем: попробуем снова
+        if getattr(getattr(error, "response", None), "status_code", None) != 404:  # 404: страницы уровня нет, это не сбой
+            print(f"    Не удалось загрузить страницу уровня {level_id}: {error}")
+        return None, None
 
-    first_beaten_cache[level_id] = result
-    return result
+    m = FIRST_BEATEN_RE.search(page)
+    if not m:
+        return None, None
+    return m.group(1), html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
 
 
 def find_global_video(user_id, level_id, percent):
@@ -394,7 +380,6 @@ def accounts_of_key_player(player_id, key_src, key_rest, links):
 def find_video(player_id, level_id, percent, links):
     """(видео, источник). Если видео нет, источник объясняет почему."""
     request_errors = []  # отличаем "видео нет" от "не смогли проверить из-за сбоя"
-    drive_fallback = None  # видео на Google Drive: берём, только если нормального видео не нашлось
 
     # Ключ вида pc7 / wml5 (игрок без глобала): лист и аккаунт названы самим ключом, глобал не нужен.
     key_src, key_rest = L.key_parts(str(player_id).casefold())
@@ -405,11 +390,7 @@ def find_video(player_id, level_id, percent, links):
         try:
             video, status = find_global_video_any(player_id, level_id, percent)
             if video:
-                src = "GlobalList (статус: waiting)" if status == "waiting" else "GlobalList"
-                if is_drive_link(video):
-                    drive_fallback = (video, src + ", Google Drive")
-                else:
-                    return video, src
+                return video, "GlobalList (статус: waiting)" if status == "waiting" else "GlobalList"
         except Exception as error:
             print(f"    GlobalList API error: {error}")
             request_errors.append("GlobalList")
@@ -429,17 +410,12 @@ def find_video(player_id, level_id, percent, links):
             try:
                 video = find_pointer_video(pointer_id, ingame_id, percent)
                 if video:
-                    if is_drive_link(video):
-                        drive_fallback = drive_fallback or (video, f"Pointercrate {pointer_id}, Google Drive")
-                    else:
-                        return video, f"Pointercrate {pointer_id}"
+                    return video, f"Pointercrate {pointer_id}"
             except Exception as error:
                 print(f"    Pointercrate {pointer_id}: {error}")
                 request_errors.append(f"Pointercrate {pointer_id}")
             time.sleep(DELAY)
 
-    if drive_fallback:  # нормального видео нет: остаётся ссылка на Google Drive
-        return drive_fallback
     if request_errors:  # видео могло существовать, но проверить не удалось: стоит запустить ещё раз
         return "", f"НЕ ПРОВЕРЕНО из-за ошибок запросов ({', '.join(request_errors)}), запустите ещё раз"
     if ingame_note:
@@ -458,3 +434,5 @@ def find_video_retry(player_id, level_id, percent, links):
         time.sleep(pause)
         video, source = find_video(player_id, level_id, percent, links)
     return video, source
+
+

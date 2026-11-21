@@ -7,7 +7,7 @@
   gd-rating.py --src all --out gdr.txt                                       (cbd-update)
 
 Результат: <out> (рейтинг строками '5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%) - 14.18 [ID]').
-С --waiting ещё три файла: waiting_records.json, waiting_records_with_nicks.json, waiting_new_players.json.
+С --waiting ещё два файла: waiting_records.json (формат jsonfmt.py) и waiting_new_players.json.
 Кеш запросов: levelcache.json рядом со скриптом (его сохраняет и восстанавливает workflow).
 """
 import argparse
@@ -23,6 +23,7 @@ from pathlib import Path
 
 import levels as levelsearch
 import lists_core as L
+from jsonfmt import write_players
 
 HERE = Path(__file__).resolve().parent
 DL = "https://api.demonlist.org/"
@@ -742,26 +743,13 @@ def line_short(i, r):
     return f"{i}) {flag(r['country'])} {r['name']} ({', '.join(parts)}) - {r['score']:.2f} [{r['id']}]"
 
 
-def write_users_json(path, users):
-    """{"users": {ключ: [записи]}}: игрок, а внутри записи по одной на строку."""
-    lines = ['{', '  "users": {']
-    items = list(users.items())
-    for i, (key, rows) in enumerate(items):
-        lines.append(f'    {json.dumps(key, ensure_ascii=False)}: [')
-        for j, r in enumerate(rows):
-            lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
-        lines.append("    ]" + ("," if i < len(items) - 1 else ""))
-    lines += ['  }', '}', '']
-    path.write_text("\n".join(lines), "utf-8")
-
-
 def save_waiting(meta, best_by, info, result, canon_id, removals, owner_of):
     """waiting_records.json: для каждого человека с аккаунтом глобала (аккаунты из links.json и fix.json считаются его)
     все непринятые записи (статус waiting), которые, будь они приняты, попали бы в его топ-N лучших записей.
     Запись подходит, если она лучше принятой у человека на этом уровне (или принятой нет) и остаётся в его топ-N после
     добавления ВСЕХ его waiting-записей сразу. Записи группируются по аккаунту глобала, с которого они поданы.
     Сравнение идёт со ВСЕМИ записями человека: глобал, Pointercrate, другие листы, my_extras и то, что уже на корборде.
-    Файлы: waiting_records.json / waiting_records_with_nicks.json (в формате missing_achievements*.json) и
+    Файлы: waiting_records.json (ID человека -> ник и записи [название уровня, процент, ссылка]) и
     waiting_new_players.json (игроки, у которых меньше порога очков ТОЛЬКО с waiting-записями)."""
 
     def top_of(best):
@@ -849,21 +837,15 @@ def save_waiting(meta, best_by, info, result, canon_id, removals, owner_of):
 
     order = sorted(people, key=lambda u: (people[u]["rank"] is None, people[u]["rank"] or 0, u))
 
-    def build(with_nicks):
-        """ID (или 'ID — ник') -> [[ID уровня, процент, X]], где X - ссылка на видео, а в файле с никами - название уровня.
-        Записи внутри игрока по названию уровня."""
-        out = {}
-        for u in order:
-            best = pick_best(people[u]["new"])
-            if not best:
-                continue
-            rows = sorted(best.items(), key=lambda kv: str(meta[kv[0]]["name"] or "").casefold())
-            key = f"{u} — {people[u]['nick']}" if with_nicks else u
-            out[key] = [[lvl, fmt_pct(pct), meta[lvl]["name"] if with_nicks else link] for lvl, (pct, link) in rows]
-        return out
-
-    write_users_json(HERE / "waiting_records.json", build(False))
-    write_users_json(HERE / "waiting_records_with_nicks.json", build(True))
+    # Записи внутри игрока по названию уровня; ссылка есть у записей, где в waiting было видео
+    out = {}
+    for u in order:
+        best = pick_best(people[u]["new"])
+        if not best:
+            continue
+        rows = sorted(best.items(), key=lambda kv: str(meta[kv[0]]["name"] or "").casefold())
+        out[u] = (people[u]["nick"], [[meta[lvl]["name"], fmt_pct(pct), link] for lvl, (pct, link) in rows])
+    write_players(HERE / "waiting_records.json", out)
 
     # waiting_new_players.json: формат как у missing_players.json, но ключ пока наш ID: ID CoreBoard и уникальные
     # ники выдаёт cbd-update.py. Записи: итоговый топ-N игрока, сначала самые сложные; ссылка есть у waiting-записей.

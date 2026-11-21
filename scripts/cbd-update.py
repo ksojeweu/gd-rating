@@ -8,9 +8,9 @@
   2. gd-rating.py --src all -> gdr.txt (наш рейтинг, ID игроков в [скобках]);
   3. compare.py in-gdr-not-in-cbd -> missing_achievements*.json, missing_players.json;
   4. add-video-links.py -> видео (GlobalList, Pointercrate) и commands.txt;
-  5. с --commit копирует в cbd/ missing_achievements.json, missing_achievements_with_nicks.json, commands.txt,
-     missing_players.json и missing_players_with_waiting.json (игроки, у которых меньше 250 очков только с waiting-записями;
-     ID продолжаются после последнего в missing_players.json), коммитит и пушит.
+  5. с --commit кладёт в cbd/ missing_achievements.json, missing_players.json и missing_players_with_waiting.json
+     (игроки, у которых меньше 250 очков только с waiting-записями; ID продолжаются после последнего в
+     missing_players.json) в формате jsonfmt.py, коммитит и пушит. commands.txt остаётся только в scripts/cbd-update/.
 
 ID CoreBoard: из cbd_ids.json (с сайта, главнее) и coreboard_id_map.json в корне репозитория. В missing_achievements*.json
 вместо наших ID стоят ID CoreBoard, новые игроки получают ID по порядку после самого большого.
@@ -28,12 +28,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+from jsonfmt import write_players
+
 HERE = Path(__file__).resolve().parent          # scripts/
 ROOT = HERE.parent                              # корень репозитория
 CBD_DIR = ROOT / "cbd"                          # сюда копируются результаты при --commit
 OUT = HERE / "cbd-update"
-PUBLISHED = ("missing_achievements.json", "missing_achievements_with_nicks.json", "commands.txt", "missing_players.json")
-PUBLISHED_OPTIONAL = ("missing_players_with_waiting.json",)   # только если файл появился в этом запуске
+OLD_FILES = ["cbd/commands.txt", "cbd/missing_achievements_with_nicks.json"]  # в репозитории их больше быть не должно
 WAITING_NEW = HERE / "waiting_new_players.json"   # игроки, у которых меньше 250 очков только с waiting (наши ID)
 
 ap = argparse.ArgumentParser()
@@ -55,34 +56,29 @@ def git(*a, check=True):
     return r
 
 
-RECORDS_FILES = ("missing_achievements.json", "missing_achievements_with_nicks.json")
-
-
-def convert_records(src, dst, mapping):
-    """missing_achievements*.json: наши ID игроков -> ID CoreBoard (ключ 'ID' или 'ID — ник').
-    Игрока, которого в карте нет, оставляем под нашим ID, чтобы не потерять записи (и предупреждаем)."""
+def players_achievements(src, mapping):
+    """missing_achievements_with_nicks.json ('наш ID — ник': [[ID уровня, процент, название, ссылка]]) ->
+    {ID CoreBoard: (ник, [[название, процент, ссылка]])}. Игрока, которого в карте нет, оставляем под нашим ID,
+    чтобы не потерять записи (и предупреждаем)."""
     users = json.loads(src.read_text("utf-8")).get("users", {})
-    converted, kept = {}, []
+    out, kept = {}, []
     for key, records in users.items():
-        our_id, sep, rest = key.partition(" — ")
+        our_id, _, nick = key.partition(" — ")
         cb_id = mapping.get(our_id.strip().casefold())
         if cb_id is None:
             kept.append(key)
-            converted[key] = records
-        else:
-            converted[cb_id + sep + rest] = records
-    with open(dst, "w", encoding="utf-8") as f:
-        f.write('{\n  "users": {\n')
-        items = list(converted.items())  # порядок как в compare: по очкам игрока
-        for i, (key, records) in enumerate(items):
-            f.write(f'    {json.dumps(key, ensure_ascii=False)}: [\n')
-            for j, record in enumerate(records):
-                f.write(f'      {json.dumps(record, ensure_ascii=False)}{"," if j < len(records) - 1 else ""}\n')
-            f.write(f'    ]{"," if i < len(items) - 1 else ""}\n')
-        f.write('  }\n}\n')
+            cb_id = our_id.strip()
+        out[cb_id] = (nick, [[r[2], r[1], r[3] if len(r) > 3 else ""] for r in records])
     if kept:
         print(f"{src.name}: нет ID CoreBoard у {len(kept)} игроков, оставил наши ID: {', '.join(kept[:5])}"
               + (" ..." if len(kept) > 5 else ""))
+    return out
+
+
+def players_new(src):
+    """missing_players*.json ({ключ: {"nick", "records", ...}}) -> {ключ: (ник, записи)}."""
+    users = json.loads(src.read_text("utf-8")).get("users", {})
+    return {key: (info["nick"], info["records"]) for key, info in users.items()}
 
 
 def publish(out, message):
@@ -91,25 +87,21 @@ def publish(out, message):
     mapping_file = out / "gdr_to_cb_ids.json"
     mapping = json.loads(mapping_file.read_text("utf-8")) if mapping_file.exists() else {}
     rels = []
-    for name in PUBLISHED:
-        src, dst = out / name, CBD_DIR / name
-        if not src.exists():
-            sys.exit(f"Нет {src}, нечего публиковать.")
-        if mapping and name in RECORDS_FILES:
-            convert_records(src, dst, mapping)
-        else:
-            shutil.copyfile(src, dst)
-        rels.append(str(dst.relative_to(ROOT)))
-    for name in PUBLISHED_OPTIONAL:
-        src, dst = out / name, CBD_DIR / name
-        if src.exists():
-            shutil.copyfile(src, dst)
-            rels.append(str(dst.relative_to(ROOT)))
+    jobs = {"missing_achievements.json": lambda: players_achievements(out / "missing_achievements_with_nicks.json", mapping),
+            "missing_players.json": lambda: players_new(out / "missing_players.json")}
+    if (out / "missing_players_with_waiting.json").exists():
+        jobs["missing_players_with_waiting.json"] = lambda: players_new(out / "missing_players_with_waiting.json")
+    for name, build in jobs.items():
+        if not (out / name).exists():
+            sys.exit(f"Нет {out / name}, нечего публиковать.")
+        write_players(CBD_DIR / name, build())
+        rels.append(str(CBD_DIR.joinpath(name).relative_to(ROOT)))
 
     git("config", "user.name", os.environ.get("GIT_AUTHOR_NAME", "github-actions[bot]"))
     git("config", "user.email", os.environ.get("GIT_AUTHOR_EMAIL",
                                                "41898282+github-actions[bot]@users.noreply.github.com"))
     git("add", *rels)
+    git("rm", "-q", "--ignore-unmatch", "--", *OLD_FILES)  # старые файлы убираем из репозитория
     if git("diff", "--cached", "--quiet", check=False).returncode == 0:
         print("Нечего коммитить: файлы в cbd/ не изменились.")
         return
