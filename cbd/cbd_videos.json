@@ -218,12 +218,12 @@
     ],
     "25": [
       "xalval",
+      ["Thinking Space II", 78, ""],
       ["Silent clubstep", 100, "https://www.youtube.com/watch?v=33sv6cHiZow"],
       ["Penumbral", 100, "https://www.youtube.com/watch?v=JospJf-AGsk"],
       ["Tidal Wave", 67, "https://www.youtube.com/watch?v=Ak1eY-Zy2qM"],
       ["Avernus", 100, "https://www.youtube.com/watch?v=4DiPYFepMdM"],
-      ["Abyss of Darkness", 100, "https://www.youtube.com/watch?v=XIzI561zVl0"],
-      ["Acheron", 100, "https://www.youtube.com/watch?v=2wmHzDvy_10"]
+      ["Abyss of Darkness", 100, "https://www.youtube.com/watch?v=XIzI561zVl0"]
     ],
     "26": [
       "Cryostaz",
@@ -2559,7 +2559,7 @@
       ["NOMAD", 100, "https://www.youtube.com/watch?v=-nnwSgEw4Ww"],
       ["LIMBO", 100, "https://www.youtube.com/watch?v=qUCJbD86cKA"],
       ["The Plunge", 100, "https://www.youtube.com/watch?v=hECYuU9O9W8"],
-      ["FIBERGLASS", 70, "https://www.youtube.com/watch?v=FqrPLhFY9WY"]
+      ["Voltage", 83, ""]
     ],
     "286": [
       "RicoLP",
@@ -2680,7 +2680,7 @@
     ],
     "299": [
       "OneAlphaHelix",
-      ["Flamewall", 47, "https://www.youtube.com/live/Z-TjsZeAob4?si=suI42mX1VQ_Dz8Z7&t=4801"],
+      ["Flamewall", 47, "https://www.youtube.com/watch?v=Z-TjsZeAob4"],
       ["Acheron", 100, "https://www.youtube.com/watch?v=V1airJGB4ns"],
       ["LIMBO", 100, "https://www.youtube.com/watch?v=Yre9lqGp1ys"],
       ["Slaughterhouse", 79, "https://www.youtube.com/watch?v=mhEo7Zt0NIc"],
@@ -3031,7 +3031,7 @@
       "VERTOP",
       ["andromeda", 100, "https://www.youtube.com/watch?v=yc3PcOfPZqo"],
       ["Tunnel of Despair", 100, "https://www.youtube.com/watch?v=29H7hCtb-fU"],
-      ["Avernus", 77, "https://youtu.be/bY6Um4Dmffo?si=q_wMUrOBQcyKvxet&t=135"],
+      ["Avernus", 87, ""],
       ["Acheron", 62, "https://www.youtube.com/watch?v=8l20IkGyeKw"],
       ["Aerial Gleam", 100, "https://www.youtube.com/watch?v=p8ozP2lnHUQ"],
       ["Widestep", 100, "https://www.youtube.com/watch?v=fQoXvvVDi-k"]
@@ -3245,7 +3245,7 @@
     ],
     "362": [
       "Ellie",
-      ["Azure Flare", 93, "https://youtu.be/2w4BJ4L4cck?si=04f7M4fe3Oj52f9P&t=19"],
+      ["Azure Flare", 100, ""],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=-Wx027FztgE"],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=0w6pWeh8MqA"],
       ["DreamStep", 100, "https://www.youtube.com/watch?v=VSSXKhfW9YQ"],
@@ -3281,7 +3281,7 @@
     ],
     "366": [
       "Wavyy",
-      ["Thinking Space II", 82, "https://youtu.be/JrIDa0KlvBU"],
+      ["Thinking Space II", 82, "https://www.youtube.com/watch?v=JrIDa0KlvBU"],
       ["Avernus", 100, "https://www.youtube.com/watch?v=FeesiByUtqg"],
       ["Tunnel of Despair", 100, "https://www.youtube.com/watch?v=BQU3xOKuV_A"],
       ["Cosmic Cyclone", 100, "https://www.youtube.com/watch?v=nrRCQGZ4F6E"]
@@ -11211,41 +11211,6 @@
     "1298": [
       "termintort",
       ["Slaughterhouse", 88, "https://www.youtube.com/watch?v=qs4R7OYyF8c"]
-    ],
-    "1299": [
-      "stefan_19",
-      ["Zodiac", 100, "https://www.youtube.com/watch?v=_bIn1gBa2v0"],
-      ["Trotil", 100, "https://www.youtube.com/watch?v=QJAwQF5LFIg"],
-      ["Sky Shredder", 100, "https://www.youtube.com/watch?v=_KounP2icLI"],
-      ["Cosmic Cyclone", 100, "https://www.youtube.com/watch?v=v7pBvXZshqA"],
-      ["Jesse Pinkman", 100, "https://www.youtube.com/watch?v=HQzDKpH5iWs"]
-    ],
-    "1300": [
-      "shame",
-      ["Levigo", 100, "https://www.youtube.com/watch?v=4OgyWPLBXM0"],
-      ["Promethean", 100, "https://www.youtube.com/watch?v=iLeiIz7MkYE"],
-      ["ta1LSD0ll", 100, "https://www.youtube.com/watch?v=MuvcuATRN2o"]
-    ],
-    "1301": [
-      "WeRbiX",
-      ["Zodiac", 100, "https://www.youtube.com/watch?v=ajCa6oer0Uw"],
-      ["Cold Sweat", 100, "https://www.youtube.com/watch?v=B3oxuv2NwMc"],
-      ["Renevant", 100, "https://www.youtube.com/watch?v=PnqWfMlDUfg"],
-      ["Lucid Nightmares", 100, "https://www.youtube.com/watch?v=YP7hNBMGans"],
-      ["Bloodlust", 100, "https://www.youtube.com/watch?v=FcXz0Xfa9Ac"]
-    ],
-    "1302": [
-      "Tlawlyx",
-      ["UNKNOWN", 100, "https://www.youtube.com/watch?v=_bTUKmATipk"],
-      ["Sakupen Circles", 68, ""],
-      ["Cosmic Cyclone", 100, "https://www.youtube.com/watch?v=Gc8d8kkluJQ"]
-    ],
-    "1303": [
-      "Michael Solus",
-      ["UNKNOWN", 100, "https://www.youtube.com/watch?v=18DVWN17VTk"],
-      ["Cognition", 100, "https://www.youtube.com/watch?v=uC8Gz9gZMIw"],
-      ["Rigel", 100, "https://www.youtube.com/watch?v=S_OW_9RNNwc"],
-      ["Bloodlust", 100, "https://www.youtube.com/watch?v=t-RtVaL2sWo"]
     ],
     "1304": [
       "animaltrack",
@@ -21581,15 +21546,6 @@
       ["Judgement Knights", 100, "https://www.youtube.com/watch?v=9ArQeeKXU8Y"],
       ["Bloodlust", 100, "https://www.youtube.com/watch?v=rF2bQI1ZqXI"]
     ],
-    "2789": [
-      "Remix47",
-      ["Zodiac", 100, "https://www.youtube.com/watch?v=_bIn1gBa2v0"],
-      ["Renevant", 100, "https://www.youtube.com/watch?v=4JwJ4g5zGp0"],
-      ["SARY NEVER CLEAR", 100, "https://www.youtube.com/watch?v=g99qg_I961c"],
-      ["Cosmic Cyclone", 100, "https://www.youtube.com/watch?v=ogiYU4ISVE0"],
-      ["Shardscapes", 100, "https://www.youtube.com/watch?v=KrUlGUH6dA0"],
-      ["The Rupture", 100, "https://www.youtube.com/watch?v=FCF99_jW3xo"]
-    ],
     "2790": [
       "Cewew",
       ["The Golden", 100, "https://www.youtube.com/watch?v=k-UQuThE9dc"],
@@ -21601,76 +21557,21 @@
       ["Natural Disaster", 100, "https://www.youtube.com/watch?v=9Bq9tcPgVS4"],
       ["Crackhead Circles", 100, "https://www.youtube.com/watch?v=AGMHxp6rg28"]
     ],
-    "2792": [
-      "Lura",
-      ["Firework", 88, "https://www.youtube.com/watch?v=BleRQHupmPs"],
-      ["Zodiac", 100, "https://www.youtube.com/watch?v=CyyFV6KcFCo"],
-      ["Bloodlust", 100, "https://www.youtube.com/watch?v=b384IvvUWcA"]
-    ],
     "2793": [
       "yteclipse",
       ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=kAmxG0oroxI"],
       ["Solar Flare", 80, "https://www.youtube.com/watch?v=Mbau39qO7DA"]
-    ],
-    "2794": [
-      "Skinn7Y",
-      ["The Paroxysm of Rage", 100, "https://www.youtube.com/watch?v=CvCtqB6IUM4"],
-      ["Crimson Planet", 100, "https://www.youtube.com/watch?v=aTPk9MHP52Y"],
-      ["SUPERHATEMEWORLD", 100, "https://www.youtube.com/watch?v=pQd1mv__imw"],
-      ["Lucid Nightmares", 100, "https://www.youtube.com/watch?v=LkkSYJotD7I"]
     ],
     "2795": [
       "BoldStep",
       ["Tartarus", 100, "https://www.youtube.com/watch?v=xmde1FfPiso"],
       ["Keres", 100, "https://www.youtube.com/watch?v=9_08ERFdpd8"]
     ],
-    "2796": [
-      "MTLAS",
-      ["UNKNOWN", 100, "https://www.youtube.com/watch?v=9qdh3jX4qv4"],
-      ["shimmer", 100, "https://www.youtube.com/watch?v=n0Czzv5-IpU"],
-      ["Coral Cave", 100, "https://www.youtube.com/watch?v=EzHfRi25LLA"]
-    ],
-    "2797": [
-      "onion",
-      ["The Golden", 100, "https://www.youtube.com/watch?v=AIbKhAzlZD4"],
-      ["Judgement Knights", 100, "https://www.youtube.com/watch?v=3G73phtpSSA"]
-    ],
-    "2798": [
-      "santoku",
-      ["The Golden", 100, "https://www.youtube.com/watch?v=Wu1QC0GMvME"],
-      ["Judgement Knights", 100, "https://www.youtube.com/watch?v=8S3R7U1viqY"]
-    ],
-    "2799": [
-      "ShadowNevio",
-      ["BPATA MPAKA", 100, "https://www.youtube.com/watch?v=qyEJ6Nl9JmY"],
-      ["ConClusion", 100, "https://www.youtube.com/watch?v=hv5Ni_bu1M0"],
-      ["Ragnarok", 100, "https://www.youtube.com/watch?v=h6AlSVtGKdM"]
-    ],
-    "2800": [
-      "latko",
-      ["Renevant", 100, "https://www.youtube.com/watch?v=4JwJ4g5zGp0"],
-      ["Gloxinia", 100, "https://www.youtube.com/watch?v=o-gP25MnKSs"],
-      ["Cognition", 100, "https://www.youtube.com/watch?v=eJ10XfvHxjM"],
-      ["SAND SAILOR", 100, "https://www.youtube.com/watch?v=ZEMwNbgTXT4"],
-      ["Lucid Nightmares", 100, "https://www.youtube.com/watch?v=LkkSYJotD7I"],
-      ["Coral Cave", 100, "https://www.youtube.com/watch?v=mKykd8OwZCk"]
-    ],
-    "2801": [
-      "Veriscent",
-      ["Oblivion", 100, "https://www.youtube.com/watch?v=l_cXx8yrsmg"],
-      ["Cold Sweat", 100, "https://www.youtube.com/watch?v=DrYrgXIWUv0"],
-      ["RUST", 100, "https://www.youtube.com/watch?v=0Dy6yI8uXgU"]
-    ],
     "2802": [
       "zFreza",
       ["Shukketsu", 100, "https://www.youtube.com/watch?v=mfoDG9oLlgI"],
       ["Aerial Gleam", 100, "https://www.youtube.com/watch?v=QFnBYAxBKvA"],
       ["Cobwebs", 100, "https://www.youtube.com/watch?v=PVULIhIKUVE"]
-    ],
-    "2803": [
-      "guisantewaveplayer",
-      ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=I4Priclryn4"],
-      ["Thinking Space", 100, "https://www.youtube.com/watch?v=6siWcSGaql4"]
     ],
     "2804": [
       "KrisYa",
@@ -21679,16 +21580,6 @@
       ["Cognition", 100, "https://www.youtube.com/watch?v=kJXBnJGuMOU"],
       ["RUST", 100, "https://www.youtube.com/watch?v=2kSDeqHyjck"],
       ["Cobwebs", 100, "https://www.youtube.com/watch?v=waG69UwRkwU"]
-    ],
-    "2805": [
-      "CicadaTheDragon",
-      ["Terminal Rampancy", 100, "https://www.youtube.com/watch?v=Uzol93GonIo"],
-      ["Scream Machine", 100, "https://www.youtube.com/watch?v=YmTprEJvevA"]
-    ],
-    "2806": [
-      "Zwariowany Wojtek",
-      ["Firework", 97, "https://www.youtube.com/watch?v=NC6zxgVHR6M"],
-      ["Renevant", 100, "https://www.youtube.com/watch?v=1fLCKxfU0HQ"]
     ],
     "2811": [
       "EllJad.",
@@ -21805,15 +21696,6 @@
       ["The Plunge", 100, "https://www.youtube.com/watch?v=ZtbYTkYkmRI"],
       ["Rigel", 100, "https://www.youtube.com/watch?v=L3mFaQ424BY"],
       ["Cobwebs", 100, "https://www.youtube.com/watch?v=J7xIm6GXmnA"]
-    ],
-    "2830": [
-      "NoNe1",
-      ["NEUTRA", 100, "https://www.youtube.com/watch?v=_1FEfXoG8Eg"],
-      ["Renevant", 100, "https://www.youtube.com/watch?v=7SVu_WZhTj4"],
-      ["shimmer", 100, "https://www.youtube.com/watch?v=45rUvJZ0spQ"],
-      ["Shardscapes", 100, "https://www.youtube.com/watch?v=KrUlGUH6dA0"],
-      ["Jesse Pinkman", 100, "https://www.youtube.com/watch?v=jJLlfNhHW6g"],
-      ["The Rupture", 100, "https://www.youtube.com/watch?v=z8AhmYhoSr8"]
     ],
     "2831": [
       "SoftLock",
