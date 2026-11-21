@@ -177,7 +177,9 @@ def accounts_of(entry):
     block = entry.get(OTHER_BLOCK) if isinstance(entry.get(OTHER_BLOCK), dict) else {}
     for s in all_lists():
         vals = block.get(s.name)
-        if not isinstance(vals, list):
+        if not isinstance(vals, (list, dict)):
             vals = entry.get(s.name)
+        if isinstance(vals, dict):  # coreboard: {"main": 12, "mobile": 34} -> ["main:12", "mobile:34"]
+            vals = [f"{m}:{i}" for m, ids in vals.items() for i in (ids if isinstance(ids, list) else [ids])]
         out[s.name] = [str(v).strip() for v in vals if str(v).strip()] if isinstance(vals, list) else []
     return out
