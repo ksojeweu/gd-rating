@@ -23,7 +23,7 @@ from pathlib import Path
 
 import levels as levelsearch
 import lists_core as L
-from jsonfmt import write_players
+from jsonfmt import parse_lenient, write_players
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent                              # корень репозитория
@@ -119,7 +119,7 @@ def load_repo_json(name):
     try:
         for f in (ROOT / name, HERE / name):
             if f.exists():
-                return json.loads(f.read_text("utf-8"))
+                return parse_lenient(f.read_text("utf-8"), name)
         return get_json(RAW + name)
     except Exception as e:
         print(f"{name}: {e}")

@@ -9,6 +9,7 @@
   }}
 """
 import json
+import re
 
 
 def write_players(path, players):
@@ -23,3 +24,17 @@ def write_players(path, players):
         lines.append("    ]" + ("," if i < len(items) - 1 else ""))
     lines += ['  }', '}', '']
     path.write_text("\n".join(lines), "utf-8")
+
+
+def parse_lenient(text, name="файл"):
+    """json.loads, но с прощением лишних запятых перед ] и } (частая ошибка при ручной правке): на такой случай
+    печатается предупреждение. Если и так не разобралось, исключение json.JSONDecodeError с исходной причиной."""
+    try:
+        return json.loads(text)
+    except ValueError as first:
+        try:
+            data = json.loads(re.sub(r",(\s*[\]}])", r"\1", text))
+        except ValueError:
+            raise first
+        print(f"ВНИМАНИЕ: {name}: лишние запятые перед ] или }} (разобрал, но исправь файл): {first}")
+        return data

@@ -35,6 +35,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent          # scripts/
 import levels as levelsearch
+from jsonfmt import write_players
 
 ROOT = HERE.parent                              # корень репозитория
 EXTRAS = ROOT / "my_extras.json"
@@ -391,15 +392,45 @@ def save_missing(found):
     dump_users(users, MISSING)
 
 
+def cb_ids():
+    """Откуда берутся ID CoreBoard: (наш ID -> ID CoreBoard, ник -> ID CoreBoard) из coreboard_id_map.json
+    ({"<ID CoreBoard>": {"nick", "gdr_id"}}) и cbd_ids.json (ник -> ID с сайта; главнее, если есть)."""
+    by_gdr, by_nick = {}, {}
+    id_map = next((p for p in (ROOT / "coreboard_id_map.json", HERE / "coreboard_id_map.json") if p.exists()), None)
+    if id_map:
+        for cb_id, row in json.loads(id_map.read_text("utf-8")).items():
+            if isinstance(row, dict) and str(cb_id).isdigit():
+                if row.get("gdr_id"):
+                    by_gdr[str(row["gdr_id"]).casefold()] = str(cb_id)
+                if row.get("nick"):
+                    by_nick.setdefault(str(row["nick"]).casefold(), str(cb_id))
+    site = HERE / "cbd_ids.json"
+    if site.exists():
+        for nick, cb_id in json.loads(site.read_text("utf-8")).items():
+            if str(cb_id).isdigit():
+                by_nick[str(nick).casefold()] = str(cb_id)
+    return by_gdr, by_nick
+
+
 def publish_waiting():
-    """Копирует waiting_records*.json из scripts/ в cbd/ (если gd-rating их сделал)."""
-    for dst in (WAITING,):
-        src = HERE / dst.name
-        if src.exists():
-            dst.parent.mkdir(exist_ok=True)
-            text = src.read_text("utf-8")
-            if not dst.exists() or dst.read_text("utf-8") != text:
-                dst.write_text(text, "utf-8")
+    """waiting_records.json из scripts/ (ключ - наш ID) -> cbd/ с ключами ID CoreBoard."""
+    src, dst = HERE / WAITING.name, WAITING
+    if not src.exists():
+        return
+    by_gdr, by_nick = cb_ids()
+    users = json.loads(src.read_text("utf-8")).get("users", {})
+    out, kept = {}, []
+    for gdr_id, (nick, *records) in users.items():
+        cb_id = by_gdr.get(gdr_id.casefold()) or by_nick.get(nick.casefold())
+        if cb_id is None:
+            kept.append(f"{gdr_id} ({nick})")
+            cb_id = gdr_id
+        out[cb_id] = (nick, records)
+    if kept:
+        print(f"waiting_records: нет ID CoreBoard у {len(kept)} игроков, оставил наши ID: {', '.join(kept[:5])}"
+              + (" ..." if len(kept) > 5 else ""))
+    dst.parent.mkdir(exist_ok=True)
+    write_players(dst, out)
 
 
 def git(*a, check=True):
