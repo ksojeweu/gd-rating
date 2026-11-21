@@ -37,5 +37,20 @@ jobs:
       - name: Install requests
         run: pip install requests
 
+      # Кеш "видео не нашлось" (чтобы не искать одно и то же каждый запуск)
+      - name: Restore video cache
+        uses: actions/cache/restore@v4
+        with:
+          path: scripts/videocache.json
+          key: videocache-${{ github.run_id }}
+          restore-keys: videocache-
+
       - name: Run cbd-videos.py
         run: python scripts/cbd-videos.py --commit --budget-min ${{ github.event.inputs.budget_min || '40' }}
+
+      - name: Save video cache
+        if: ${{ always() && hashFiles('scripts/videocache.json') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: scripts/videocache.json
+          key: videocache-${{ github.run_id }}
