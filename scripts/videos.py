@@ -6,8 +6,8 @@ import requests
 
 import lists_core as L
 
-LINKS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/refs/heads/main/links.json"
-FIX_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/fix.json"  # склейки аккаунтов глобала (merges)
+LINKS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/refs/heads/main/links.json"
+FIX_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/fix.json"  # склейки аккаунтов глобала (merges)
 GLOBAL_API = "https://api.demonlist.org"
 POINTERCRATE_API = "https://pointercrate.com/api/v1"
 POINTERCRATE_DEMONS_API = "https://pointercrate.com/api/v2/demons"
@@ -402,5 +402,3 @@ def find_video_retry(player_id, level_id, percent, links):
         time.sleep(pause)
         video, source = find_video(player_id, level_id, percent, links)
     return video, source
-
-
