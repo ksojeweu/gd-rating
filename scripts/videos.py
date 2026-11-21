@@ -1,5 +1,4 @@
 """Поиск видео рекордов: GlobalList (все аккаунты человека) и Pointercrate. Общий модуль add-video-links.py и cbd-videos.py."""
-import html
 import re
 import time
 
@@ -10,7 +9,6 @@ import lists_core as L
 LINKS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/refs/heads/main/links.json"
 FIX_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/fix.json"  # склейки аккаунтов глобала (merges)
 GLOBAL_API = "https://api.demonlist.org"
-DEMONLIST_LEVEL_URL = "https://demonlist.org/demonlist/level/{level_id}"
 POINTERCRATE_API = "https://pointercrate.com/api/v1"
 POINTERCRATE_DEMONS_API = "https://pointercrate.com/api/v2/demons"
 LIMIT = 100
@@ -28,6 +26,7 @@ global_records_cache = {}
 links_dl_extra = {}   # ID человека из links.json -> его дополнительные аккаунты на глобале
 fix_absorbed = None   # ID главного аккаунта -> ID аккаунтов, склеенных в него (fix.json); None пока не загружен
 global_level_cache = {}
+first_beaten_cache = {}
 pointer_demon_cache = {}
 pointer_records_cache = {}
 
@@ -37,8 +36,6 @@ YOUTUBE_ID_PATTERN = re.compile(
     r'|youtube\.com/(?:watch\?(?:[^\s]*?&)?v=|shorts/|live/|embed/|v/))'
     r'([A-Za-z0-9_-]{11})'
 )
-# "first beaten by <a href="/demonlist/player/3988">ikkyseen</a>" на странице уровня demonlist.org
-FIRST_BEATEN_RE = re.compile(r'first beaten by\s*<a[^>]*href="/demonlist/player/(\d+)"[^>]*>(.*?)</a>', re.S | re.I)
 
 
 def get_json(url, params=None):
@@ -165,19 +162,28 @@ def get_global_level(level_id):
 
 
 def get_first_beaten_by(level_id):
-    """Игрок «first beaten by» со страницы уровня на demonlist.org: (player_id, nick) или (None, None)."""
-    try:
-        response = session.get(DEMONLIST_LEVEL_URL.format(level_id=level_id), timeout=TIMEOUT)
-        response.raise_for_status()
-        page = response.text
-    except Exception as error:
-        print(f"    Не удалось загрузить страницу уровня {level_id}: {error}")
-        return None, None
+    """Первый игрок, прошедший уровень, через API (level/classic/record/list): (player_id, nick) или (None, None).
+    Берётся первая запись на 100% в начале списка рекордов уровня (если 100% на первой странице нет, первая запись)."""
+    level_id = int(level_id)
+    if level_id in first_beaten_cache:
+        return first_beaten_cache[level_id]
 
-    m = FIRST_BEATEN_RE.search(page)
-    if not m:
-        return None, None
-    return m.group(1), html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+    result = (None, None)
+    try:
+        data, _ = get_json(f"{GLOBAL_API}/level/classic/record/list", {"level_id": level_id, "limit": 50, "offset": 0})
+        if data.get("message") != "success":
+            raise RuntimeError(f"Global API error: {data}")
+        records = (data.get("data") or {}).get("records") or []
+        pick = next((r for r in records if record_percent(r, "percent") == 100), records[0] if records else None)
+        user = (pick or {}).get("user") or {}
+        if user.get("id") is not None:
+            result = (str(user["id"]), str(user.get("username") or "").strip())
+    except Exception as error:
+        print(f"    Не удалось получить рекорды уровня {level_id} через API: {error}")
+        return None, None  # сбой не запоминаем: попробуем снова
+
+    first_beaten_cache[level_id] = result
+    return result
 
 
 def find_global_video(user_id, level_id, percent):
@@ -433,5 +439,3 @@ def find_video_retry(player_id, level_id, percent, links):
         time.sleep(pause)
         video, source = find_video(player_id, level_id, percent, links)
     return video, source
-
-
