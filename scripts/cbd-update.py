@@ -1,59 +1,25 @@
 #!/usr/bin/env python3
 """
-Находит то, что есть в нашем рейтинге (gdr), а в CoreBoard (cbd) нет или там процент ниже,
-ищет на это видео и собирает команды /fulladd и /try для CoreBoard.
-Обратная версия sync-extras.py: тот берёт из cbd то, чего нет в gdr, и пишет в my_extras.json.
-my_extras.json этот скрипт не трогает.
+Находит то, что есть в нашем рейтинге (gdr), а в CoreBoard (cbd) нет или там процент ниже, ищет на это видео и
+собирает команды /fulladd и /try. Обратная сторона sync-extras.py (my_extras.json этот скрипт не трогает).
 
-Что делает по шагам:
-  1. coreboard_parse.py all   -> cbd.txt (оба топа CoreBoard вместе);
-  2. gd-rating.py --src all --ids -> gdr.txt (наш рейтинг, ID игроков в [скобках]);
-  3. compare.py in-gdr-not-in-cbd -> missing_achievements.json и missing_achievements_with_nicks.json;
-  4. add-video-links.py -> ищет видео (GlobalList, Pointercrate) и собирает команды (commands.txt);
-  5. с флагом --commit копирует три файла в папку cbd/ репозитория, коммитит и пушит:
-       cbd/missing_achievements.json
-       cbd/missing_achievements_with_nicks.json
-       cbd/commands.txt
-       cbd/missing_players.json   (новые игроки: есть у нас с очками меньше 250, на CoreBoard их нет;
-                                   для них команд нет, только JSON с никами, записями и ссылками на видео)
-       cbd/missing_players_with_waiting.json  (игроки, у которых меньше 250 очков только если принять их waiting-записи;
-                                   ID продолжаются после последнего в missing_players.json)
-     Если добавлять в CoreBoard больше нечего, файлы в cbd/ обновятся на пустые.
+Шаги:
+  1. coreboard-parse.py -> cbd.txt (если sync-extras только что скачал страницы, они берутся из кеша, а не качаются заново);
+  2. gd-rating.py --src all -> gdr.txt (наш рейтинг, ID игроков в [скобках]);
+  3. compare.py in-gdr-not-in-cbd -> missing_achievements*.json, missing_players.json;
+  4. add-video-links.py -> видео (GlobalList, Pointercrate) и commands.txt;
+  5. с --commit копирует в cbd/ missing_achievements.json, missing_achievements_with_nicks.json, commands.txt,
+     missing_players.json и missing_players_with_waiting.json (игроки, у которых меньше 250 очков только с waiting-записями;
+     ID продолжаются после последнего в missing_players.json), коммитит и пушит.
 
-levels_tp.json всегда скачивается с GitHub (локальная копия не читается).
-gdr-ids.json больше не нужен: ники и ID игроков берутся только из coreboard_id_map.json.
+ID CoreBoard: из cbd_ids.json (с сайта, главнее) и coreboard_id_map.json в корне репозитория. В missing_achievements*.json
+вместо наших ID стоят ID CoreBoard, новые игроки получают ID по порядку после самого большого.
+Рабочая папка с полными результатами и отладочными файлами: scripts/cbd-update/.
 
-ID CoreBoard. Пока в ссылках на игроков сайта только ники, ID берутся из coreboard_id_map.json в корне репозитория
-({"<ID>": {"nick": ..., "gdr_id": ...}}). Когда в ссылках появятся числовые ID, coreboard_parse.py
-сам сохранит их в cbd_ids.json (ник -> ID), и они главнее карты: игрок сопоставляется по ID сайта через карту,
-новые ID идут после самого большого из обоих источников. JSON для CoreBoard выходят с ЕГО ID:
-в missing_achievements*.json вместо наших ID стоят ID CoreBoard, а новые игроки в missing_players.json получают ID по
-порядку после самого большого в coreboard_id_map.json (игрок, уже записанный в карте, сохраняет свой ID). В
-missing_players.json только код страны (country_code), без названия; наш ID остаётся в поле gdr_id. Файла карты нет:
-всё работает как раньше, ключи наши.
-
-Запуск (из любой папки, пути считаются от места скрипта):
-  python scripts/cbd-update.py                  полный прогон, результат в scripts/cbd-update/
-  python scripts/cbd-update.py --commit         то же + копия в cbd/, коммит и пуш
-  python scripts/cbd-update.py --no-videos      только compare, без поиска видео и команд
-  python scripts/cbd-update.py --skip-fetch     взять готовые cbd.txt и gdr.txt
-
-Параметры:
-  --commit        скопировать три файла в cbd/, закоммитить и запушить
-  --out-dir PATH  рабочая папка с полными результатами (по умолчанию cbd-update рядом со скриптом)
-  --skip-fetch    не запускать coreboard_parse и gd-rating, взять готовые cbd.txt и gdr.txt
-  --no-videos     остановиться после compare, видео и команды не делать (с --commit нельзя)
-
-В рабочей папке кроме трёх файлов лежат missing_achievements_with_videos.json,
-missing_video_links.txt (где видео не нашлось), video_link_sources.txt и служебные файлы compare.
-
-Скрипты coreboard_parse.py, gd-rating.py, compare.py и add-video-links.py должны лежать
-рядом с этим файлом (допустимы имена и через дефис, и через подчёркивание).
-Для поиска видео нужен модуль requests (pip install requests); для --no-videos он не нужен.
+  python scripts/cbd-update.py [--commit]
 """
 
 import argparse
-import importlib.util
 import json
 import os
 import re
@@ -65,29 +31,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent          # scripts/
 ROOT = HERE.parent                              # корень репозитория
 CBD_DIR = ROOT / "cbd"                          # сюда копируются результаты при --commit
-PUBLISHED = ("missing_achievements.json", "missing_achievements_with_nicks.json", "commands.txt",
-             "missing_players.json")
-# Публикуется, только если файл появился в этом запуске (его делает gd-rating --waiting через sync-extras.py)
-PUBLISHED_OPTIONAL = ("missing_players_with_waiting.json",)
+OUT = HERE / "cbd-update"
+PUBLISHED = ("missing_achievements.json", "missing_achievements_with_nicks.json", "commands.txt", "missing_players.json")
+PUBLISHED_OPTIONAL = ("missing_players_with_waiting.json",)   # только если файл появился в этом запуске
 WAITING_NEW = HERE / "waiting_new_players.json"   # игроки, у которых меньше 250 очков только с waiting (наши ID)
 
-ap = argparse.ArgumentParser(
-    description="cbd-update: достижения из нашего рейтинга, которых нет в CoreBoard, "
-                "с видео и командами /fulladd и /try")
+ap = argparse.ArgumentParser()
 ap.add_argument("--commit", action="store_true", help="скопировать результаты в cbd/, закоммитить и запушить")
-ap.add_argument("--out-dir", default=str(HERE / "cbd-update"), help="рабочая папка с результатами")
-ap.add_argument("--skip-fetch", action="store_true", help="не качать cbd и gdr заново")
-ap.add_argument("--no-videos", action="store_true", help="только compare, без видео и команд")
 args = ap.parse_args()
-if args.no_videos and args.commit:
-    ap.error("--no-videos нельзя вместе с --commit: в cbd/ попал бы устаревший commands.txt")
-
-
-def find_script(*names):
-    for n in names:
-        if (HERE / n).exists():
-            return HERE / n
-    sys.exit(f"Не найден скрипт {names[0]} в папке {HERE}. Положи его рядом с этим файлом.")
 
 
 def run(cmd, what):
@@ -236,69 +187,35 @@ def make_players_with_waiting(out, cbd_ids, id_map):
 
 
 def main():
-    cb = find_script("coreboard_parse.py", "coreboard-parse.py")
-    gdr_script = find_script("gd-rating.py", "gd_rating.py")
-    cmp_script = find_script("compare.py")
-    avl_script = None
-    if not args.no_videos:
-        avl_script = find_script("add-video-links.py", "add_video_links.py")
-        if importlib.util.find_spec("requests") is None:
-            sys.exit("Для поиска видео нужен модуль requests: pip install requests "
-                     "(или запусти с --no-videos).")
-
     cbd_txt, gdr_txt = HERE / "cbd.txt", HERE / "gdr.txt"
-    if not args.skip_fetch:
-        run([sys.executable, cb, "all", "-r"], "CoreBoard: оба топа -> cbd.txt")
-        run([sys.executable, gdr_script, "--src", "all", "--ids"], "Наш рейтинг -> gdr.txt")
+    run([sys.executable, HERE / "coreboard-parse.py"], "CoreBoard: оба топа -> cbd.txt")
+    run([sys.executable, HERE / "gd-rating.py", "--src", "all", "--out", gdr_txt.name], "Наш рейтинг -> gdr.txt")
     for f in (cbd_txt, gdr_txt):
         if not f.exists() or f.stat().st_size == 0:
             sys.exit(f"Нет файла {f.name} (или он пустой). Останавливаюсь.")
 
-    cbd_ids = HERE / "cbd_ids.json"   # ник -> ID с сайта; делает coreboard_parse, когда в ссылках появятся ID
+    cbd_ids = HERE / "cbd_ids.json"   # ник -> ID с сайта; делает coreboard-parse, когда в ссылках появятся ID
     id_map = next((p for p in (ROOT / "coreboard_id_map.json", HERE / "coreboard_id_map.json") if p.exists()),
-                  ROOT / "coreboard_id_map.json")   # корень репозитория, запасной вариант рядом со скриптом
-    print(f"\nID CoreBoard: с сайта {'есть' if cbd_ids.exists() else 'нет'}, "
-          f"{id_map.name} {'есть' if id_map.exists() else 'нет'}")
+                  ROOT / "coreboard_id_map.json")
 
-    out = Path(args.out_dir).resolve()
-    out.mkdir(parents=True, exist_ok=True)
-    # результаты прошлого запуска убираем, чтобы старые команды не приняли за новые
-    for name in ("missing_achievements.json", "missing_achievements_with_nicks.json",
-                 "missing_achievements_with_videos.json", "missing_video_links.txt",
-                 "video_link_sources.txt", "commands.txt", "missing_players.json",
-                 "missing_players_skipped.txt", "missing_players_video_links.txt", "gdr_to_cb_ids.json",
-                 "missing_players_with_waiting.json"):
-        (out / name).unlink(missing_ok=True)
+    shutil.rmtree(OUT, ignore_errors=True)   # результаты прошлого запуска убираем, чтобы старые команды не приняли за новые
+    out = OUT
+    out.mkdir(parents=True)
 
-    cmp_cmd = [sys.executable, cmp_script, "in-gdr-not-in-cbd", "--cbd", cbd_txt, "--gdr", gdr_txt,
-               "--out-dir", out]
-    if cbd_ids.exists():
-        cmp_cmd += ["--cbd-ids", cbd_ids]
-    if id_map.exists():
-        cmp_cmd += ["--id-map", id_map]
-    run(cmp_cmd, "compare: in-gdr-not-in-cbd")
-
-    found_file = out / "missing_achievements.json"
-    if not found_file.exists() or not (out / "missing_achievements_with_nicks.json").exists():
-        sys.exit("compare.py не создал missing_achievements.json / missing_achievements_with_nicks.json.")
-    found = json.loads(found_file.read_text("utf-8")).get("users", {})
+    run([sys.executable, HERE / "compare.py", "in-gdr-not-in-cbd", "--cbd", cbd_txt, "--gdr", gdr_txt, "--out-dir", out],
+        "compare: in-gdr-not-in-cbd")
+    for name in ("missing_achievements.json", "missing_achievements_with_nicks.json", "missing_players.json"):
+        if not (out / name).exists():
+            sys.exit(f"compare.py не создал {name}.")
+    found = json.loads((out / "missing_achievements.json").read_text("utf-8")).get("users", {})
     total = sum(len(v) for v in found.values())
-    players_file = out / "missing_players.json"
-    if not players_file.exists():
-        sys.exit("compare.py не создал missing_players.json.")
-    new_players = len(json.loads(players_file.read_text("utf-8")).get("users", {}))
+    new_players = len(json.loads((out / "missing_players.json").read_text("utf-8")).get("users", {}))
     print(f"\ncompare нашёл: игроков {len(found)}, записей {total}; новых игроков (нет на CoreBoard) {new_players}")
-
-    if args.no_videos:
-        print(f"--no-videos: видео и команды не делаю. Результат: {found_file}")
-        make_players_with_waiting(out, cbd_ids, id_map)
-        return
 
     if total or new_players:
         # --prev-players: ссылки, уже найденные в опубликованном cbd/missing_players.json, заново не ищутся
-        run([sys.executable, avl_script, "--out-dir", out, "--id-map", id_map,
-             "--prev-players", CBD_DIR / "missing_players.json"],
-            "Видео и команды (add-video-links)")
+        run([sys.executable, HERE / "add-video-links.py", "--out-dir", out, "--id-map", id_map,
+             "--prev-players", CBD_DIR / "missing_players.json"], "Видео и команды (add-video-links)")
         if not (out / "commands.txt").exists():
             sys.exit("add-video-links.py не создал commands.txt.")
     else:
@@ -306,10 +223,6 @@ def main():
         (out / "commands.txt").write_text("", "utf-8")
 
     make_players_with_waiting(out, cbd_ids, id_map)
-
-    print(f"\nКоманды: {out / 'commands.txt'}")
-    if total:
-        print(f"Не нашлось видео: {out / 'missing_video_links.txt'}")
     if args.commit:
         publish(out, f"cbd: {len(found)} игроков, {total} записей, новых игроков {new_players} (авто, gdr-not-in-cbd)")
 

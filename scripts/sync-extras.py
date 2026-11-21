@@ -1,42 +1,25 @@
 #!/usr/bin/env python3
 """
-Автоматически добавляет в my_extras.json то, что compare.py находит командой in-cbd-not-in-gdr:
-достижения, которые есть в CoreBoard (cbd), а в нашем рейтинге (gdr) их нет или процент ниже.
+Дописывает в my_extras.json то, что compare.py находит командой in-cbd-not-in-gdr: достижения, которые есть в
+CoreBoard, а в нашем рейтинге их нет или процент ниже. Файл ПОЛНОСТЬЮ перезаписывается найденным (сохраняются только
+ссылки на видео), записи с CoreBoard, которые появились у нас или пропали у них, удаляются.
 
-Что делает по шагам:
-  1. coreboard_parse.py all   -> cbd.txt (оба топа CoreBoard вместе);
-  2. gd-rating.py --src pointercrate,wml --ids -> gdr_gl_pc_wml.txt (наш рейтинг, ID игроков в [скобках]);
-  3. compare.py in-cbd-not-in-gdr -> missing_achievements.json;
-  4. ПОЛНОСТЬЮ перезаписывает my_extras.json найденным (процент может понижаться, записи, которые
-     уже есть в нашем рейтинге или пропали с CoreBoard, удаляются; сохраняются только ссылки на видео);
-  5. пишет missing_achievements.json в корень репозитория: [ID уровня, процент, ссылка на видео].
-     По умолчанию видео НЕ ищутся (ссылки пустые, ""). С флагом --videos add-video-links.py ищет их
-     (ссылки те же, что в командах /fulladd и /try; не нашлась - "");
-  6. с флагом --commit коммитит и пушит my_extras.json, missing_achievements.json и levels_tp.json.
+Шаги:
+  1. levels_tp.json: список уровней CoreBoard (/main/levels) -> levels_tp.json в корне репозитория;
+  2. coreboard-parse.py -> cbd.txt; gd-rating.py --src pointercrate,wml --waiting -> gdr_gl_pc_wml.txt;
+  3. compare.py in-cbd-not-in-gdr -> найденное;
+  4. my_extras.json и missing_achievements.json (корень репозитория: [ID уровня, процент, ""]), waiting_records*.json -> cbd/;
+  5. с --commit коммитит и пушит.
 
-Запуск (из любой папки, пути считаются от места скрипта):
-  python scripts/sync_extras.py --dry-run      только показать, что добавилось бы, ничего не писать
-  python scripts/sync_extras.py                записать в my_extras.json
-  python scripts/sync_extras.py --commit       записать, закоммитить и запушить
+  python scripts/sync-extras.py --commit [--dry-run] [--force] [--max N]
+  --dry-run  ничего не писать в репозиторий, только показать
+  --max N    защита: если изменений (новых + повышенных + пониженных + убранных) больше N (по умолчанию 300), ничего
+             не пишем: огромное число почти всегда значит сбой парсинга
+  --force    игнорировать --max
 
-Параметры:
-  --max N         защита: если изменений (новых + повышенных + пониженных + убранных) больше N,
-                  ничего не пишем (по умолчанию 300). Огромное число почти всегда значит сбой парсинга.
-  --force         игнорировать --max
-  --skip-fetch    не запускать coreboard_parse и gd-rating, взять готовые cbd.txt и gdr_gl_pc_wml.txt
-                  (удобно, чтобы быстро перепроверить сравнение)
-  --skip-levels   не обновлять levels_tp.json (при --skip-fetch он тоже не обновляется)
-  --videos        искать видео для missing_achievements.json (по умолчанию не ищет, так быстрее)
-
-levels_tp.json: перед сравнением скрипт скачивает https://coreboard.pythonanywhere.com/main/levels
-(User-Agent gl-ext-top6) и перезаписывает levels_tp.json в корне репозитория: основные уровни
-(<li id="level-N">Имя (T=.., t=..)</li>) и алиасы ("Имя = Уровень (T=.., t=..)" -> ключ "xИмя").
-ID уровней (ключи) - это ID глобала. На странице CoreBoard их нет: известные берутся из старого файла и СВЕРЯЮТСЯ с глобалом по названию (съехавшие исправляются),
+levels_tp.json: основные уровни (таблица <tr id="level-N">) и специальные (алиасы, ключ "xИмя"). ID уровней - это ID
+глобала; на странице CoreBoard их нет: известные берутся из старого файла (с GitHub) и СВЕРЯЮТСЯ с глобалом по названию,
 новые ищутся по имени в api.demonlist.org; неоднозначные и не найденные пропускаются с предупреждением.
-
-Скрипты coreboard_parse.py, gd-rating.py, compare.py и add-video-links.py должны лежать рядом с этим файлом
-(допустимы и имена через дефис: coreboard-parse.py и т.д.).
-Нужен только Python, ничего устанавливать не надо.
 """
 
 import argparse
@@ -51,39 +34,26 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent          # scripts/
-if str(HERE) not in sys.path:
-    sys.path.insert(0, str(HERE))
-import levels as levelsearch  # общий поиск уровней по названию (особые названия, нормализация)
+import levels as levelsearch
 
 ROOT = HERE.parent                              # корень репозитория
 EXTRAS = ROOT / "my_extras.json"
 LEVELS = ROOT / "levels_tp.json"
 MISSING = ROOT / "missing_achievements.json"
-WAITING = ROOT / "cbd" / "waiting_records.json"   # непринятые записи глобала, попадающие в топ игрока (делает gd-rating --waiting)
-WAITING_NICKS = ROOT / "cbd" / "waiting_records_with_nicks.json"  # то же, но ключ "ID — ник" и название уровня в записях
+WAITING = ROOT / "cbd" / "waiting_records.json"                  # делает gd-rating --waiting
+WAITING_NICKS = ROOT / "cbd" / "waiting_records_with_nicks.json"
 
-ap = argparse.ArgumentParser(description="Дописывает находки compare.py в my_extras.json")
-ap.add_argument("--dry-run", action="store_true", help="ничего не писать, только показать")
-ap.add_argument("--commit", action="store_true", help="закоммитить и запушить my_extras.json")
-ap.add_argument("--max", type=int, default=300, help="максимум изменений за раз (защита)")
-ap.add_argument("--force", action="store_true", help="игнорировать --max")
-ap.add_argument("--skip-fetch", action="store_true", help="не качать cbd и gdr заново")
-ap.add_argument("--skip-levels", action="store_true", help="не обновлять levels_tp.json")
-ap.add_argument("--videos", action="store_true",
-                help="искать видео через add-video-links.py (долго, по умолчанию выключено)")
+ap = argparse.ArgumentParser()
+ap.add_argument("--dry-run", action="store_true")
+ap.add_argument("--commit", action="store_true")
+ap.add_argument("--max", type=int, default=300)
+ap.add_argument("--force", action="store_true")
 args = ap.parse_args()
 
 LEVELS_URL = "https://coreboard.pythonanywhere.com/main/levels"
 LEVELS_UA = "gl-ext-top6"
-LEVELS_RAW = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
+LEVELS_RAW = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
 GLOBAL_API = "https://api.demonlist.org/level/classic/list"
-
-
-def find_script(*names):
-    for n in names:
-        if (HERE / n).exists():
-            return HERE / n
-    sys.exit(f"Не найден скрипт {names[0]} в папке {HERE}. Положи его рядом с sync_extras.py.")
 
 
 def run(cmd, what):
@@ -91,11 +61,6 @@ def run(cmd, what):
     r = subprocess.run([str(c) for c in cmd], cwd=HERE)
     if r.returncode != 0:
         sys.exit(f"Шаг «{what}» завершился с ошибкой (код {r.returncode}). my_extras.json не тронут.")
-
-
-def _num(s):
-    f = float(s)
-    return int(f) if f == int(f) else f
 
 
 def _clean(s):
@@ -398,37 +363,9 @@ def replace_found(extras, found):
     return added, improved, lowered, removed, details
 
 
-def save_extras(extras):
-    """Формат как у compare.py: игрок -> записи по одной на строку (маленькие диффы в git)."""
-    users = extras["users"]
-    items = sorted(users.items(), key=lambda kv: (not kv[0].isdigit(),
-                                                  int(kv[0]) if kv[0].isdigit() else 0, kv[0]))
-    out = ['{', '  "users": {']
-    for i, (uid, rows) in enumerate(items):
-        out.append(f'    {json.dumps(uid, ensure_ascii=False)}: [')
-        for j, r in enumerate(rows):
-            out.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
-        out.append('    ]' + ("," if i < len(items) - 1 else ""))
-    out += ['  }', '}', '']
-    tmp = EXTRAS.with_suffix(".json.tmp")
-    tmp.write_text("\n".join(out), "utf-8")
-    os.replace(tmp, EXTRAS)
-
-
-def save_missing(with_links):
-    """missing_achievements.json в корень репозитория: игрок -> записи [ID уровня, процент, ссылка на видео]
-    по одной на строку (ссылки те же, что в commands.txt; не нашлась - пустая строка). True, если файл изменился."""
-    users = {}
-    for uid, rows in with_links.items():
-        recs = []
-        for r in rows:
-            pct = float(r[1])
-            link = r[2] if len(r) > 2 and isinstance(r[2], str) and r[2].startswith("http") else ""
-            recs.append([r[0], int(pct) if pct == int(pct) else pct, link])
-        if recs:
-            users[str(uid)] = recs
-    items = sorted(users.items(), key=lambda kv: (not kv[0].isdigit(),
-                                                  int(kv[0]) if kv[0].isdigit() else 0, kv[0]))
+def dump_users(users, path):
+    """Формат как у compare.py: игрок -> записи по одной на строку (маленькие диффы в git). Атомарная запись."""
+    items = sorted(users.items(), key=lambda kv: (not kv[0].isdigit(), int(kv[0]) if kv[0].isdigit() else 0, kv[0]))
     out = ['{', '  "users": {']
     for i, (uid, rows) in enumerate(items):
         out.append(f'    {json.dumps(uid, ensure_ascii=False)}: [')
@@ -437,26 +374,32 @@ def save_missing(with_links):
         out.append('    ]' + ("," if i < len(items) - 1 else ""))
     out += ['  }', '}', '']
     text = "\n".join(out)
-    before = MISSING.read_text("utf-8") if MISSING.exists() else ""
-    if text == before:
-        return False
-    tmp = MISSING.with_suffix(".json.tmp")
+    if path.exists() and path.read_text("utf-8") == text:
+        return
+    tmp = path.with_suffix(".json.tmp")
     tmp.write_text(text, "utf-8")
-    os.replace(tmp, MISSING)
-    print(f"{MISSING.name} записан.")
-    return True
+    os.replace(tmp, path)
+
+
+def save_missing(found):
+    """missing_achievements.json в корень репозитория: игрок -> [[ID уровня, процент, ""], ...] (ссылки на видео не ищем)."""
+    users = {}
+    for uid, rows in found.items():
+        recs = [[r[0], int(float(r[1])) if float(r[1]) == int(float(r[1])) else float(r[1]), ""] for r in rows]
+        if recs:
+            users[str(uid)] = recs
+    dump_users(users, MISSING)
 
 
 def publish_waiting():
-    """Копирует waiting_records.json и waiting_records_with_nicks.json из scripts/ в папку cbd/ (если gd-rating их сделал)."""
+    """Копирует waiting_records*.json из scripts/ в cbd/ (если gd-rating их сделал)."""
     for dst in (WAITING, WAITING_NICKS):
         src = HERE / dst.name
         if src.exists():
-            dst.parent.mkdir(exist_ok=True)  # папка cbd/ может ещё не существовать
+            dst.parent.mkdir(exist_ok=True)
             text = src.read_text("utf-8")
             if not dst.exists() or dst.read_text("utf-8") != text:
                 dst.write_text(text, "utf-8")
-                print(f"{dst.name} обновлён.")
 
 
 def git(*a, check=True):
@@ -488,60 +431,32 @@ def commit_and_push(message, files):
 
 
 def main():
-    cb = find_script("coreboard_parse.py", "coreboard-parse.py")
-    gdr_script = find_script("gd-rating.py", "gd_rating.py")
-    cmp_script = find_script("compare.py")
+    work = Path(tempfile.mkdtemp(prefix="extras_sync_"))
     cbd_txt, gdr_txt = HERE / "cbd.txt", HERE / "gdr_gl_pc_wml.txt"
 
-    work = Path(tempfile.mkdtemp(prefix="extras_sync_"))
+    # 1. Сначала levels_tp.json (в репозиторий). gd-rating и compare сами берут его с GitHub, поэтому свежая правка
+    #    станет видна им только после push и истечения кеша raw (~5 минут)
+    if args.dry_run:
+        levels_changed = update_levels(work / "levels_tp.json")
+    else:
+        levels_changed = update_levels(LEVELS)
 
-    # 1. Сначала levels_tp.json (в репозиторий). gd-rating и compare сами берут его с GitHub, поэтому
-    #    свежая правка станет видна им только после push и истечения кеша raw (~5 минут)
-    levels_changed = False
-    if not (args.skip_fetch or args.skip_levels):
-        if args.dry_run:
-            update_levels(work / "levels_tp.json")
-            print("--dry-run: levels_tp.json в репозитории не записан.")
-        else:
-            levels_changed = update_levels(LEVELS)
-
-    # 2. Потом оба рейтинга
-    if not args.skip_fetch:
-        run([sys.executable, cb, "all", "-r"], "CoreBoard: оба топа -> cbd.txt")
-        run([sys.executable, gdr_script, "--src", "pointercrate,wml", "--ids", "--waiting"],
-            "Наш рейтинг (глобал + pointercrate + wml) -> gdr_gl_pc_wml.txt")
+    # 2. Оба рейтинга
+    run([sys.executable, HERE / "coreboard-parse.py", "-r"], "CoreBoard: оба топа -> cbd.txt")
+    run([sys.executable, HERE / "gd-rating.py", "--src", "pointercrate,wml", "--out", gdr_txt.name, "--waiting"],
+        "Наш рейтинг (глобал + pointercrate + wml) -> gdr_gl_pc_wml.txt")
     for f in (cbd_txt, gdr_txt):
         if not f.exists() or f.stat().st_size == 0:
             sys.exit(f"Нет файла {f.name} (или он пустой). Останавливаюсь.")
 
-    # 3. И сравнение
-
-    # --include-absent: игроки CoreBoard, которых нет в gdr совсем, но чей ID находится через
-    # coreboard_id_map.json, сравниваются с пустым gdr: их записи попадают в my_extras и не пропадают при пересборке
-    cmp_cmd = [sys.executable, cmp_script, "in-cbd-not-in-gdr", "--cbd", cbd_txt, "--gdr", gdr_txt,
-               "--out-dir", work, "--include-absent"]
-    run(cmp_cmd, "compare: in-cbd-not-in-gdr")
-
+    # 3. Сравнение. --include-absent: игроки CoreBoard, которых нет в gdr совсем, но чей ID находится через
+    #    coreboard_id_map.json, сравниваются с пустым gdr: их записи не пропадают из my_extras при пересборке
+    run([sys.executable, HERE / "compare.py", "in-cbd-not-in-gdr", "--cbd", cbd_txt, "--gdr", gdr_txt,
+         "--out-dir", work, "--include-absent"], "compare: in-cbd-not-in-gdr")
     found_file = work / "missing_achievements.json"
     if not found_file.exists():
         sys.exit("compare.py не создал missing_achievements.json.")
     found = json.loads(found_file.read_text("utf-8")).get("users", {})
-    total = sum(len(v) for v in found.values())
-    print(f"\ncompare нашёл: игроков {len(found)}, записей {total}")
-
-    # ссылки на видео ищутся только с флагом --videos (долго: по запросу на каждую запись);
-    # без него missing_achievements.json пишется с пустыми ссылками
-    with_links = found
-    if total and args.videos:
-        avl_script = find_script("add-video-links.py", "add_video_links.py")
-        # ники для команд add-video-links берёт из coreboard_id_map.json (корень репозитория)
-        run([sys.executable, avl_script, "--out-dir", work],
-            "Видео и команды (add-video-links)")
-        vf = work / "missing_achievements_with_videos.json"
-        if vf.exists():
-            with_links = json.loads(vf.read_text("utf-8")).get("users", {})
-        else:
-            print("ВНИМАНИЕ: add-video-links.py не создал missing_achievements_with_videos.json, ссылки будут пустыми.")
 
     if not args.dry_run:
         publish_waiting()
@@ -555,35 +470,33 @@ def main():
         print(f"  ... и ещё {len(details) - 50}")
 
     if not changes:
-        print("В my_extras.json менять нечего.")
         if not args.dry_run:
-            save_missing(with_links)
-        if args.commit and not args.dry_run:
-            commit_and_push("levels_tp / missing_achievements: обновление (авто, CoreBoard)", [LEVELS, MISSING, WAITING, WAITING_NICKS])
+            save_missing(found)
+            if args.commit:
+                commit_and_push("levels_tp / missing_achievements: обновление (авто, CoreBoard)",
+                                [LEVELS, MISSING, WAITING, WAITING_NICKS])
         return
-    # защита: теперь файл перезаписывается целиком, поэтому считаем ВСЕ изменения, а не только новые
+    # защита: файл перезаписывается целиком, поэтому считаем ВСЕ изменения, а не только новые
     if changes > args.max and not args.force:
         if levels_changed:
-            # levels_tp.json не зависит от my_extras: коммитим его отдельно. Иначе правка T/t никогда не попадёт на GitHub,
-            # рейтинг будет и дальше считаться по старым значениям, и лимит срабатывал бы на каждом запуске.
+            # levels_tp.json не зависит от my_extras: коммитим его отдельно, иначе правка T/t никогда не попадёт на GitHub
+            # и лимит срабатывал бы на каждом запуске.
             if args.commit and not args.dry_run:
                 print("my_extras.json упёрся в лимит, но levels_tp.json обновлён: коммичу только его.")
                 commit_and_push("levels_tp обновлён (авто, CoreBoard); my_extras не тронут: лимит --max", [LEVELS])
-            else:
-                print("levels_tp.json уже записан, но не закоммичен (my_extras.json упёрся в лимит).")
         sys.exit(f"Изменений {changes}, больше лимита --max {args.max}. my_extras.json не записан. "
                  f"Если это нормально, запусти с --force (или подними --max).")
     if args.dry_run:
         print("\n--dry-run: файл не записан.")
         return
 
-    save_extras(extras)
-    save_missing(with_links)
-    print(f"\n{EXTRAS.name} обновлён.")
+    dump_users(extras["users"], EXTRAS)
+    save_missing(found)
     if args.commit:
         msg = f"my_extras: +{added} новых, {improved} повышено, {lowered} понижено, {removed} убрано (авто, CoreBoard)"
         if levels_changed:
             msg += "; levels_tp обновлён"
         commit_and_push(msg, [EXTRAS, LEVELS, MISSING, WAITING, WAITING_NICKS])
+
 
 main()

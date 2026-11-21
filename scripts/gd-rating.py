@@ -1,25 +1,19 @@
-# Рейтинг по геометрическому среднему N лучших записей (меньше = лучше).
-# 100% = h (место уровня); иначе f = h*a*(T/c)^(ln(b/a)/ln(T/t)), T и t из levels_tp.json (только с GitHub).
-# Источники: глобал (всегда), pointercrate (напрямую, в т.ч. игроки без линка, помечены [PC]),
-# другие листы из реестра (сейчас wml; игроки без линка помечены [WML]), my_extras.
-# Новый лист добавляется одним файлом list_<название>.py (см. lists_core.py), здесь менять ничего не нужно:
-# --src <название>, метка, имя файла и склейка по links.json появятся сами.
-# Названия уровней на других листах ищет levels.py (общий для всех скриптов).
-# Для игроков, которых нет в глобале, флаг берётся с Pointercrate / из данных листа.
-# links.json: аккаунты человека на других листах лежат в блоке other_lists ({"pointercrate": [...], "wml": [...]}).
-# Ключ записи из цифр = аккаунт глобала, pc7 / wml5 = человек без глобала (префикс задаёт лист).
-# Старый формат links.json (списки прямо в записи) тоже читается.
-#
-#   python gd-rating.py --src all
-#   python gd-rating.py --src pointercrate,wml
-#   python gd-rating.py --src pointercrate --levels 50
-#   python gd-rating.py --add 13506:3409:91 --add 13506:x1:95
-#   python gd-rating.py --long                 подробный вывод (по строке на запись)
+#!/usr/bin/env python3
+"""Рейтинг по геометрическому среднему 6 лучших записей (меньше = лучше).
+100% = h (место уровня); иначе f = h*a*(T/c)^(ln(b/a)/ln(T/t)), T и t из levels_tp.json (только с GitHub).
+Источники: глобал (всегда), pointercrate, другие листы из реестра (сейчас wml), my_extras.
+
+  gd-rating.py --src pointercrate,wml --out gdr_gl_pc_wml.txt --waiting     (sync-extras)
+  gd-rating.py --src all --out gdr.txt                                       (cbd-update)
+
+Результат: <out> (рейтинг строками '5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%) - 14.18 [ID]').
+С --waiting ещё три файла: waiting_records.json, waiting_records_with_nicks.json, waiting_new_players.json.
+Кеш запросов: levelcache.json рядом со скриптом (его сохраняет и восстанавливает workflow).
+"""
 import argparse
 import json
 import math
 import os
-import sys
 import threading
 import time
 import urllib.error
@@ -27,64 +21,40 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import levels as levelsearch  # поиск уровней по названию (общий для всех скриптов)
-import wml as site  # WML: загрузка списка уровней и ingame_id
-import lists_core as L  # реестр листов
+import levels as levelsearch
+import lists_core as L
 
 HERE = Path(__file__).resolve().parent
 DL = "https://api.demonlist.org/"
 PC = "https://pointercrate.com/api/"
-RAW = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/"
-FILE_SOURCES = {}
-LIST_SOURCES = [s.name for s in L.sources()]  # листы из реестра, которые умеют качать данные сами (wml и т.д.)
-ALL_SOURCES = {"pointercrate", "my_extras", *LIST_SOURCES}
-SOURCE_ORDER = ["pointercrate", *LIST_SOURCES, "my_extras"]  # порядок в имени файла
-SOURCE_SHORT = {"my_extras": "my", **{s.name: s.short for s in L.all_lists()}}
+RAW = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/"
 OTHER = "other_lists"  # блок аккаунтов человека на других листах в links.json
 A, B = 2, 4
-
-# Особые названия уровней (ID уровня в глобале -> как писать в рейтинге) лежат в levels.py, общем для всех скриптов.
+N = 6                    # сколько лучших записей берём
+CAP = 300.0              # стоимость записи строго меньше этого значения; недостающие добираются им
+CAP_PLACE = 300.0        # проверяем уровни выше этого места (само место не берётся)
+CONC = 20                # параллельных запросов
+TTL = 3600               # секунд, пока кеш уровня свежий
+WAITING_TTL = 3 * 3600   # секунд, пока список waiting-записей игрока в кеше свежий
+WAITING_MAX_SCORE = 250.0  # в waiting-файлы попадают игроки, у которых ПОСЛЕ принятия всех waiting-записей очков меньше
+PC_CONC = 20             # запросов к Pointercrate одновременно
+LIST_CONC = 3            # страниц других листов качать одновременно
+LIST_TTL = 600           # страницы уровней листов, скачанные недавно (в этом же запуске workflow), заново не качаем
+SAVE_EVERY = 60          # как часто (секунд) сбрасывать кеш на диск во время работы
+WAITING_STATUSES = {"waiting"}
 SPECIAL_LEVEL_NAMES = levelsearch.SPECIAL_LEVEL_NAMES
 
+LIST_SOURCES = [s.name for s in L.sources()]  # включённые листы, которые умеют качать данные сами
+ALL_SOURCES = {"pointercrate", "my_extras", *LIST_SOURCES}
+
 p = argparse.ArgumentParser()
-p.add_argument("--src", default="global",
-               help="pointercrate, " + ", ".join(LIST_SOURCES) + ", my_extras или all (через запятую)")
-p.add_argument("--n", type=int, default=6, help="сколько лучших записей берём")
-p.add_argument("--cap", type=float, default=300, help="стоимость записи строго меньше этого значения; недостающие добираются им (уровень на месте cap не учитывается)")
-p.add_argument("--cap-place", dest="cap_place", type=float, default=300, help="проверять уровни выше этого места (само место cap не берётся)")
-p.add_argument("--levels", type=int, default=0, help="только первые N уровней (быстрый тест)")
-p.add_argument("--show", type=int, default=50, help="сколько игроков печатать")
-p.add_argument("--long", action="store_true", help="подробный вывод (по строке на запись)")
-p.add_argument("--conc", type=int, default=20, help="параллельных запросов")
-p.add_argument("--save", type=int, default=10, help="сохранять кеш каждые N задач")
-p.add_argument("--ttl", type=int, default=3600, help="секунд, пока кеш уровня свежий")
-p.add_argument("--add", action="append", default=[], help="своя запись: ID_игрока:ID_уровня:процент")
-p.add_argument("--ids", action="store_true", help="добавлять ID игрока в конец строки")
+p.add_argument("--src", required=True, help="pointercrate, " + ", ".join(LIST_SOURCES) + ", my_extras или all (через запятую)")
+p.add_argument("--out", required=True, help="имя файла рейтинга рядом со скриптом")
 p.add_argument("--waiting", action="store_true",
-               help="записать waiting_records.json: непринятые записи глобала (статус waiting), которые вошли бы в топ-N игрока")
-p.add_argument("--waiting-ttl", dest="waiting_ttl", type=int, default=3 * 3600,
-               help="секунд, пока список waiting-записей игрока в кеше считается свежим")
-p.add_argument("--debug-waiting", dest="debug_waiting", default="",
-               help="ID игроков (через запятую): подробно показать, из чего собран их топ при проверке waiting "
-                    "(глобал / my_extras / итог) и почему каждая waiting-запись прошла или нет")
-p.add_argument("--waiting-max-score", dest="waiting_max_score", type=float, default=250,
-               help="в waiting-файлы попадают только игроки, у которых ПОСЛЕ принятия всех waiting-записей очков меньше этого")
-p.add_argument("--min-score", dest="min_score", type=float, default=None,
-               help="показывать игроков с очками не меньше этого (меньше = лучше)")
-p.add_argument("--max-score", dest="max_score", type=float, default=None,
-               help="показывать игроков с очками не больше этого, например 160; "
-                    "подсчёт рекордов только с Pointercrate тогда тоже идёт только по ним")
-p.add_argument("--pc-conc", dest="pc_conc", type=int, default=20,
-               help="сколько запросов к Pointercrate одновременно (при 429 уменьшите)")
-p.add_argument("--fresh-country", dest="fresh_country", action="store_true",
-               help="не брать страны Pointercrate из кеша (перезапросить)")
-p.add_argument("--list-conc", dest="list_conc", type=int, default=3,
-               help="сколько страниц игроков других листов (wml и т.д.) качать одновременно (ходим бережнее)")
-p.add_argument("--list-ttl", dest="list_ttl", type=int, default=7 * 86400,
-               help="секунд, пока страница игрока другого листа считается свежей, даже если его версия не менялась")
+               help="записать waiting_records*.json и waiting_new_players.json: непринятые записи глобала (статус waiting), "
+                    "которые вошли бы в топ-N игрока")
 args = p.parse_args()
 
-N = args.n
 wanted = [s.strip() for s in args.src.split(",") if s.strip()]
 SOURCES = set(ALL_SOURCES) if "all" in wanted else set(wanted)
 SOURCES.discard("global")
@@ -124,7 +94,7 @@ def load_paged(path, key, step, stop=None):
 def levels_past_cap(arr):
     """Страница отсортирована по месту и её последний уровень уже ниже порога - дальше не нужно."""
     pl = [float(l["placement"]) for l in arr]
-    return pl == sorted(pl) and pl[-1] >= args.cap_place
+    return pl == sorted(pl) and pl[-1] >= CAP_PLACE
 
 
 # ---------- формула ----------
@@ -145,19 +115,15 @@ def load_repo_json(name):
     f = HERE / name
     try:
         if f.exists():
-            print(f"{name}: беру ЛОКАЛЬНЫЙ файл {f}")
             return json.loads(f.read_text("utf-8"))
-        print(f"{name}: беру с GitHub (raw кешируется до ~5 минут после правки)")
-        return get_json(RAW + name)
+        return get_json(RAW + name)  # raw GitHub кешируется до ~5 минут после правки
     except Exception as e:
         print(f"{name}: {e}")
         return {}
 
 
 def load_tp():
-    """levels_tp.json берём ТОЛЬКО с GitHub (локальный файл не используется).
-    Без него T/t были бы запасными для всех уровней и рейтинг получился бы неверным, поэтому при сбое выходим."""
-    print("levels_tp.json: беру с GitHub (raw кешируется до ~5 минут после правки)")
+    """levels_tp.json берём ТОЛЬКО с GitHub. Без него T/t были бы запасными и рейтинг неверным, поэтому при сбое выходим."""
     try:
         levels = get_json(RAW + "levels_tp.json").get("levels", {})
     except Exception as e:
@@ -171,9 +137,8 @@ is_global = L.is_global  # аккаунт глобала: ID начинаетс�
 
 
 def link_sites(entry):
-    """{"pointercrate": [...], "wml": [...], ...} из записи links.json.
-    Новый формат: аккаунты на других листах лежат в блоке other_lists. Старый тоже понимаем:
-    списки прямо в записи (поля _name и channels пропускаем) или голый список (это Pointercrate)."""
+    """{"pointercrate": [...], "wml": [...], ...} из записи links.json (блок other_lists; старый формат тоже понимаем:
+    списки прямо в записи или голый список - это Pointercrate)."""
     if not isinstance(entry, dict):
         return {"pointercrate": entry}
     sources = [{k: v for k, v in entry.items() if k not in ("_name", "channels", OTHER)}]
@@ -188,12 +153,11 @@ def link_sites(entry):
 
 
 def load_links():
-    """Возвращает функции и данные:
-    owner(site, acc_id) - ID аккаунта на листе (pointercrate, wml, ...) -> главный ID человека (цифры, pc... и т.п.) или None;
+    """Возвращает:
+    owner(site, acc_id) - ID аккаунта на листе -> главный ID человека (цифры, pc..., wml...) или None;
     canon(uid)          - любой ID человека -> главный ID (склейки fix.json + доп. аккаунты из links.json);
     removals            - видео, которые у игрока не учитываются;
-    accounts(uid)       - все аккаунты человека: {"dl": [...], "pointercrate": [...], "wml": [...], ...}.
-    """
+    accounts(uid)       - все аккаунты человека: {"dl": [...], "pointercrate": [...], "wml": [...], ...}."""
     links = load_repo_json("links.json")
     fix = load_repo_json("fix.json")
     absorb = {}
@@ -242,8 +206,7 @@ def load_links():
                     add_uniq(g["dl"], x)
     for main_id in links:
         alias.setdefault(str(main_id), canon0(main_id))
-    # аккаунты, склеенные через fix.json, тоже считаются аккаунтами этого человека
-    for a in absorb:
+    for a in absorb:  # аккаунты, склеенные через fix.json, тоже аккаунты этого человека
         main = canon0(a)
         g = grp(main)
         add_uniq(g["dl"], main)
@@ -254,8 +217,8 @@ def load_links():
         return canon0(alias.get(uid, uid))
 
     def accounts(uid):
-        """Все известные аккаунты человека (главный аккаунт глобала первым).
-        Если человека нет в links.json, ключи вида pc<id>, wml<id> и т.п. понимаем сами."""
+        """Все известные аккаунты человека (главный аккаунт глобала первым). Если человека нет в links.json,
+        ключи вида pc<id>, wml<id> и т.п. понимаем сами."""
         c = canon(uid)
         if c in people:
             return people[c]
@@ -270,20 +233,15 @@ def load_links():
     def owner(site, acc_id):
         return site_map.get(site, {}).get(str(acc_id))
 
-    # removals: ключ - ID глобала, videos - ID ютуб-видео, записи с ними у этого игрока не учитываются.
-    # shared_with игнорируем.
+    # removals: ключ - ID глобала, videos - ID ютуб-видео, записи с ними у этого игрока не учитываются
     removals = {}
     for r in fix.get("removals", []):
         removals.setdefault(str(r["user"]), []).extend(str(v) for v in r.get("videos", []) if v)
 
-    counts = ", ".join(f"аккаунтов {n} {len(m)}" for n, m in site_map.items())
-    print(f"links.json: записей {len(links)}, {counts}, "
-          f"доп. аккаунтов Demonlist {len(alias) - len(links)}, склеек fix.json {len(absorb)}, "
-          f"игроков с удалением видео {len(removals)}")
     if not links:
-        print("  ВНИМАНИЕ: links.json пустой или не загрузился - склейки аккаунтов не будет!")
+        print("ВНИМАНИЕ: links.json пустой или не загрузился - склейки аккаунтов не будет!")
     elif not any(site_map.values()):
-        print("  ВНИМАНИЕ: в links.json не нашлось ни одного аккаунта на других листах - "
+        print("ВНИМАНИЕ: в links.json не нашлось ни одного аккаунта на других листах - "
               "проверь формат файла (ожидается блок other_lists).")
     return owner, canon, removals, accounts
 
@@ -315,46 +273,26 @@ def merge_accounts(best_by, info, canon):
 
 
 def load_extras():
+    """my_extras.json -> {ID игрока: {ID уровня: процент}} (только если my_extras среди источников)."""
     merged = {}
-
-    def put(uid, lvl, pct):
+    if "my_extras" not in SOURCES:
+        return merged
+    try:
+        raw = get_json(RAW + "my_extras.json").get("users", {})
+    except Exception as e:
+        print(f"my_extras.json: {e}")
+        return merged
+    for uid, rows in raw.items():
         m = merged.setdefault(str(uid), {})
-        m[str(lvl)] = max(m.get(str(lvl), -1), float(pct))
-
-    for src in SOURCES:
-        name = FILE_SOURCES.get(src)
-        if not name:
-            continue
-        try:
-            users = get_json(RAW + name).get("users", {})
-        except Exception as e:
-            print(f"{name}: {e}")
-            continue
-        for uid, rows in users.items():
-            for r in rows:
-                k = r[0] if r[0] is not None else (r[7] if str(r[7]).startswith("x") else None)
-                if k is not None:
-                    put(uid, k, r[3])
-    if "my_extras" in SOURCES:
-        try:
-            raw = get_json(RAW + "my_extras.json").get("users", {})
-        except Exception as e:
-            print(f"my_extras.json: {e}")
-            raw = {}
-        for uid, rows in raw.items():
-            for r in rows:
-                if isinstance(r, list) and len(r) >= 2:
-                    put(uid, r[0], r[1])
+        for r in rows:
+            if isinstance(r, list) and len(r) >= 2:
+                m[str(r[0])] = max(m.get(str(r[0]), -1), float(r[1]))
     return merged
 
 
-def normalize_level_name(name):
-    return str(name or "").casefold()
-
-
 def load_my_extras_always(owner_of, canon):
-    """my_extras.json с GitHub ВСЕГДА, независимо от --src. Нужен для waiting: запись не считается новой,
-    если у игрока уже есть такая же или лучшая в экстрасах. Возвращает {главный ID человека: {ID уровня: процент}}."""
+    """my_extras.json с GitHub ВСЕГДА, независимо от --src. Нужен для waiting: запись не считается новой, если у игрока
+    уже есть такая же или лучшая в экстрасах. Возвращает {главный ID человека: {ID уровня: процент}}."""
     try:
         raw = get_json(RAW + "my_extras.json").get("users", {})
     except Exception as e:
@@ -373,9 +311,8 @@ def load_my_extras_always(owner_of, canon):
 
 
 def load_board_records(owner_of, canon):
-    """Записи, которые уже лежат на корборде: missing_achievements.json ({"users": {ID: [[ID уровня, процент, ...]]}}).
-    Нужны для waiting: если запись (или лучшая) уже на корборде, в waiting её не пишем.
-    Возвращает {главный ID человека: {ID уровня: процент}}."""
+    """Записи, которые уже лежат на корборде: missing_achievements.json. Нужны для waiting: если запись (или лучшая)
+    уже на корборде, в waiting её не пишем. Возвращает {главный ID человека: {ID уровня: процент}}."""
     raw = load_repo_json("missing_achievements.json").get("users", {})
     out = {}
     for uid, rows in raw.items():
@@ -393,31 +330,12 @@ def load_board_records(owner_of, canon):
     return out
 
 
-def apply_cli_adds(best_by, info, canon):
-    """Записи из --add ID_игрока:ID_уровня:процент. Применяются САМЫМИ ПОСЛЕДНИМИ,
-    после склейки аккаунтов и после corrections.json, поэтому правки их не затрагивают.
-    ID игрока приводится к главному через canon() (подойдёт ID любого его аккаунта)."""
-    added = 0
-    for item in args.add:
-        uid, lvl, pct = item.split(":")
-        cu = canon(uid)
-        m = best_by.setdefault(cu, {})
-        m[str(lvl)] = max(m.get(str(lvl), -1), float(pct))
-        info.setdefault(cu, ("#" + cu, None))
-        added += 1
-    if added:
-        print(f"--add: добавлено записей {added} (после corrections.json)")
-
-
 def apply_corrections(best_by, info, canon):
-    """Правки из corrections.json (применяются ПОСЛЕ склейки аккаунтов, всегда, при любом --src).
+    """Правки из corrections.json (после склейки аккаунтов, при любом --src).
     Формат: {"delete": {"users": {ID: [[уровень, процент, ""], ...]}}, "add": {"users": {...}}}
-    ID из файла приводятся к главному ID человека через canon(), так что подойдёт ID любого его аккаунта.
     delete - убрать запись, если у игрока по этому уровню лучший процент совпадает.
-    add    - ИСПРАВЛЕНИЕ завышенной записи: добавляется, только если у этого игрока
-             по этому же уровню запись реально была удалена через delete.
-             Иначе (удалять было нечего) add пропускается, чтобы не появлялись лишние рекорды.
-    Всё, что не сработало, печатается с причиной - так видно, где опечатка."""
+    add    - ИСПРАВЛЕНИЕ завышенной записи: добавляется, только если у этого игрока по этому уровню запись реально
+             была удалена через delete. Всё, что не сработало, печатается с причиной - так видно, где опечатка."""
     data = load_repo_json("corrections.json")
     if not data:
         print("corrections.json: пусто или не загрузился (см. строку с ошибкой выше) - правок НЕ будет")
@@ -425,11 +343,9 @@ def apply_corrections(best_by, info, canon):
 
     def users_of(section):
         sec = data.get(section) or {}
-        # допускаем и {"users": {...}}, и сразу {ID: [...]}
-        return sec.get("users", sec) if isinstance(sec, dict) else {}
+        return sec.get("users", sec) if isinstance(sec, dict) else {}  # допускаем и {"users": {...}}, и сразу {ID: [...]}
 
-    deleted_keys = set()   # пары (главный ID игрока, ID уровня), которые реально удалены
-    deleted = added = skipped = 0
+    deleted_keys = set()  # пары (главный ID игрока, ID уровня), которые реально удалены
     for uid, rows in users_of("delete").items():
         cu = canon(uid)
         mine = best_by.get(cu)
@@ -448,7 +364,6 @@ def apply_corrections(best_by, info, canon):
             else:
                 del mine[k]
                 deleted_keys.add((cu, k))
-                deleted += 1
     for uid, rows in users_of("add").items():
         cu = canon(uid)
         for r in rows:
@@ -457,23 +372,18 @@ def apply_corrections(best_by, info, canon):
             k = str(r[0])
             if (cu, k) not in deleted_keys:
                 print(f"  add {uid} (-> {cu}) уровень {k}: пропущено - у него не удалялась запись по этому уровню")
-                skipped += 1
                 continue
             mine = best_by.setdefault(cu, {})
             mine[k] = max(mine.get(k, -1), float(r[1]))
             info.setdefault(cu, ("#" + cu, None))
-            added += 1
-    print(f"corrections.json: удалено записей {deleted}, добавлено {added}, add пропущено {skipped}")
 
 
 # ---------- кеш ----------
 CACHE_FILE = HERE / "levelcache.json"
 cache = json.loads(CACHE_FILE.read_text("utf-8")) if CACHE_FILE.exists() else {}
 lock = threading.Lock()
-# Статусы записей глобала, которые считаются "ждут проверки". Все статусы, которые видит скрипт, печатаются в логе.
-WAITING_STATUSES = {"waiting"}
-waiting_raw = {}   # ID уровня -> [[ID аккаунта, ник (или None), процент, видео], ...] (записи waiting; заполняет load_waiting)
-status_seen = {}   # статус -> сколько записей
+waiting_raw = {}  # ID уровня -> [(ID аккаунта, процент, видео), ...] (записи waiting; заполняет load_waiting)
+_last_save = [time.time()]
 
 
 def save_cache():
@@ -483,6 +393,7 @@ def save_cache():
         tmp = CACHE_FILE.with_suffix(".tmp")
         tmp.write_text(data, "utf-8")
         os.replace(tmp, CACHE_FILE)
+    _last_save[0] = time.time()
 
 
 def level_records(lvl_id):
@@ -493,8 +404,7 @@ def level_records(lvl_id):
     first, total = page(0)
     c = cache.get(str(lvl_id))
     # len(x) >= 5: в старом кеше не было ссылки на видео - такие уровни перекачиваем
-    if (c and c["total"] == total and time.time() - c["at"] < args.ttl
-            and all(len(x) >= 5 for x in c["recs"])):
+    if c and c["total"] == total and time.time() - c["at"] < TTL and all(len(x) >= 5 for x in c["recs"]):
         return c["recs"]
     records = list(first)
     while len(records) < total:
@@ -504,11 +414,8 @@ def level_records(lvl_id):
         records += more
     out = []
     for r in records:
-        status = str(r.get("status") or "accepted").lower()
         u = r.get("user") or {}
-        if status != "accepted":
-            continue
-        if u.get("id") is None:
+        if str(r.get("status") or "accepted").lower() != "accepted" or u.get("id") is None:
             continue
         pct = r.get("percent")
         out.append([str(u["id"]), u.get("username"), u.get("country"),
@@ -519,16 +426,13 @@ def level_records(lvl_id):
 
 
 def user_waiting(uid):
-    """Записи игрока в статусе waiting: GET user/record/list?user_id=<id>&limit=50&offset=...
-    Возвращает [[ID уровня, процент, видео], ...]. Кешируется на --waiting-ttl секунд."""
+    """Записи игрока в статусе waiting: GET user/record/list?user_id=<id>. Возвращает [[ID уровня, процент, видео], ...].
+    Кешируется на WAITING_TTL секунд."""
     key = "w" + str(uid)
     c = cache.get(key)
-    if c and time.time() - c["at"] < args.waiting_ttl:
-        with lock:
-            for st, n in (c.get("st") or {}).items():
-                status_seen[st] = status_seen.get(st, 0) + n
+    if c and time.time() - c["at"] < WAITING_TTL:
         return c["wait"]
-    wait, st_count, offset = [], {}, 0
+    wait, offset = [], 0
     while True:
         try:
             d = get_json(f"{DL}user/record/list?user_id={uid}&limit=50&offset={offset}").get("data") or {}
@@ -538,30 +442,25 @@ def user_waiting(uid):
             raise
         recs = d.get("records") or []
         for r in recs:
-            status = str(r.get("status") or "accepted").lower()
-            st_count[status] = st_count.get(status, 0) + 1
             lvl = (r.get("level") or {}).get("id")
-            if status in WAITING_STATUSES and lvl is not None:
+            if str(r.get("status") or "accepted").lower() in WAITING_STATUSES and lvl is not None:
                 pct = r.get("percent")
                 wait.append([str(lvl), float(pct if pct is not None else 100), r.get("video_url")])
         offset += len(recs)
         if not recs or offset >= int(d.get("total_count") or 0):
             break
     with lock:
-        cache[key] = {"at": time.time(), "wait": wait, "st": st_count}
-        for st, n in st_count.items():
-            status_seen[st] = status_seen.get(st, 0) + n
+        cache[key] = {"at": time.time(), "wait": wait}
     return wait
 
 
 def load_waiting(result, accounts_of):
     """Качает waiting-записи по каждому аккаунту глобала у игроков рейтинга и кладёт их в waiting_raw."""
     uids = sorted({str(a) for r in result for a in accounts_of(r["id"])["dl"]})
-    print(f"\nЗаписи waiting: запрашиваю аккаунтов глобала {len(uids)}")
-    res = run_tasks([(u,) for u in uids], lambda it: user_waiting(it[0]), "игроков (waiting)")
-    for (uid,), wait in res:
+    print(f"Записи waiting: запрашиваю аккаунтов глобала {len(uids)}")
+    for (uid,), wait in run_tasks([(u,) for u in uids], lambda it: user_waiting(it[0]), "игроков (waiting)"):
         for lvl, pct, video in wait or []:
-            waiting_raw.setdefault(lvl, []).append([uid, None, pct, video])
+            waiting_raw.setdefault(lvl, []).append((uid, pct, video))
 
 
 def verifier_of(lvl):
@@ -572,8 +471,7 @@ def verifier_of(lvl):
         if c and time.time() - c["at"] < 7 * 86400:
             v = c["v"]
         else:
-            d = get_json(f"{DL}level/classic/get?id={lvl['id']}")["data"]
-            v = d.get("verification")
+            v = get_json(f"{DL}level/classic/get?id={lvl['id']}")["data"].get("verification")
             with lock:
                 cache[key] = {"at": time.time(), "v": v}
     if v and v.get("user_id") is not None:
@@ -588,8 +486,7 @@ def clean_country(c):
 
 
 def dl_profile(uid):
-    """Профиль игрока на глобале: GET user/get?id=<id> -> data.username, data.country.
-    Возвращает (ник, страна) или None, если профиля нет. Кешируется на 30 дней."""
+    """Профиль игрока на глобале: (ник, страна) или None, если профиля нет. Кешируется на 30 дней."""
     key = "u" + str(uid)
     c = cache.get(key)
     if c and time.time() - c["at"] < 30 * 86400 and c.get("n"):
@@ -629,7 +526,7 @@ def pc_demons():
 def pc_records(demon_id):
     key = "pc" + str(demon_id)
     c = cache.get(key)
-    if c and time.time() - c["at"] < args.ttl and all(len(x) >= 4 for x in c["recs"]):
+    if c and time.time() - c["at"] < TTL and all(len(x) >= 4 for x in c["recs"]):
         return c["recs"]
     out, after = [], 0
     while True:
@@ -650,23 +547,21 @@ def pc_records(demon_id):
     return out
 
 
-pc_sem = threading.Semaphore(max(1, args.pc_conc))  # не заваливаем Pointercrate запросами
-pc_style = ["/"]   # какой вариант URL работает: со слэшем в конце или без
+pc_sem = threading.Semaphore(PC_CONC)  # не заваливаем Pointercrate запросами
+pc_style = ["/"]  # какой вариант URL работает: со слэшем в конце или без
 
 
 def pc_fetch(url, tries=4):
-    """GET к Pointercrate. Возвращает (HTTP-код, текст ответа).
-    429 и 5xx повторяем (с учётом Retry-After); остальные коды возвращаем как есть.
-    Исключение - только если сеть не отвечала все попытки."""
+    """GET к Pointercrate: (HTTP-код, текст ответа). 429 и 5xx повторяем (с учётом Retry-After), остальные коды
+    возвращаем как есть. Исключение - только если сеть не отвечала все попытки."""
     last = None
     for i in range(tries):
         try:
             with pc_sem:
-                req = urllib.request.Request(url, headers={"User-Agent": "gl-ext-top6",
-                                                           "Accept": "application/json"})
+                req = urllib.request.Request(url, headers={"User-Agent": "gl-ext-top6", "Accept": "application/json"})
                 with urllib.request.urlopen(req, timeout=30) as r:
                     return r.status, r.read().decode("utf-8", "replace")
-        except urllib.error.HTTPError as e:   # сюда попадаем уже ВНЕ семафора
+        except urllib.error.HTTPError as e:  # сюда попадаем уже ВНЕ семафора
             try:
                 body = e.read().decode("utf-8", "replace")
             except Exception:
@@ -694,7 +589,7 @@ def pc_player_country(pid):
     pid = str(pid)
     key = "pcn3" + pid  # новый ключ: старые pcn/pcn2 могли хранить "страны нет" от кривого ответа
     c = cache.get(key)
-    if c and not args.fresh_country and time.time() - c["at"] < 30 * 86400:
+    if c and time.time() - c["at"] < 30 * 86400:
         return c["c"]
 
     variants = [f"{PC}v1/players/{pid}/", f"{PC}v1/players/{pid}"]
@@ -731,26 +626,17 @@ def pc_player_country(pid):
     return code
 
 
-def fmt_time(sec):
-    sec = int(sec)
-    return f"{sec // 3600}ч {sec % 3600 // 60}м" if sec >= 3600 else f"{sec // 60}м {sec % 60}с"
-
-
 def run_tasks(items, fn, label, workers=None):
+    """Выполняет fn для каждого элемента в потоках. Возвращает [(элемент, результат или None)].
+    Упавшие задачи повторяются по одной (до 3 кругов с паузой); кеш сохраняется при завершении и при прерывании."""
     total = len(items)
     state = {"done": 0}
     errors = []
     failed = set()  # id() задач, которые не удались
-    t0 = time.time()
+    step = max(1, total // 10)  # прогресс печатаем примерно каждые 10%
 
     def item_name(item):
         return str(item[0] if isinstance(item, tuple) else item.get("name", item))
-
-    def progress(final=False):
-        d = state["done"]
-        left = (total - d) / (d / max(time.time() - t0, 1)) if d else 0
-        print(f"\r  {label} {d}/{total} ({d * 100 // max(total, 1)}%)  ошибок: {len(errors)}  "
-              f"осталось ~{fmt_time(left)}   ", end="\n" if final else "", flush=True)
 
     def wrap(item):
         res = None
@@ -763,26 +649,25 @@ def run_tasks(items, fn, label, workers=None):
         with lock:
             state["done"] += 1
             d = state["done"]
-        if d % args.save == 0:
+        if d % step == 0:
+            print(f"  {label} {d}/{total}  ошибок: {len(errors)}", flush=True)
+        if time.time() - _last_save[0] >= SAVE_EVERY:
             save_cache()
-        progress()
         return item, res
 
-    ex = ThreadPoolExecutor(workers or args.conc)
+    ex = ThreadPoolExecutor(workers or CONC)
     try:
         results = list(ex.map(wrap, items))
         ex.shutdown()
     except KeyboardInterrupt:
-        print("\n\nОстановлено. Сохраняю кеш...")
+        print("\nОстановлено. Сохраняю кеш...")
         ex.shutdown(wait=False, cancel_futures=True)
         save_cache()
         raise SystemExit
     finally:
         save_cache()
-    progress(final=True)
 
-    # Автоповтор упавших задач (обрывы SSL, 5xx и т.п.): по одной, с паузой, до 3 кругов
-    for rnd in range(1, 4):
+    for rnd in range(1, 4):  # автоповтор упавших задач (обрывы SSL, 5xx и т.п.)
         bad = [i for i, (it, _) in enumerate(results) if id(it) in failed]
         if not bad:
             break
@@ -797,7 +682,6 @@ def run_tasks(items, fn, label, workers=None):
             except Exception as e:
                 errors.append((item_name(it), str(e)[:80]))
         save_cache()
-        print(f"  После повтора {rnd}: осталось неудачных {len(failed)}")
 
     if errors:
         print(f"  Не скачались {len(errors)} (запусти ещё раз, докачает только их):")
@@ -848,39 +732,37 @@ def flag(country):
     return "".join(chr(0x1F1E6 + ord(c) - 65) for c in code)
 
 
-def line_short(i, r, with_id=False):
-    """5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%, ...) - 14.18 [id 12345]"""
+def line_short(i, r):
+    """5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%, ...) - 14.18 [id]"""
     parts = []
     for rec in r["records"]:
         if rec["place"] is None:
             continue
-        pct = "" if rec["percent"] >= 100 else f" {rec['percent']:g}%"
-        parts.append(rec["level"] + pct)
-    tail = f" [{r['id']}]" if with_id else ""
-    return f"{i}) {flag(r['country'])} {r['name']} ({', '.join(parts)}) - {r['score']:.2f}{tail}"
+        parts.append(rec["level"] + ("" if rec["percent"] >= 100 else f" {rec['percent']:g}%"))
+    return f"{i}) {flag(r['country'])} {r['name']} ({', '.join(parts)}) - {r['score']:.2f} [{r['id']}]"
 
 
-def fmt_record(r):
-    if r["place"] is None:
-        return f"       {'—':<34} {'':>7}  {r['f']:8.2f}   (добор до {N} записей)"
-    pct = f"{r['percent']:g}%"
-    tag = " [x]" if r.get("special") else ""
-    return f"    #{int(r['place']):<4} {(r['level'] + tag):<34} {pct:>7}  {r['f']:8.2f}"
+def write_users_json(path, users):
+    """{"users": {ключ: [записи]}}: игрок, а внутри записи по одной на строку."""
+    lines = ['{', '  "users": {']
+    items = list(users.items())
+    for i, (key, rows) in enumerate(items):
+        lines.append(f'    {json.dumps(key, ensure_ascii=False)}: [')
+        for j, r in enumerate(rows):
+            lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
+        lines.append("    ]" + ("," if i < len(items) - 1 else ""))
+    lines += ['  }', '}', '']
+    path.write_text("\n".join(lines), "utf-8")
 
 
-def save_waiting(meta, best_by, info, result, canon_id, accounts_of, removals, owner_of):
+def save_waiting(meta, best_by, info, result, canon_id, removals, owner_of):
     """waiting_records.json: для каждого человека с аккаунтом глобала (аккаунты из links.json и fix.json считаются его)
     все непринятые записи (статус waiting), которые, будь они приняты, попали бы в его топ-N лучших записей.
-    Запись считается подходящей, если она лучше принятой у человека на этом уровне (или принятой нет) и остаётся
-    в его топ-N после добавления ВСЕХ его waiting-записей сразу (а не только её одной). Записи группируются по аккаунту глобала, с которого они поданы.
-    Сравнение идёт со ВСЕМИ записями человека: глобал, Pointercrate, другие листы и my_extras (его подгружаем всегда).
-    Два файла в формате missing_achievements.json / missing_achievements_with_nicks.json ({"users": {...}}).
-    В них только записи БОЛЬШЕ всех, что у человека уже есть (глобал, Pointercrate, другие листы, my_extras):
-    записи, которые равны или меньше имеющихся, ничего не добавляют и в файлы не попадают."""
-    print("\nСтатусы записей глобала: " + (", ".join(f"{s} {n}" for s, n in sorted(status_seen.items())) or "нет данных"))
-    if not any(s in status_seen for s in WAITING_STATUSES):
-        print(f"  ВНИМАНИЕ: записей со статусом {sorted(WAITING_STATUSES)} не найдено. Проверь названия статусов выше "
-              f"и константу WAITING_STATUSES.")
+    Запись подходит, если она лучше принятой у человека на этом уровне (или принятой нет) и остаётся в его топ-N после
+    добавления ВСЕХ его waiting-записей сразу. Записи группируются по аккаунту глобала, с которого они поданы.
+    Сравнение идёт со ВСЕМИ записями человека: глобал, Pointercrate, другие листы, my_extras и то, что уже на корборде.
+    Файлы: waiting_records.json / waiting_records_with_nicks.json (в формате missing_achievements*.json) и
+    waiting_new_players.json (игроки, у которых меньше порога очков ТОЛЬКО с waiting-записями)."""
 
     def top_of(best):
         recs = []
@@ -889,29 +771,28 @@ def save_waiting(meta, best_by, info, result, canon_id, accounts_of, removals, o
             if not lv:
                 continue
             f = score(lv["place"], pct, lv["T"], lv["t"])
-            if f is not None and f < args.cap:  # ровно cap (например, уровень на месте 300 со 100%) не учитывается
+            if f is not None and f < CAP:  # ровно cap (например, уровень на месте 300 со 100%) не учитывается
                 recs.append((f, k.startswith("x"), k, pct))
         recs.sort(key=lambda r: (r[0], r[1]))
         return recs[:N]
 
     def person_score(best):
-        """Очки человека по набору его лучших записей: так же, как в result (топ-N, недостающие добираются cap)."""
+        """Очки человека по набору его лучших записей: как в result (топ-N, недостающие добираются cap)."""
         fs = [r[0] for r in top_of(best)]
-        fs += [args.cap] * (N - len(fs))
+        fs += [CAP] * (N - len(fs))
         return geo_mean(fs)
 
-    by_person = {}  # главный ID человека -> {ID аккаунта глобала: [(ID уровня, ник, процент, видео)]}
+    by_person = {}  # главный ID человека -> {ID аккаунта глобала: [(ID уровня, процент, видео)]}
     for lvl_id, recs in waiting_raw.items():
         if lvl_id not in meta:
             continue
-        for uid, name, pct, video in recs:
+        for uid, pct, video in recs:
             if is_removed(removals, uid, video):
                 continue
-            by_person.setdefault(canon_id(uid), {}).setdefault(uid, []).append((lvl_id, name, pct, video))
+            by_person.setdefault(canon_id(uid), {}).setdefault(uid, []).append((lvl_id, pct, video))
 
     extras_all = load_my_extras_always(owner_of, canon_id)
-    # то, что уже есть на корборде, тоже считается имеющимся: такие записи в waiting не попадают
-    for person_, recs_ in load_board_records(owner_of, canon_id).items():
+    for person_, recs_ in load_board_records(owner_of, canon_id).items():  # то, что на корборде, тоже считается имеющимся
         m_ = extras_all.setdefault(person_, {})
         for k_, pct_ in recs_.items():
             m_[k_] = max(m_.get(k_, -1), pct_)
@@ -930,87 +811,38 @@ def save_waiting(meta, best_by, info, result, canon_id, accounts_of, removals, o
                 best[lvl_id] = (pct, link)
         return best
 
-    # person -> {"nick", "rank", "new": [(уровень, процент, видео)]}
-    people = {}       # у них очков меньше порога и БЕЗ waiting -> обычные waiting_records*.json
-    only_waiting = {}  # у них меньше порога только С waiting (без него >= порога) -> waiting_new_players.json
-    skipped_high = 0   # даже с waiting очков не меньше порога: никуда не попадают
+    people = {}        # очков меньше порога и БЕЗ waiting -> waiting_records*.json
+    only_waiting = {}  # меньше порога только С waiting (без него >= порога) -> waiting_new_players.json
     for person, accs in by_person.items():
         base = dict(best_by.get(person, {}))
         for k, pct in extras_all.get(person, {}).items():  # лучшее из всего, включая my_extras
             base[k] = max(base.get(k, -1), pct)
-        dbg = person in {x.strip() for x in args.debug_waiting.split(",") if x.strip()}
-        if dbg:
-            ex_p = extras_all.get(person, {})
-            gd_p = best_by.get(person, {})
-            print(f"\n[debug waiting] {person} ({(info.get(person) or ('?',))[0]}): записей в рейтинге {len(gd_p)}, "
-                  f"в my_extras {len(ex_p)}; топ-{N} базы:")
-            for f_, _sp, k_, pct_ in top_of(base):
-                print(f"    {meta[k_]['name']:<28} {pct_:g}%   f={f_:.3f}   (gdr: {gd_p.get(k_, '-')}, my_extras: {ex_p.get(k_, '-')})")
-            top_keys_ = {t_[2] for t_ in top_of(base)}
-            rest_ = []
-            for k_, pct_ in sorted(base.items(), key=lambda kv: str(kv[0])):
-                if k_ in top_keys_:
-                    continue
-                lv_ = meta.get(k_)
-                if not lv_:
-                    rest_.append(f"    {k_}: {pct_:g}%   уровня нет в meta (игнорируется)")
-                    continue
-                f_ = score(lv_["place"], pct_, lv_["T"], lv_["t"])
-                if f_ is None:
-                    why_ = ("T не больше t, формула не работает" if not lv_["t"] < lv_["T"]
-                            else f"НЕ СЧИТАЕТСЯ: процент ниже минимума t={lv_['t']:g}")
-                elif f_ >= args.cap:
-                    why_ = f"не дешевле cap ({f_:.1f} >= {args.cap:g})"
-                else:
-                    why_ = f"не вошла в топ-{N} (f={f_:.1f})"
-                rest_.append(f"    {lv_['name']:<28} {pct_:g}%   место {lv_['place']:g}, T={lv_['T']:g}, t={lv_['t']:g}: {why_}")
-            if rest_:
-                print("    остальные записи базы (вне топ-%d):" % N)
-                print("\n".join(rest_))
-            lost = [k_ for k_ in ex_p if k_ not in meta]
-            if lost:
-                print(f"    ВНИМАНИЕ: уровни из my_extras, которых нет в meta (игнорируются): {lost}")
         new = []
-        for acc, items in accs.items():
-            for lvl_id, name, pct, video in items:
+        for items in accs.values():
+            for lvl_id, pct, video in items:
                 best = base.get(lvl_id)
-                lv_ = meta.get(lvl_id, {}).get("name", lvl_id)
                 if best is not None and pct <= best:  # равна или меньше того, что уже есть: ничего не добавляет
-                    if dbg:
-                        print(f"    waiting {lv_} {pct:g}%: уже есть {best:g}% -> пропуск")
                     continue
-                top = top_of({**base, lvl_id: pct})
-                if any(t[2] == lvl_id and t[3] == pct for t in top):  # попадает в топ-N
+                if any(t[2] == lvl_id and t[3] == pct for t in top_of({**base, lvl_id: pct})):  # попадает в топ-N
                     new.append((lvl_id, pct, video))
-                    if dbg:
-                        print(f"    waiting {lv_} {pct:g}%: попадает в топ-{N} (по одной)")
-                elif dbg:
-                    print(f"    waiting {lv_} {pct:g}%: в топ-{N} НЕ попадает")
         if not new:
             continue
-        # Очки, которые получатся, если принять ВСЕ waiting-записи сразу (лучшая запись на уровень).
+        # Очки, которые получатся, если принять ВСЕ waiting-записи сразу (лучшая запись на уровень)
         final_best = dict(base)
         for lvl_id, (pct, _link) in pick_best(new).items():
             final_best[lvl_id] = max(final_best.get(lvl_id, -1), pct)
-        # Каждая запись выше проверялась ОТДЕЛЬНО (попала бы в топ-N, будь она одна). Если принять все сразу,
-        # часть из них вытеснят друг друга: оставляем только те, что реально войдут в итоговый топ-N.
+        # Каждая запись проверялась ОТДЕЛЬНО. Если принять все сразу, часть вытеснят друг друга: оставляем
+        # только те, что реально войдут в итоговый топ-N.
         final_top = {(t[2], t[3]) for t in top_of(final_best)}  # (ID уровня, процент)
-        if dbg:
-            for x in new:
-                if (x[0], x[1]) not in final_top:
-                    print(f"    waiting {meta[x[0]]['name']} {x[1]:g}%: вытеснена другими waiting -> убрана")
         new = [x for x in new if (x[0], x[1]) in final_top]
         if not new:
             continue
         final_score = person_score(final_best)
-        if final_score >= args.waiting_max_score:
-            skipped_high += 1
+        if final_score >= WAITING_MAX_SCORE:
             continue
-        nick = (info.get(person) or (None, None))[0] or next(
-            (n for items in accs.values() for _, n, _, _ in items if n), person)
-        entry = {"nick": nick, "rank": ranks.get(person), "new": new,
+        entry = {"nick": (info.get(person) or (None, None))[0] or person, "rank": ranks.get(person), "new": new,
                  "final_best": final_best, "final_score": final_score}
-        if person_score(base) < args.waiting_max_score:
+        if person_score(base) < WAITING_MAX_SCORE:
             people[person] = entry
         else:
             only_waiting[person] = entry
@@ -1018,39 +850,23 @@ def save_waiting(meta, best_by, info, result, canon_id, accounts_of, removals, o
     order = sorted(people, key=lambda u: (people[u]["rank"] is None, people[u]["rank"] or 0, u))
 
     def build(with_nicks):
-        """Как в missing_achievements(.json / _with_nicks.json): ID (или 'ID — ник') -> [[ID уровня, процент, X]],
-        где X - ссылка на видео, а в файле с никами - название уровня. Записи внутри игрока по названию уровня."""
+        """ID (или 'ID — ник') -> [[ID уровня, процент, X]], где X - ссылка на видео, а в файле с никами - название уровня.
+        Записи внутри игрока по названию уровня."""
         out = {}
         for u in order:
             best = pick_best(people[u]["new"])
             if not best:
                 continue
-            rows = sorted(best.items(), key=lambda kv: normalize_level_name(meta[kv[0]]["name"]))
+            rows = sorted(best.items(), key=lambda kv: str(meta[kv[0]]["name"] or "").casefold())
             key = f"{u} — {people[u]['nick']}" if with_nicks else u
             out[key] = [[lvl, fmt_pct(pct), meta[lvl]["name"] if with_nicks else link] for lvl, (pct, link) in rows]
         return out
 
-    def write(path, users):
-        lines = ['{', '  "users": {']
-        items = list(users.items())
-        for i, (key, rows) in enumerate(items):
-            lines.append(f'    {json.dumps(key, ensure_ascii=False)}: [')
-            for j, r in enumerate(rows):
-                lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
-            lines.append("    ]" + ("," if i < len(items) - 1 else ""))
-        lines += ['  }', '}', '']
-        path.write_text("\n".join(lines), "utf-8")
+    write_users_json(HERE / "waiting_records.json", build(False))
+    write_users_json(HERE / "waiting_records_with_nicks.json", build(True))
 
-    for fname, with_nicks in (("waiting_records.json", False), ("waiting_records_with_nicks.json", True)):
-        write(HERE / fname, build(with_nicks))
-    n_rec = sum(len(r) for r in build(False).values())
-    print(f"waiting_records.json и waiting_records_with_nicks.json: игроков {len(people)}, новых записей {n_rec} "
-          f"(топ-{N}, больше всех имеющихся; очков с waiting меньше {args.waiting_max_score:g})")
-
-    # waiting_new_players.json: игроки, которые набирают меньше порога ТОЛЬКО с waiting-записями.
-    # Формат как у missing_players.json, но ключ пока наш ID: ID CoreBoard и уникальные ники выдаёт cbd-update.py
-    # (там известен последний ID из missing_players.json). Записи: итоговый топ-N игрока, сначала самые сложные;
-    # ссылка есть у waiting-записей (видео из заявки), у уже принятых записей её нет.
+    # waiting_new_players.json: формат как у missing_players.json, но ключ пока наш ID: ID CoreBoard и уникальные
+    # ники выдаёт cbd-update.py. Записи: итоговый топ-N игрока, сначала самые сложные; ссылка есть у waiting-записей.
     new_players = {}
     for person in sorted(only_waiting, key=lambda u: (only_waiting[u]["final_score"], u)):
         e = only_waiting[person]
@@ -1068,18 +884,13 @@ def save_waiting(meta, best_by, info, result, canon_id, accounts_of, removals, o
                      + ("," if i < len(items) - 1 else ""))
     lines += ['  }', '}', '']
     (HERE / "waiting_new_players.json").write_text("\n".join(lines), "utf-8")
-    print(f"waiting_new_players.json: игроков {len(new_players)} (меньше {args.waiting_max_score:g} только с waiting). "
-          f"Не прошли порог даже с waiting: {skipped_high}")
+    print(f"waiting: игроков {len(people)}, только с waiting (новые игроки) {len(new_players)}")
 
 
 def main():
     print("Источники: global" + "".join(" + " + s for s in sorted(SOURCES)))
-    if args.add:
-        print("Свои записи:", ", ".join(args.add))
-
-    print("Загружаю список уровней...")
     owner_of, canon_id, removals, accounts_of = load_links()
-    # качаем только до --cap-place (по умолчанию топ-300), остальные уровни нигде не используются
+    # качаем только до CAP_PLACE (топ-300), остальные уровни нигде не используются
     levels = load_paged("level/classic/list", "levels", 100, stop=levels_past_cap)
     extras = load_extras()
     tp = load_tp()
@@ -1094,19 +905,14 @@ def main():
             T, t = 100.0, float(l["list_percent"])
             fallback += 1
         # Особое название (если есть) берётся вместо названия из API
-        meta[k] = {"name": SPECIAL_LEVEL_NAMES.get(k, l["name"]),
-                   "place": float(l["placement"]), "T": T, "t": t}
+        meta[k] = {"name": SPECIAL_LEVEL_NAMES.get(k, l["name"]), "place": float(l["placement"]), "T": T, "t": t}
     for k, e in tp.items():
         if k.startswith("x") and e.get("T") and e.get("t"):
             meta[k] = {"name": e["name"], "place": float(e["place"]), "T": float(e["T"]), "t": float(e["t"])}
     if fallback:
         print(f"Уровней без T/t в levels_tp.json (запасные T=100, list_percent): {fallback}")
 
-    top_levels = sorted((l for l in levels if float(l["placement"]) < args.cap_place),
-                        key=lambda l: float(l["placement"]))
-    if args.levels:
-        top_levels = top_levels[: args.levels]
-    print(f"Уровней для проверки: {len(top_levels)}\n")
+    top_levels = sorted((l for l in levels if float(l["placement"]) < CAP_PLACE), key=lambda l: float(l["placement"]))
 
     def fetch_dl(l):
         recs = level_records(l["id"])
@@ -1115,30 +921,23 @@ def main():
             recs = [r for r in recs if r[0] != ver[0]] + [[ver[0], ver[1], None, 100.0, ver[2]]]
         return recs
 
-    print("Demonlist:")
-    fetched = run_tasks(top_levels, fetch_dl, "уровней")
-
-    best_by, info, pc_only = {}, {}, set()
-    dl_pairs, pc_pairs = {}, {}  # (ID игрока, ID уровня) -> лучший процент, отдельно по каждому сайту
-    removed_n = 0
+    print(f"Demonlist: уровней {len(top_levels)}")
+    best_by, info = {}, {}
     dl_seen = set()  # игроки, чей ник и страна уже пришли из записей глобала
-    for l, recs in fetched:
+    for l, recs in run_tasks(top_levels, fetch_dl, "уровней"):
         k = str(l["id"])
         for uid, name, country, pct, video in recs or []:
             country = clean_country(country)
             if is_removed(removals, uid, video):
-                removed_n += 1
                 continue
             m = best_by.setdefault(uid, {})
             m[k] = max(m.get(k, -1), pct)
-            dl_pairs[(uid, k)] = max(dl_pairs.get((uid, k), -1), pct)
             if country:
                 dl_seen.add(uid)
             if uid not in info or country:
                 info[uid] = (name, country)
 
     if "pointercrate" in SOURCES:
-        print("\nPointercrate:")
         by_ingame = {str(l["ingame_id"]): l for l in top_levels}
         try:
             demons = pc_demons()
@@ -1147,124 +946,73 @@ def main():
             demons = []
         targets = [(d, by_ingame[str(d["level_id"])]) for d in demons
                    if d.get("level_id") is not None and str(d["level_id"]) in by_ingame]
-        print(f"Демонов Pointercrate, найденных в глобале (по игровому ID): {len(targets)}")
-        pc_results = run_tasks([(f"{d['name']}", d, l) for d, l in targets],
-                               lambda it: pc_records(it[1]["id"]), "демонов")
-        for (_, d, l), recs in pc_results:
+        print(f"Pointercrate: демонов, найденных в глобале (по игровому ID): {len(targets)}")
+        for (_, d, l), recs in run_tasks([(f"{d['name']}", d, l) for d, l in targets],
+                                         lambda it: pc_records(it[1]["id"]), "демонов"):
             k = str(l["id"])
             for pid, pname, pct, video in recs or []:
                 main_id = owner_of("pointercrate", pid)
                 if main_id and is_removed(removals, main_id, video):
-                    removed_n += 1
                     continue
                 uid = main_id or "pc" + pid  # человек из links.json (цифры, pc..., wml...) или игрок без линка
                 if is_global(uid):
                     info.setdefault(uid, (pname, None))
                 else:
-                    pc_only.add(uid)  # человека нет в глобале: метку [PC] добавим при выводе
                     info.setdefault(uid, (pname or "?", None))
                 m = best_by.setdefault(uid, {})
                 m[k] = max(m.get(k, -1), pct)
-                pc_pairs[(uid, k)] = max(pc_pairs.get((uid, k), -1), pct)
-        print(f"Игроков Pointercrate без линка: {len(pc_only)}")
-
-        # Страны игроков, которых нет в глобале, ищет find_country ниже (по их аккаунтам Pointercrate и WML)
 
     # Другие листы из реестра (wml и т.д.): данные качает адаптер листа, уровни ищет levels.py
-    list_pairs = {}      # лист -> {(ID человека, ключ уровня): лучший процент}
     list_countries = {}  # лист -> {ID аккаунта: страна}
-    list_players = {}    # лист -> сколько игроков в данных
     wanted_lists = [src for src in L.sources() if src.name in SOURCES]
     if wanted_lists:
-        index = levelsearch.LevelIndex.build(tp=tp, levels=levels)  # названия уровней -> ключи уровней
-        by_ingame = {str(l["ingame_id"]): str(l["id"]) for l in levels if l.get("ingame_id") is not None}
+        names = levelsearch.name_index(tp, levels)  # нормализованное название уровня -> ключ уровня
+        by_ingame_id = {str(l["ingame_id"]): str(l["id"]) for l in levels if l.get("ingame_id") is not None}
     for src in wanted_lists:
-        print(f"\n{src.name}:")
-        src.ttl = args.list_ttl
-        data = src.fetch(L.DictStore(cache, lock, save_cache), workers=args.list_conc)
+        print(f"{src.name}:")
+        src.ttl = LIST_TTL
+        data = src.fetch(L.DictStore(cache, lock, save_cache), workers=LIST_CONC)
         if not data:
             print(f"Лист {src.name} недоступен, источник в этом запуске пропускаю")
             continue
-        pairs = list_pairs.setdefault(src.name, {})
         countries = list_countries.setdefault(src.name, {})
-        list_players[src.name] = len(data["players"])
-        linked_n = free_n = n_recs = 0
         for aid, pl in data["players"].items():
             main_id = owner_of(src.name, aid)
             uid = main_id or src.prefix + aid  # человек из links.json или игрок листа без линка
             nick = src.display_nick(pl["n"]) or pl["n"]
             countries[aid] = pl.get("c")
             if main_id:
-                linked_n += 1
                 info.setdefault(uid, (nick, None))
             else:
-                free_n += 1  # метку [тег] добавим при выводе
-                info[uid] = (nick, pl.get("c"))
-        unresolved, found = {}, {}
-        st = {"id": 0, "name_nonglobal": 0, "other_level": 0}  # откуда нашёлся уровень (для записей с ID уровня)
-        skipped_other = {}  # название -> сколько записей пропущено: в глобале под этим ID другой уровень
-        skipped_cks = set()  # пары (название, ID), которые пропущены по этой причине
+                info[uid] = (nick, pl.get("c"))  # метку [тег] добавим при выводе
+        found = {}  # (название, ID уровня листа) -> ключ уровня или None; одно название может быть у разных уровней
         for r in data["records"]:
             aid = str(r["a"])
             main_id = owner_of(src.name, aid)
             uid = main_id or src.prefix + aid
-            name = r["l"]
             iid = r.get("i")
-            ck = (name, str(iid) if iid is not None else None)  # одно название может быть у разных уровней
-            if ck not in found:  # поиск делаем один раз на пару (название, ID)
-                if iid is None:
-                    found[ck] = index.find(name)  # лист не даёт ID уровней: ищем по названию
-                else:
-                    # Сравнение по ID: ingame_id уровня листа есть среди уровней глобала -> это он, название не важно
-                    k = by_ingame.get(str(iid))
-                    if k is not None:
-                        st["id"] += 1
-                    else:
-                        # ID в глобале нет. Название годится, только если оно ведёт на уровень вне глобала (ключ x...).
-                        # Если оно ведёт на уровень глобала (ключ из цифр), то это ДРУГОЙ уровень с тем же названием.
-                        k2 = index.find(name)
-                        if k2 is None:
-                            k = None
-                        elif str(k2).isdigit():
-                            st["other_level"] += 1
-                            skipped_cks.add(ck)
-                            k = None
-                        else:
-                            st["name_nonglobal"] += 1
-                            k = k2
-                    found[ck] = k
+            ck = (r["l"], str(iid) if iid is not None else None)
+            if ck not in found:
+                k = names.get(levelsearch.normalize(r["l"]))
+                if iid is not None:
+                    # Сравнение по ID: ingame_id уровня листа есть среди уровней глобала -> это он, название не важно.
+                    # Иначе название годится, только если оно ведёт на уровень вне глобала (ключ x...); если ведёт
+                    # на уровень глобала (цифры), это ДРУГОЙ уровень с тем же названием.
+                    by_id = by_ingame_id.get(str(iid))
+                    k = by_id if by_id is not None else (None if k is None or k.isdigit() else k)
+                found[ck] = k
             k = found[ck]
             if k is None:
-                if ck in skipped_cks:
-                    skipped_other[name] = skipped_other.get(name, 0) + 1  # другой уровень с тем же названием: не считаем и не ругаемся «не найден»
-                else:
-                    unresolved[name] = unresolved.get(name, 0) + 1
                 continue
             if main_id and is_removed(removals, main_id, r.get("v")):
-                removed_n += 1
                 continue
-            pct = float(r["p"])
             m = best_by.setdefault(uid, {})
-            m[k] = max(m.get(k, -1), pct)
-            pairs[(uid, k)] = max(pairs.get((uid, k), -1), pct)
-            n_recs += 1
-        if any(r.get("i") is not None for r in data["records"]):
-            print(f"  {src.name}: уровней по ID глобала: {st['id']}, вне глобала по названию: {st['name_nonglobal']}, "
-                  f"пропущено (в глобале другой уровень с таким названием): {st['other_level']}")
-            for n, c in sorted(skipped_other.items(), key=lambda kv: -kv[1]):
-                print(f"    пропущено записей на {n!r}: {c}")
-        print(f"Игроков {src.name} с линком в links.json: {linked_n}, без линка [{src.tag}]: {free_n}; записей: {n_recs}")
-        if unresolved:
-            top = sorted(unresolved.items(), key=lambda kv: -kv[1])[:10]
-            print(f"  уровней {src.name} без пары в списке (всего названий {len(unresolved)}), чаще всего: "
-                  + ", ".join(f"{n} ({c})" for n, c in top))
-        if index.stats:
-            print("  названия найдены: " + ", ".join(f"{k} {v}" for k, v in index.stats.items()))
+            m[k] = max(m.get(k, -1), float(r["p"]))
 
     for uid, m in extras.items():
         # my_extras мог записать игрока как "pc<ID Pointercrate>", "wml<ID WML>" и т.п., когда линка ещё не было.
         # Если линк в links.json с тех пор появился, переводим на его главный ID.
-        src, rest = L.key_parts(uid)  # pc<id>, wml<id> и т.п.: ищем человека в links.json
+        src, rest = L.key_parts(uid)
         if src and owner_of(src.name, rest):
             uid = owner_of(src.name, rest)
         b = best_by.setdefault(uid, {})
@@ -1272,65 +1020,22 @@ def main():
             b[k] = max(b.get(k, -1), pct)
         info.setdefault(uid, ("#" + uid, None))
 
-    print(f"Убрано записей по removals (fix.json): {removed_n}")
-
     # Склеиваем аккаунты одного человека (links.json + fix.json) после сбора всех источников
-    before = len(best_by)
     best_by, info = merge_accounts(best_by, info, canon_id)
-    print(f"Склейка аккаунтов: {before} -> {len(best_by)}")
+    apply_corrections(best_by, info, canon_id)  # правки из corrections.json: всегда, при любом источнике
 
-    # Рекорды (игрок + уровень), которые есть только на Pointercrate. Считаем после склейки
-    # аккаунтов: если у человека есть этот уровень на глобале (хоть с другого аккаунта),
-    # это уже не "только Pointercrate".
-    def canon_pairs(d):
-        out = {}
-        for (u, k), pct in d.items():
-            cu = canon_id(u)
-            out[(cu, k)] = max(out.get((cu, k), -1), pct)
-        return out
-
-    dlp, pcp = canon_pairs(dl_pairs), canon_pairs(pc_pairs)
-    # "только на листе" = рекорд (игрок + уровень) есть на этом листе, но нет на глобале и на других подключённых листах
-    all_pairs = {"pointercrate": pcp, **{n: canon_pairs(pr) for n, pr in list_pairs.items()}}
-    only_sets = {}
-    for lname, pr in all_pairs.items():
-        others = [dlp] + [o for n, o in all_pairs.items() if n != lname]
-        only_sets[lname] = {key for key in pr if not any(key in o for o in others)}
-    only_pc_set = only_sets["pointercrate"]
-    if "pointercrate" in SOURCES:
-        no_link = sum(1 for (u, _) in only_pc_set if u.startswith("pc"))
-        better = sum(1 for key, pct in pcp.items() if key in dlp and pct > dlp[key])
-        print(f"Рекордов только на Pointercrate (игрок + уровень, по всем игрокам): {len(only_pc_set)}")
-        print(f"  у игроков без линка [PC]: {no_link}, у игроков, связанных с глобалом: {len(only_pc_set) - no_link}")
-        print(f"  уровень есть на обоих сайтах, но процент на Pointercrate выше: {better}")
-
-    # Правки из corrections.json: применяются всегда, при любом источнике
-    apply_corrections(best_by, info, canon_id)
-
-    # Свои записи из --add: самым последним шагом, после corrections.json
-    apply_cli_adds(best_by, info, canon_id)
-
-    # Вся информация об игроке (ник, страна) - с глобала, если он там есть.
-    # Из Pointercrate остаются только те, кого на глобале нет (pc-only).
+    # Вся информация об игроке (ник, страна) - с глобала, если он там есть. Из Pointercrate остаются только те, кого на глобале нет.
     need = [u for u in best_by if is_global(u) and u not in dl_seen]
     if need:
-        print("Профили игроков на глобале:")
-        res = run_tasks([(u,) for u in need], lambda it: dl_profile(it[0]), "профилей")
         got = 0
-        for (u,), prof in res:
+        for (u,), prof in run_tasks([(u,) for u in need], lambda it: dl_profile(it[0]), "профилей"):
             if prof:
                 info[u] = prof
                 got += 1
-        print(f"Профиль найден у {got} из {len(need)}")
-        if need and got == 0:
-            print("  ВНИМАНИЕ: ни один профиль не загрузился. Ники и флаги этих игроков "
-                  "могут быть из Pointercrate или пустыми.")
+        print(f"Профиль на глобале найден у {got} из {len(need)}")
 
-    # Если у главного аккаунта страны нет - ищем её у остальных аккаунтов этого человека:
-    # сначала по всем аккаунтам Demonlist (главный первым), затем по аккаунтам Pointercrate.
-    # Белый флаг остаётся только если страны нет нигде.
-    country_errors = []
-
+    # Если у главного аккаунта страны нет - ищем её у остальных аккаунтов человека: сначала по всем аккаунтам
+    # Demonlist (главный первым), затем Pointercrate, затем по данным других листов. Белый флаг остаётся, только если страны нет нигде.
     def find_country(uid):
         acc = accounts_of(uid)
         for d in acc["dl"]:
@@ -1338,20 +1043,18 @@ def main():
                 continue
             try:
                 prof = dl_profile(d)
-            except Exception as e:
-                country_errors.append(f"DL {d} (игрок {uid}): {str(e)[:80]}")
+            except Exception:
                 continue
             if prof and clean_country(prof[1]):
                 return prof[1]
         for pid in acc["pointercrate"]:
             try:
                 code = pc_player_country(pid)
-            except Exception as e:
-                country_errors.append(f"PC {pid} (игрок {uid}): {str(e)[:80]}")
+            except Exception:
                 continue
             if code:
                 return code
-        for lname, countries in list_countries.items():  # страна из данных других листов (уже скачаны выше)
+        for lname, countries in list_countries.items():  # данные других листов уже скачаны выше
             for aid in acc.get(lname, []):
                 if countries.get(str(aid)):
                     return countries[str(aid)]
@@ -1359,21 +1062,12 @@ def main():
 
     no_flag = [u for u in best_by if flag((info.get(u) or ("", None))[1]) == "🏳️"]
     if no_flag:
-        print("Поиск страны по другим аккаунтам игроков без флага:")
-        res = run_tasks([(u,) for u in no_flag], lambda it: find_country(it[0]), "игроков (страна)")
         got = 0
-        for (u,), code in res:
+        for (u,), code in run_tasks([(u,) for u in no_flag], lambda it: find_country(it[0]), "игроков (страна)"):
             if code:
                 info[u] = (info[u][0], code)
                 got += 1
         print(f"Страна найдена у {got} из {len(no_flag)}")
-        still = [u for u in no_flag if not info[u][1]]
-        if still:
-            print(f"  Без страны остались {len(still)}")
-        if country_errors:
-            print(f"  Ошибок запросов при поиске страны: {len(country_errors)} (первые 5):")
-            for msg in country_errors[:5]:
-                print(f"    {msg}")
 
     result = []
     for uid, best in best_by.items():
@@ -1383,104 +1077,28 @@ def main():
             if not lv:
                 continue
             f = score(lv["place"], pct, lv["T"], lv["t"])
-            if f is not None and f < args.cap:  # ровно cap не учитывается
-                recs.append({"level": lv["name"], "place": lv["place"], "percent": pct, "f": f,
-                             "special": k.startswith("x"), "key": k})
+            if f is not None and f < CAP:  # ровно cap не учитывается
+                recs.append({"level": lv["name"], "place": lv["place"], "percent": pct, "f": f, "special": k.startswith("x")})
         if not recs:
             continue
         recs.sort(key=lambda r: (r["f"], r["special"]))
         top = recs[:N]
         while len(top) < N:
-            top.append({"level": "-", "place": None, "percent": None, "f": args.cap, "special": False})
+            top.append({"level": "-", "place": None, "percent": None, "f": CAP, "special": False})
         name, country = info[uid]
         name = f"{name}{L.tag_of(uid)}"  # человека нет в глобале: помечаем, откуда он ([PC], [WML], ...)
-        result.append({"id": uid, "name": name, "country": country, "pc_only": uid in pc_only,
-                       "score": geo_mean([r["f"] for r in top]), "records": top})
+        result.append({"id": uid, "name": name, "country": country, "score": geo_mean([r["f"] for r in top]), "records": top})
 
     result.sort(key=lambda r: r["score"])
     for i, r in enumerate(result, 1):
-        r["rank"] = i  # место во всём рейтинге; фильтр по очкам его не меняет
+        r["rank"] = i  # место во всём рейтинге
 
     if args.waiting:
         load_waiting(result, accounts_of)
-        save_waiting(meta, best_by, info, result, canon_id, accounts_of, removals, owner_of)
+        save_waiting(meta, best_by, info, result, canon_id, removals, owner_of)
 
-    # Фильтр по очкам (меньше = лучше): оставляем игроков с очками от --min-score до --max-score
-    suffix = ""
-    if args.min_score is not None or args.max_score is not None:
-        lo = args.min_score if args.min_score is not None else float("-inf")
-        hi = args.max_score if args.max_score is not None else float("inf")
-        total_players = len(result)
-        result = [r for r in result if lo <= r["score"] <= hi]
-        lo_txt = f"{args.min_score:g}" if args.min_score is not None else "0"
-        hi_txt = f"{args.max_score:g}" if args.max_score is not None else "max"
-        suffix = f"_score{lo_txt}-{hi_txt}"
-        print(f"\nФильтр по очкам {lo_txt}-{hi_txt}: осталось игроков {len(result)} из {total_players}")
-
-    # Сколько записей, которые есть только на Pointercrate, у оставшихся игроков
-    for r in result:
-        r["pc_only_in_top"] = sum(1 for rec in r["records"]
-                                  if rec.get("key") and (r["id"], rec["key"]) in only_pc_set)
-        r["only_in_top"] = {lname: sum(1 for rec in r["records"] if rec.get("key") and (r["id"], rec["key"]) in only)
-                            for lname, only in only_sets.items() if lname in list_pairs}
-
-    print(f"\nТоп по {N} лучшим записям (меньше = лучше), игроков: {len(result)}\n")
-    if "pointercrate" in SOURCES:
-        ids = {r["id"] for r in result}
-        total_pc = sum(1 for (u, _) in only_pc_set if u in ids)
-        in_top = sum(r["pc_only_in_top"] for r in result)
-        with_pc = sum(1 for r in result if r["pc_only_in_top"])
-        # все записи этих игроков (игрок + уровень, уровни до --cap-place, после склейки и правок)
-        total_all = sum(len(best_by.get(r["id"], {})) for r in result)
-        share_all = f" ({total_pc * 100 / total_all:.1f}%)" if total_all else ""
-        # записи, которые реально вошли в топ-N игроков (без пустых добивок до N)
-        top_all = sum(1 for r in result for rec in r["records"] if rec.get("place") is not None)
-        share_top = f" ({in_top * 100 / top_all:.1f}%)" if top_all else ""
-        print(f"Записей в {N} лучших у этих игроков: {top_all}")
-        print(f"  из них только на Pointercrate: {in_top}{share_top}, "
-              f"игроков с такими записями: {with_pc} из {len(result)}")
-        print(f"Для сравнения, вообще всех записей у этих игроков: {total_all}, "
-              f"из них только на Pointercrate: {total_pc}{share_all}\n")
-
-    for lname in list_pairs:  # другие листы: сколько записей есть только на них
-        only = only_sets[lname]
-        ids = {r["id"] for r in result}
-        total_l = sum(1 for (u, _) in only if u in ids)
-        in_top_l = sum(r["only_in_top"][lname] for r in result)
-        with_l = sum(1 for r in result if r["only_in_top"][lname])
-        top_all_l = sum(1 for r in result for rec in r["records"] if rec.get("place") is not None)
-        share_l = f" ({in_top_l * 100 / top_all_l:.1f}%)" if top_all_l else ""
-        print(f"Записей, которые есть только на {lname} (нет на глобале и на других подключённых листах): "
-              f"всего у этих игроков {total_l}, в {N} лучших {in_top_l}{share_l}, игроков с такими записями: {with_l}\n")
-
-    # в консоль: первые --show игроков
-    for r in result[: args.show]:
-        i = r["rank"]
-        if args.long:
-            print(f"{i:3}. {str(r['name']):<28} {r['score']:8.2f}  {r['country'] or ''}")
-            for rec in r["records"]:
-                print(fmt_record(rec))
-            print()
-        else:
-            print(line_short(i, r, args.ids))
-
-    # в txt: весь топ целиком (или весь отфильтрованный)
-    # Имя файла по набору источников: gdr_gl (только глобал), gdr_gl_pc, gdr_gl_wml, gdr_gl_my,
-    # их сочетания (gdr_gl_pc_wml и т.п.), а когда подключено всё, просто gdr
-    if SOURCES == ALL_SOURCES:
-        base = "gdr"
-    else:
-        order = sorted(SOURCES, key=lambda x: (SOURCE_ORDER.index(x) if x in SOURCE_ORDER else 99, x))
-        base = "gdr_gl" + "".join("_" + SOURCE_SHORT.get(x, x) for x in order)
-    txt = HERE / f"{base}{suffix}.txt"
-    txt.write_text("\n".join(line_short(r["rank"], r, args.ids) for r in result), "utf-8")
-    print(f"\nТекст для копирования (весь топ, {len(result)} игроков): {txt.name}")
-
-    out = HERE / f"{base}{suffix}.json"
-    out.write_text(json.dumps(
-        [{**r, "score": round(r["score"], 2)} for r in result],
-        ensure_ascii=False, indent=1), "utf-8")
-    print(f"Полный результат: {out.name}")
+    (HERE / args.out).write_text("\n".join(line_short(r["rank"], r) for r in result), "utf-8")
+    print(f"Рейтинг: игроков {len(result)} -> {args.out}")
 
 
 main()
