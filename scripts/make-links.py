@@ -380,6 +380,49 @@ def new_entry(name, **accounts):
     return {"_name": str(name or ""), OTHER: {n: list(accounts.get(n) or []) for n in LISTS}}
 
 
+# Листы, у которых аккаунты в links.json лежат словарём {"борд": ID}, а не списком (внутри скрипта это строки "main:12").
+# coreboard: {"main": 12, "mobile": 34}; если на борде у человека несколько ID, значение списком: {"main": [12, 15]}.
+DICT_LISTS = {"coreboard"}
+
+
+def _num(x):
+    return int(x) if str(x).isdigit() else str(x)
+
+
+def unpack_dict_lists(result):
+    """Словари из links.json -> внутренний вид (списки строк "main:12"), чтобы вся остальная логика работала по-старому."""
+    for entry in result.values():
+        block = entry.get(OTHER) if isinstance(entry, dict) else None
+        if not isinstance(block, dict):
+            continue
+        for name in DICT_LISTS:
+            val = block.get(name)
+            if isinstance(val, dict):
+                block[name] = [f"{mode}:{i}" for mode, ids in val.items()
+                               for i in (ids if isinstance(ids, list) else [ids]) if i not in (None, "")]
+
+
+def pack_dict_lists(result):
+    """Внутренний вид -> формат links.json: {"coreboard": {"main": 12, "mobile": 34}}. Возвращает копию, result не меняет."""
+    out = {}
+    for key, entry in result.items():
+        block = entry.get(OTHER) if isinstance(entry, dict) else None
+        if not isinstance(block, dict) or not any(n in block for n in DICT_LISTS):
+            out[key] = entry
+            continue
+        block = dict(block)
+        for name in DICT_LISTS:
+            vals = block.get(name)
+            if isinstance(vals, list):
+                by_mode = {}
+                for v in vals:
+                    mode, _, i = str(v).partition(":")
+                    by_mode.setdefault(mode, []).append(_num(i))
+                block[name] = {m: (ids[0] if len(ids) == 1 else ids) for m, ids in by_mode.items()}
+        out[key] = {**entry, OTHER: block}
+    return out
+
+
 def migrate_links(result):
     """Приводит записи к текущему формату: "pointercrate" и "wml" из корня записи переезжают в блок OTHER.
     Порядок ключей: _name, блок, остальное (channels и т.д.). Возвращает, у скольких записей формат изменился."""
@@ -1999,6 +2042,7 @@ def main():
             print("Проверь файл (или переименуй его) и запусти снова.")
             sys.exit(1)
 
+    unpack_dict_lists(result)  # coreboard: {"main": 12} -> ["main:12"] (до migrate_links)
     migrated = migrate_links(result)
     if migrated:
         print(f"  формат {OUT}: у {migrated} записей аккаунты других листов перенесены в блок \"{OTHER}\"")
@@ -2180,7 +2224,7 @@ def main():
 
     save_tmp = OUT + ".tmp"
     with open(save_tmp, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
+        json.dump(pack_dict_lists(result), f, ensure_ascii=False, indent=2)
     os.replace(save_tmp, OUT)
 
     review.extend(taken_list)  # подробности попадут в links_review.txt
