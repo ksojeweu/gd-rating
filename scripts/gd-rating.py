@@ -26,6 +26,7 @@ import lists_core as L
 from jsonfmt import write_players
 
 HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent                              # корень репозитория
 DL = "https://api.demonlist.org/"
 PC = "https://pointercrate.com/api/"
 RAW = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/"
@@ -113,24 +114,24 @@ def geo_mean(values):
 
 # ---------- файлы репозитория ----------
 def load_repo_json(name):
-    f = HERE / name
+    """Файл из репозитория: сначала локальный (в Actions это свежий checkout, плюс файлы, которые только что записал
+    sync-extras), и только если его нет, с GitHub (raw кешируется до ~5 минут после правки, и свежая правка не видна)."""
     try:
-        if f.exists():
-            return json.loads(f.read_text("utf-8"))
-        return get_json(RAW + name)  # raw GitHub кешируется до ~5 минут после правки
+        for f in (ROOT / name, HERE / name):
+            if f.exists():
+                return json.loads(f.read_text("utf-8"))
+        return get_json(RAW + name)
     except Exception as e:
         print(f"{name}: {e}")
         return {}
 
 
 def load_tp():
-    """levels_tp.json берём ТОЛЬКО с GitHub. Без него T/t были бы запасными и рейтинг неверным, поэтому при сбое выходим."""
-    try:
-        levels = get_json(RAW + "levels_tp.json").get("levels", {})
-    except Exception as e:
-        raise SystemExit(f"levels_tp.json: не удалось загрузить с GitHub ({e}). Останавливаюсь.")
+    """levels_tp.json (локальный из репозитория или с GitHub). Без него T/t были бы запасными и рейтинг неверным,
+    поэтому при сбое выходим."""
+    levels = load_repo_json("levels_tp.json").get("levels", {})
     if not levels:
-        raise SystemExit("levels_tp.json: на GitHub пустой список уровней. Останавливаюсь.")
+        raise SystemExit("levels_tp.json: не удалось загрузить или пустой список уровней. Останавливаюсь.")
     return levels
 
 
@@ -278,11 +279,7 @@ def load_extras():
     merged = {}
     if "my_extras" not in SOURCES:
         return merged
-    try:
-        raw = get_json(RAW + "my_extras.json").get("users", {})
-    except Exception as e:
-        print(f"my_extras.json: {e}")
-        return merged
+    raw = load_repo_json("my_extras.json").get("users", {})
     for uid, rows in raw.items():
         m = merged.setdefault(str(uid), {})
         for r in rows:
@@ -294,11 +291,7 @@ def load_extras():
 def load_my_extras_always(owner_of, canon):
     """my_extras.json с GitHub ВСЕГДА, независимо от --src. Нужен для waiting: запись не считается новой, если у игрока
     уже есть такая же или лучшая в экстрасах. Возвращает {главный ID человека: {ID уровня: процент}}."""
-    try:
-        raw = get_json(RAW + "my_extras.json").get("users", {})
-    except Exception as e:
-        print(f"my_extras.json (для waiting): {e}")
-        return {}
+    raw = load_repo_json("my_extras.json").get("users", {})
     out = {}
     for uid, rows in raw.items():
         src, rest = L.key_parts(uid)
@@ -336,7 +329,8 @@ def apply_corrections(best_by, info, canon, names):
     Формат: {"delete": {"users": {ID: [...]}}, "add": {"users": {...}}}, записи двух видов (можно мешать):
       новый, как в файлах cbd/:  ID: ["ник", ["Название уровня", процент, "ссылка"], ...]   (ник и ссылка не обязательны)
       старый:                    ID: [[ID уровня, процент, ""], ...]
-    ID игрока: наш ID (как в links.json) или ID CoreBoard (из coreboard_id_map.json, если нашего нет в топе).
+    ID игрока: наш ID (как в links.json) или ID CoreBoard (из coreboard_id_map.json). Числа у них пересекаются, поэтому
+    в правке лучше указывать ник: по нему ID определяется однозначно.
     delete - убрать запись, если у игрока по этому уровню лучший процент совпадает.
     add    - ИСПРАВЛЕНИЕ завышенной записи: добавляется, только если у этого игрока по этому уровню запись реально
              была удалена через delete. Всё, что не сработало, печатается с причиной - так видно, где опечатка."""
@@ -349,23 +343,38 @@ def apply_corrections(best_by, info, canon, names):
         sec = data.get(section) or {}
         return sec.get("users", sec) if isinstance(sec, dict) else {}  # допускаем и {"users": {...}}, и сразу {ID: [...]}
 
-    cb_map = []  # coreboard_id_map.json: качается один раз и только если понадобился
+    cb_map = []  # coreboard_id_map.json: читается один раз
 
-    def person(uid):
-        """Главный ID человека: по нашему ID, а если его нет в топе, по ID CoreBoard."""
+    def same_nick(a, b):
+        a, b = str(a or "").casefold().strip(), str(b or "").casefold().strip()
+        return bool(a and b and (a == b or b in a))
+
+    def person(uid, nick):
+        """Главный ID человека. ID в правке может быть нашим или ID CoreBoard (числа у них пересекаются!), поэтому,
+        если указан ник, сверяем по нему; без ника сначала считаем ID нашим."""
         cu = canon(uid)
-        if cu in best_by:
-            return cu
         if not cb_map:
             cb_map.append(load_repo_json("coreboard_id_map.json"))
         row = cb_map[0].get(str(uid).strip())
-        gid = row.get("gdr_id") if isinstance(row, dict) else None
-        return canon(gid) if gid and canon(gid) in best_by else cu
+        gid = canon(row["gdr_id"]) if isinstance(row, dict) and row.get("gdr_id") else None
+        if nick:
+            if gid in best_by and same_nick(row.get("nick"), nick):
+                return gid          # ID CoreBoard, ник совпал
+            if cu in best_by and same_nick((info.get(cu) or ("",))[0], nick):
+                return cu           # наш ID, ник совпал
+            print(f"  {uid} ({nick}): ник не совпал ни с игроком CoreBoard, ни с нашим; беру "
+                  + ("ID CoreBoard" if gid in best_by else "наш ID"))
+        if gid in best_by and (nick or cu not in best_by):
+            return gid
+        return cu
 
     def records(rows):
-        """[(ключ уровня, процент)]: строки-ники пропускаем, название уровня переводим в ключ."""
-        out = []
+        """(ник или None, [(ключ уровня, процент)]): строку-ник отделяем, название уровня переводим в ключ."""
+        nick, out = None, []
         for r in rows:
+            if isinstance(r, str):
+                nick = r
+                continue
             if not isinstance(r, list) or len(r) < 2:
                 continue
             k = str(r[0]).strip()
@@ -375,13 +384,14 @@ def apply_corrections(best_by, info, canon, names):
                 out.append((k, float(r[1])))
             except (TypeError, ValueError):
                 pass
-        return out
+        return nick, out
 
     deleted_keys = set()  # пары (главный ID игрока, ID уровня), которые реально удалены
     for uid, rows in users_of("delete").items():
-        cu = person(uid)
+        nick, recs = records(rows)
+        cu = person(uid, nick)
         mine = best_by.get(cu)
-        for k, pct in records(rows):
+        for k, pct in recs:
             if (cu, k) in deleted_keys:
                 continue  # этот рекорд уже удалён через другой аккаунт того же человека
             if mine is None:
@@ -394,8 +404,9 @@ def apply_corrections(best_by, info, canon, names):
                 del mine[k]
                 deleted_keys.add((cu, k))
     for uid, rows in users_of("add").items():
-        cu = person(uid)
-        for k, pct in records(rows):
+        nick, recs = records(rows)
+        cu = person(uid, nick)
+        for k, pct in recs:
             if (cu, k) not in deleted_keys:
                 print(f"  add {uid} (-> {cu}) уровень {k}: пропущено - у него не удалялась запись по этому уровню")
                 continue

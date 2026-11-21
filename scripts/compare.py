@@ -221,10 +221,15 @@ if not (cb_id_by_nick or cb_id_by_gdr):
 # =========================
 # Уровни: levels_tp.json ТОЛЬКО с GitHub, потом особые названия, потом глобал
 # =========================
+levels_file = os.path.join(os.path.dirname(HERE), "levels_tp.json")  # локальный файл свежее, чем raw на GitHub (кеш ~5 минут)
 try:
-    levels_data = fetch_json(LEVELS_URL)["levels"]
+    if os.path.exists(levels_file):
+        with open(levels_file, encoding="utf-8") as f:
+            levels_data = json.load(f)["levels"]
+    else:
+        levels_data = fetch_json(LEVELS_URL)["levels"]
 except Exception as error:
-    sys.exit(f"levels_tp.json: не удалось загрузить с GitHub ({error}). Останавливаюсь.")
+    sys.exit(f"levels_tp.json: не удалось загрузить ({error}). Останавливаюсь.")
 if not isinstance(levels_data, dict) or not levels_data:
     sys.exit("levels_tp.json: на GitHub пустой список уровней. Останавливаюсь.")
 
