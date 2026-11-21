@@ -403,6 +403,7 @@ def apply_corrections(best_by, info, canon, names):
             else:
                 del mine[k]
                 deleted_keys.add((cu, k))
+                print(f"  delete {uid} ({nick or cu}) уровень {k}: убрано {pct:g}%")
     for uid, rows in users_of("add").items():
         nick, recs = records(rows)
         cu = person(uid, nick)
@@ -413,6 +414,7 @@ def apply_corrections(best_by, info, canon, names):
             mine = best_by.setdefault(cu, {})
             mine[k] = max(mine.get(k, -1), pct)
             info.setdefault(cu, ("#" + cu, None))
+            print(f"  add {uid} ({nick or cu}) уровень {k}: добавлено {pct:g}%")
 
 
 # ---------- кеш ----------
