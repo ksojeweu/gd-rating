@@ -4,11 +4,13 @@
 
   {"users": {
     "<ID CoreBoard>": [
+      "ник игрока",
       ["Название уровня как на CoreBoard", процент, "ссылка"],
       ...
     ],
     ...
   }}
+Первая строка в списке игрока - его ник (не рекорд, при чтении пропускается).
 
 Шаги:
   1. coreboard-parse.py -> cbd.json (оба топа CoreBoard);
@@ -82,12 +84,14 @@ def load_existing():
     return out
 
 
-def save_users(users):
-    items = sorted(users.items(), key=lambda kv: (kv[0].startswith(NICK_PREFIX),
-                                                  int(kv[0]) if kv[0].isdigit() else 0, kv[0]))
+def save_users(users, nicks):
+    def order(kv):
+        return (kv[0].startswith(NICK_PREFIX), int(kv[0]) if kv[0].isdigit() else 0, kv[0])
+    items = sorted(users.items(), key=order)
     lines = ['{', '  "users": {']
     for i, (key, rows) in enumerate(items):
         lines.append(f'    {json.dumps(key, ensure_ascii=False)}: [')
+        lines.append(f'      {json.dumps(nicks.get(key, ""), ensure_ascii=False)}' + ("," if rows else ""))
         for j, r in enumerate(rows):
             lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
         lines.append("    ]" + ("," if i < len(items) - 1 else ""))
@@ -176,7 +180,7 @@ def main():
         git("pull", "--rebase", "--autostash", check=False)
     existing = load_existing()
 
-    users = {}
+    users, nicks = {}, {}
     for key, _gdr, recs, name in players:
         old = existing.get(key) or existing.get(NICK_PREFIX + name, {})
         out = []
@@ -184,7 +188,8 @@ def main():
             link = found.get((key, lvl_key(level), pct)) or old.get((lvl_key(level), pct), "")
             out.append([level, pct, link])
         users[key] = out
-    save_users(users)
+        nicks[key] = name
+    save_users(users, nicks)
     with_link = sum(1 for v in users.values() for r in v if r[2])
     total = sum(len(v) for v in users.values())
     print(f"Игроков {len(users)}, записей {total}, со ссылкой {with_link}; искали {searched}, найдено {len(found)}, "
