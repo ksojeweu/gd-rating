@@ -1,5 +1,4 @@
 """Поиск видео рекордов: GlobalList (все аккаунты человека) и Pointercrate. Общий модуль add-video-links.py и cbd-videos.py."""
-import html
 import re
 import time
 
@@ -10,7 +9,6 @@ import lists_core as L
 LINKS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/refs/heads/main/links.json"
 FIX_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/fix.json"  # склейки аккаунтов глобала (merges)
 GLOBAL_API = "https://api.demonlist.org"
-DEMONLIST_LEVEL_URL = "https://demonlist.org/demonlist/level/{level_id}"
 POINTERCRATE_API = "https://pointercrate.com/api/v1"
 POINTERCRATE_DEMONS_API = "https://pointercrate.com/api/v2/demons"
 LIMIT = 100
@@ -37,8 +35,6 @@ YOUTUBE_ID_PATTERN = re.compile(
     r'|youtube\.com/(?:watch\?(?:[^\s]*?&)?v=|shorts/|live/|embed/|v/))'
     r'([A-Za-z0-9_-]{11})'
 )
-# "first beaten by <a href="/demonlist/player/3988">ikkyseen</a>" на странице уровня demonlist.org
-FIRST_BEATEN_RE = re.compile(r'first beaten by\s*<a[^>]*href="/demonlist/player/(\d+)"[^>]*>(.*?)</a>', re.S | re.I)
 
 
 def get_json(url, params=None):
@@ -164,23 +160,6 @@ def get_global_level(level_id):
     return global_level_cache[level_id]
 
 
-def get_first_beaten_by(level_id):
-    """Игрок «first beaten by» со страницы уровня на demonlist.org: (player_id, nick) или (None, None)."""
-    try:
-        response = session.get(DEMONLIST_LEVEL_URL.format(level_id=level_id), timeout=TIMEOUT)
-        response.raise_for_status()
-        page = response.text
-    except Exception as error:
-        if getattr(getattr(error, "response", None), "status_code", None) != 404:  # 404: страницы уровня нет, это не сбой
-            print(f"    Не удалось загрузить страницу уровня {level_id}: {error}")
-        return None, None
-
-    m = FIRST_BEATEN_RE.search(page)
-    if not m:
-        return None, None
-    return m.group(1), html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
-
-
 def find_global_video(user_id, level_id, percent):
     """Видео рекорда на этот уровень И с этим процентом: (video, status). Принятый (accepted) лучше ожидающего
     (waiting); отклонённые (rejected) пропускаются."""
@@ -243,8 +222,8 @@ def global_accounts(player_id):
 
 
 def find_global_video_any(player_id, level_id, percent):
-    """Видео на глобале у любого аккаунта человека. Порядок: принятый рекорд, видео верификации уровня, рекорд в
-    ожидании. Если видео нет, а часть запросов упала, поднимаем ошибку: «не нашли» и «не смогли проверить» разные вещи."""
+    """Видео на глобале у любого аккаунта человека. Порядок: принятый рекорд, видео верификации уровня (верифер в списке рекордов не
+    показывается, он лежит в поле verification уровня), рекорд в ожидании. Если видео нет, а часть запросов упала, поднимаем ошибку: «не нашли» и «не смогли проверить» разные вещи."""
     accounts = global_accounts(player_id)
     waiting, first_error = None, None
 
@@ -265,17 +244,6 @@ def find_global_video_any(player_id, level_id, percent):
             video = get_video(verification)
             if video and str(verification.get("user_id")) in accounts:
                 return video, "accepted"
-        except Exception as error:
-            first_error = first_error or error
-
-    # Дополнительная попытка: рекорд игрока из «first beaten by» на странице уровня
-    fb_id, fb_nick = get_first_beaten_by(level_id)
-    if fb_id:
-        try:
-            for account in global_accounts(fb_id):
-                video, status = find_global_video(account, level_id, percent)
-                if video:
-                    return video, f"GlobalList (first beaten by {fb_nick})"
         except Exception as error:
             first_error = first_error or error
 

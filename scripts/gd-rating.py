@@ -331,9 +331,12 @@ def load_board_records(owner_of, canon):
     return out
 
 
-def apply_corrections(best_by, info, canon):
+def apply_corrections(best_by, info, canon, names):
     """Правки из corrections.json (после склейки аккаунтов, при любом --src).
-    Формат: {"delete": {"users": {ID: [[уровень, процент, ""], ...]}}, "add": {"users": {...}}}
+    Формат: {"delete": {"users": {ID: [...]}}, "add": {"users": {...}}}, записи двух видов (можно мешать):
+      новый, как в файлах cbd/:  ID: ["ник", ["Название уровня", процент, "ссылка"], ...]   (ник и ссылка не обязательны)
+      старый:                    ID: [[ID уровня, процент, ""], ...]
+    ID игрока: наш ID (как в links.json) или ID CoreBoard (из coreboard_id_map.json, если нашего нет в топе).
     delete - убрать запись, если у игрока по этому уровню лучший процент совпадает.
     add    - ИСПРАВЛЕНИЕ завышенной записи: добавляется, только если у этого игрока по этому уровню запись реально
              была удалена через delete. Всё, что не сработало, печатается с причиной - так видно, где опечатка."""
@@ -346,36 +349,58 @@ def apply_corrections(best_by, info, canon):
         sec = data.get(section) or {}
         return sec.get("users", sec) if isinstance(sec, dict) else {}  # допускаем и {"users": {...}}, и сразу {ID: [...]}
 
-    deleted_keys = set()  # пары (главный ID игрока, ID уровня), которые реально удалены
-    for uid, rows in users_of("delete").items():
+    cb_map = []  # coreboard_id_map.json: качается один раз и только если понадобился
+
+    def person(uid):
+        """Главный ID человека: по нашему ID, а если его нет в топе, по ID CoreBoard."""
         cu = canon(uid)
-        mine = best_by.get(cu)
+        if cu in best_by:
+            return cu
+        if not cb_map:
+            cb_map.append(load_repo_json("coreboard_id_map.json"))
+        row = cb_map[0].get(str(uid).strip())
+        gid = row.get("gdr_id") if isinstance(row, dict) else None
+        return canon(gid) if gid and canon(gid) in best_by else cu
+
+    def records(rows):
+        """[(ключ уровня, процент)]: строки-ники пропускаем, название уровня переводим в ключ."""
+        out = []
         for r in rows:
             if not isinstance(r, list) or len(r) < 2:
                 continue
-            k = str(r[0])
+            k = str(r[0]).strip()
+            if not (k.isdigit() or k.startswith("x")):
+                k = names.get(levelsearch.normalize(k), k)
+            try:
+                out.append((k, float(r[1])))
+            except (TypeError, ValueError):
+                pass
+        return out
+
+    deleted_keys = set()  # пары (главный ID игрока, ID уровня), которые реально удалены
+    for uid, rows in users_of("delete").items():
+        cu = person(uid)
+        mine = best_by.get(cu)
+        for k, pct in records(rows):
             if (cu, k) in deleted_keys:
                 continue  # этот рекорд уже удалён через другой аккаунт того же человека
             if mine is None:
                 print(f"  delete {uid} (-> {cu}): игрока нет в топе")
             elif k not in mine:
                 print(f"  delete {uid} (-> {cu}): уровня {k} у него нет")
-            elif abs(mine[k] - float(r[1])) > 1e-9:
-                print(f"  delete {uid} (-> {cu}) уровень {k}: у него {mine[k]:g}%, а в файле {float(r[1]):g}% - не совпало")
+            elif abs(mine[k] - pct) > 1e-9:
+                print(f"  delete {uid} (-> {cu}) уровень {k}: у него {mine[k]:g}%, а в файле {pct:g}% - не совпало")
             else:
                 del mine[k]
                 deleted_keys.add((cu, k))
     for uid, rows in users_of("add").items():
-        cu = canon(uid)
-        for r in rows:
-            if not isinstance(r, list) or len(r) < 2:
-                continue
-            k = str(r[0])
+        cu = person(uid)
+        for k, pct in records(rows):
             if (cu, k) not in deleted_keys:
                 print(f"  add {uid} (-> {cu}) уровень {k}: пропущено - у него не удалялась запись по этому уровню")
                 continue
             mine = best_by.setdefault(cu, {})
-            mine[k] = max(mine.get(k, -1), float(r[1]))
+            mine[k] = max(mine.get(k, -1), pct)
             info.setdefault(cu, ("#" + cu, None))
 
 
@@ -947,8 +972,8 @@ def main():
     # Другие листы из реестра (wml и т.д.): данные качает адаптер листа, уровни ищет levels.py
     list_countries = {}  # лист -> {ID аккаунта: страна}
     wanted_lists = [src for src in L.sources() if src.name in SOURCES]
+    names = levelsearch.name_index(tp, levels)  # нормализованное название уровня -> ключ уровня
     if wanted_lists:
-        names = levelsearch.name_index(tp, levels)  # нормализованное название уровня -> ключ уровня
         by_ingame_id = {str(l["ingame_id"]): str(l["id"]) for l in levels if l.get("ingame_id") is not None}
     for src in wanted_lists:
         print(f"{src.name}:")
@@ -1004,7 +1029,7 @@ def main():
 
     # Склеиваем аккаунты одного человека (links.json + fix.json) после сбора всех источников
     best_by, info = merge_accounts(best_by, info, canon_id)
-    apply_corrections(best_by, info, canon_id)  # правки из corrections.json: всегда, при любом источнике
+    apply_corrections(best_by, info, canon_id, names)  # правки из corrections.json: всегда, при любом источнике
 
     # Вся информация об игроке (ник, страна) - с глобала, если он там есть. Из Pointercrate остаются только те, кого на глобале нет.
     need = [u for u in best_by if is_global(u) and u not in dl_seen]
