@@ -19,7 +19,9 @@
   4. с --commit коммитит и пушит cbd/cbd_videos.json.
 
 Ссылку можно вписать вручную прямо в cbd/cbd_videos.json: пока процент рекорда тот же, она сохраняется.
-Не нашедшиеся ссылки перепроверяются не чаще раза в RETRY_DAYS дней (кеш scripts/videocache.json).
+Ссылки на Google Drive считаются запасными: для них видео ищется заново (GlobalList, Pointercrate), и если нормальное
+не нашлось, остаётся ссылка на Google Drive. Вложенные ссылки (a?v=https://b/...) обрезаются до последней.
+Не нашедшиеся ссылки ищутся заново при каждом запуске (кеша неудач нет).
 Первый запуск ищет видео для тысяч рекордов, поэтому есть лимит времени --budget-min (по умолчанию 40 минут):
 что не успели, дойдёт в следующем запуске.
 
@@ -34,14 +36,12 @@ import time
 from pathlib import Path
 
 import levels as levelsearch
-from videos import find_video_retry, get_json, get_links, normalize_link
+from videos import find_video_retry, get_json, get_links, is_drive_link, normalize_link
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 OUT_FILE = ROOT / "cbd" / "cbd_videos.json"
-CACHE_FILE = HERE / "videocache.json"   # "ключ записи" -> когда в последний раз искали и не нашли
 LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
-RETRY_DAYS = 3
 NICK_PREFIX = "nick:"
 
 ap = argparse.ArgumentParser()
@@ -78,7 +78,7 @@ def load_existing():
         m = out.setdefault(str(key), {})
         for r in rows:
             if isinstance(r, list) and len(r) >= 3 and r[2]:
-                m[(lvl_key(r[0]), fmt_pct(r[1]))] = str(r[2])
+                m[(lvl_key(r[0]), fmt_pct(r[1]))] = normalize_link(r[2])
     return out
 
 
@@ -137,7 +137,6 @@ def main():
     level_index = levelsearch.name_index(tp, [])  # название -> ключ уровня (ID глобала или x...)
 
     existing = load_existing()
-    cache = json.loads(CACHE_FILE.read_text("utf-8")) if CACHE_FILE.exists() else {}
     links = get_links()
 
     players = []  # (ключ, наш ID или None, [(название, процент)], ник)
@@ -149,20 +148,16 @@ def main():
         players.append((key, str(gdr_id) if gdr_id else None, recs, row["name"]))
 
     found = {}  # (ключ игрока, уровень, процент) -> ссылка, найденная в этом запуске
-    searched = skipped = out_of_time = 0
-    now = time.time()
+    searched = out_of_time = 0
     for key, gdr_id, recs, name in players:
         old = existing.get(key) or existing.get(NICK_PREFIX + name, {})
         for level, pct in recs:
-            if (lvl_key(level), pct) in old:
-                continue  # рекорд не изменился: ссылка (в том числе ручная) остаётся
+            old_link = old.get((lvl_key(level), pct))
+            if old_link and not is_drive_link(old_link):
+                continue  # рекорд не изменился: ссылка (в том числе ручная) остаётся; Google Drive ищем заново
             level_id = level_index.get(lvl_key(level))
             if not gdr_id or not level_id or not level_id.isdigit():
                 continue  # искать негде: нет нашего ID игрока или уровня нет в глобале
-            ck = f"{gdr_id}|{level_id}|{pct}"
-            if now - cache.get(ck, 0) < RETRY_DAYS * 86400:
-                skipped += 1
-                continue
             if time.time() > deadline:
                 out_of_time += 1
                 continue
@@ -174,12 +169,8 @@ def main():
             searched += 1
             if video:
                 found[(key, lvl_key(level), pct)] = normalize_link(video)
-            elif not source.startswith("НЕ ПРОВЕРЕНО"):
-                cache[ck] = time.time()  # видео реально нет: не ищем снова несколько дней
             if searched % 50 == 0:
                 print(f"  поиск: {searched}, найдено {len(found)}", flush=True)
-                CACHE_FILE.write_text(json.dumps(cache), "utf-8")
-    CACHE_FILE.write_text(json.dumps(cache), "utf-8")
 
     if args.commit:  # забираем чужие правки (ручные ссылки), пока мы искали
         git("pull", "--rebase", "--autostash", check=False)
@@ -190,14 +181,14 @@ def main():
         old = existing.get(key) or existing.get(NICK_PREFIX + name, {})
         out = []
         for level, pct in recs:
-            link = old.get((lvl_key(level), pct)) or found.get((key, lvl_key(level), pct), "")
+            link = found.get((key, lvl_key(level), pct)) or old.get((lvl_key(level), pct), "")
             out.append([level, pct, link])
         users[key] = out
     save_users(users)
     with_link = sum(1 for v in users.values() for r in v if r[2])
     total = sum(len(v) for v in users.values())
     print(f"Игроков {len(users)}, записей {total}, со ссылкой {with_link}; искали {searched}, найдено {len(found)}, "
-          f"пропущено из-за недавней неудачи {skipped}, не хватило времени {out_of_time}")
+          f"не хватило времени {out_of_time}")
     if args.commit:
         commit_and_push(f"cbd_videos: {with_link}/{total} ссылок, найдено новых {len(found)} (авто)")
 
