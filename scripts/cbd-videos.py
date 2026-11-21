@@ -40,7 +40,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 OUT_FILE = ROOT / "cbd" / "cbd_videos.json"
 CACHE_FILE = HERE / "videocache.json"   # "ключ записи" -> когда в последний раз искали и не нашли
-LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
+LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
 RETRY_DAYS = 3
 
 ap = argparse.ArgumentParser()
