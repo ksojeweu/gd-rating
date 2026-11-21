@@ -97,9 +97,18 @@ def normalize_id(player_id):
     return str(player_id).strip().casefold()
 
 
+def is_drive_link(link):
+    """Ссылка на Google Drive / Docs: такое видео считаем запасным вариантом, сначала ищем нормальное."""
+    return bool(re.search(r"(?:drive|docs)\.google\.com", str(link), re.I))
+
+
 def normalize_link(link):
-    """YouTube-ссылку приводит к виду https://www.youtube.com/watch?v=ID. Остальное и пустое остаётся как есть."""
+    """Вложенную ссылку (https://youtube.com/watch?v=https://twitch.tv/...) обрезает до последней, YouTube приводит
+    к виду https://www.youtube.com/watch?v=ID. Остальное и пустое остаётся как есть."""
     link = str(link).strip()
+    starts = [m.start() for m in re.finditer(r"https?://", link, re.I)]
+    if len(starts) > 1:
+        link = link[starts[-1]:]
     match = YOUTUBE_ID_PATTERN.search(link)
     return f"https://www.youtube.com/watch?v={match.group(1)}" if match else link
 
@@ -385,6 +394,7 @@ def accounts_of_key_player(player_id, key_src, key_rest, links):
 def find_video(player_id, level_id, percent, links):
     """(видео, источник). Если видео нет, источник объясняет почему."""
     request_errors = []  # отличаем "видео нет" от "не смогли проверить из-за сбоя"
+    drive_fallback = None  # видео на Google Drive: берём, только если нормального видео не нашлось
 
     # Ключ вида pc7 / wml5 (игрок без глобала): лист и аккаунт названы самим ключом, глобал не нужен.
     key_src, key_rest = L.key_parts(str(player_id).casefold())
@@ -395,7 +405,11 @@ def find_video(player_id, level_id, percent, links):
         try:
             video, status = find_global_video_any(player_id, level_id, percent)
             if video:
-                return video, "GlobalList (статус: waiting)" if status == "waiting" else "GlobalList"
+                src = "GlobalList (статус: waiting)" if status == "waiting" else "GlobalList"
+                if is_drive_link(video):
+                    drive_fallback = (video, src + ", Google Drive")
+                else:
+                    return video, src
         except Exception as error:
             print(f"    GlobalList API error: {error}")
             request_errors.append("GlobalList")
@@ -415,12 +429,17 @@ def find_video(player_id, level_id, percent, links):
             try:
                 video = find_pointer_video(pointer_id, ingame_id, percent)
                 if video:
-                    return video, f"Pointercrate {pointer_id}"
+                    if is_drive_link(video):
+                        drive_fallback = drive_fallback or (video, f"Pointercrate {pointer_id}, Google Drive")
+                    else:
+                        return video, f"Pointercrate {pointer_id}"
             except Exception as error:
                 print(f"    Pointercrate {pointer_id}: {error}")
                 request_errors.append(f"Pointercrate {pointer_id}")
             time.sleep(DELAY)
 
+    if drive_fallback:  # нормального видео нет: остаётся ссылка на Google Drive
+        return drive_fallback
     if request_errors:  # видео могло существовать, но проверить не удалось: стоит запустить ещё раз
         return "", f"НЕ ПРОВЕРЕНО из-за ошибок запросов ({', '.join(request_errors)}), запустите ещё раз"
     if ingame_note:
