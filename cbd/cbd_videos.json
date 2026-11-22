@@ -1183,8 +1183,8 @@
       ["Acheron", 100, "https://www.youtube.com/watch?v=htp5BJIxSmk"],
       ["Deimos", 100, "https://www.youtube.com/watch?v=4p40wzddQsk"],
       ["Snowbound", 100, "https://www.youtube.com/watch?v=_Kot5BqpjS0"],
-      ["NOMAD", 100, "https://www.youtube.com/watch?v=dSMDZz54IiA"],
-      ["Calibrate", 100, "https://www.youtube.com/watch?v=M3Cgi2Kg-sE"]
+      ["Firework", 100, "https://www.youtube.com/watch?v=yI_k6JHBv9E"],
+      ["NOMAD", 100, "https://www.youtube.com/watch?v=dSMDZz54IiA"]
     ],
     "133": [
       "lua",
@@ -3245,8 +3245,8 @@
     ],
     "362": [
       "Ellie",
-      ["Azure Flare", 93, "https://www.youtube.com/watch?v=2w4BJ4L4cck&t=19s"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=-Wx027FztgE"],
+      ["Azure Flare", 90, ""],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=0w6pWeh8MqA"],
       ["DreamStep", 100, "https://www.youtube.com/watch?v=VSSXKhfW9YQ"],
       ["Coalescence", 100, "https://www.youtube.com/watch?v=zu2fyqLCh68"],
@@ -3546,6 +3546,15 @@
       ["walter white", 100, "https://www.youtube.com/watch?v=BXuj6y4Pzdg"],
       ["Infinite Chaos", 100, "https://www.youtube.com/watch?v=yIMyQGRQjQE"],
       ["SARYYX NEVER CLEAR", 100, "https://www.youtube.com/watch?v=SBGC9xg0hn8"]
+    ],
+    "396": [
+      "Bladed",
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=5BqVs3TkFtw"],
+      ["Silent clubstep", 66, ""],
+      ["Anathema", 96, "https://www.youtube.com/watch?v=54MFvoJCYgk"],
+      ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=bjfLiZztelc"],
+      ["Acheron", 96, ""],
+      ["Trueffet", 100, "https://www.youtube.com/watch?v=68NeY63V8QY"]
     ],
     "397": [
       "StarFall",
@@ -4744,7 +4753,8 @@
       ["poocubed", 100, "https://www.youtube.com/watch?v=uxs9NiIurr8"],
       ["Belladonna", 100, "https://www.youtube.com/watch?v=gbP6XzbF2g8"],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=66LNs9CSv7o"],
-      ["The Golden", 100, "https://www.youtube.com/watch?v=1vH5E-KcKLE"]
+      ["The Golden", 100, "https://www.youtube.com/watch?v=1vH5E-KcKLE"],
+      ["Saul Goodman", 86, ""]
     ],
     "531": [
       "Doritos1055",
@@ -5935,6 +5945,15 @@
       ["SARYYX NEVER CLEAR", 100, "https://www.youtube.com/watch?v=turR5-FGGeA"],
       ["SARY NEVER CLEAR", 100, "https://www.youtube.com/watch?v=KgnArtf_Vpw"]
     ],
+    "665": [
+      "Hexz",
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=hWsy9VpPCZE"],
+      ["Solar Flare", 100, "https://www.youtube.com/watch?v=V9EgTpv3hxQ"],
+      ["Tartarus", 100, ""],
+      ["UNKNOWN", 100, "https://www.youtube.com/watch?v=S7cGgwjVXyM"],
+      ["Firework", 88, ""],
+      ["The Golden", 100, "https://www.youtube.com/watch?v=-O6tOPZsHS0"]
+    ],
     "666": [
       "Jasuki",
       ["Deimos", 100, "https://www.youtube.com/watch?v=-cZxQQm3w5c"],
@@ -7071,7 +7090,7 @@
     "793": [
       "frol1k",
       ["Firework", 100, "https://www.youtube.com/watch?v=FrYW2_jGJFc"],
-      ["Acheron", 67, ""],
+      ["Acheron", 62, ""],
       ["Tartarus", 100, "https://www.youtube.com/watch?v=DUEPpoX15Z0"],
       ["The Golden", 100, "https://www.youtube.com/watch?v=C6bkRJR-IxQ"],
       ["Trueffet", 100, "https://www.youtube.com/watch?v=qwW9GyMnYIM"],
@@ -7236,8 +7255,8 @@
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=L_w3wD4O924"],
       ["Tartarus", 100, "https://www.youtube.com/watch?v=MT8Jh3M39wI"],
       ["Sanctity", 100, "https://www.youtube.com/watch?v=pRazqT-ulOQ"],
-      ["paranoia", 100, "https://www.youtube.com/watch?v=zYioxk-Y2VI"],
-      ["Zodiac", 100, "https://www.youtube.com/watch?v=bffDyKj0r8k"]
+      ["The Golden", 100, ""],
+      ["paranoia", 100, "https://www.youtube.com/watch?v=zYioxk-Y2VI"]
     ],
     "812": [
       "Ihsa",
@@ -8620,6 +8639,15 @@
       ["Zodiac", 100, "https://www.youtube.com/watch?v=JaE8_l4cgqc"],
       ["Shardscapes", 100, "https://www.youtube.com/watch?v=a4LwfJTiy1E"]
     ],
+    "971": [
+      "Drakanja",
+      ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=1s-OkkvKvuc"],
+      ["UNKNOWN", 100, "https://www.youtube.com/watch?v=0Jt6wcuaTZg"],
+      ["Hard Machine", 100, "https://www.youtube.com/watch?v=kPm8k_JIy7s"],
+      ["Crackhead Circles", 100, "https://www.youtube.com/watch?v=-nOFY-qz77M"],
+      ["Zodiac", 100, "https://www.youtube.com/watch?v=S0Zb8iY6Y3w"],
+      ["SUPERHATEMEWORLD", 100, "https://www.youtube.com/watch?v=7u-GewTfFuY"]
+    ],
     "972": [
       "Jenath",
       ["Apocalyptic Trilogy", 100, "https://www.youtube.com/watch?v=JuAf495cjHc"],
@@ -9030,11 +9058,11 @@
     "1020": [
       "Lingherr",
       ["COMBUSTION", 100, "https://www.youtube.com/watch?v=3Qjf_w_DDSc"],
+      ["Tunnel of Despair", 71, ""],
       ["The Wonder of You", 100, "https://www.youtube.com/watch?v=d2MNyNvGMAw"],
       ["blight", 100, "https://www.youtube.com/watch?v=UTA0DLtyI_0"],
       ["Henken", 100, "https://www.youtube.com/watch?v=Si0KjK_-Q84"],
-      ["Judgement Knights", 100, "https://www.youtube.com/watch?v=Mrj3WaYb95g"],
-      ["shimmer", 100, "https://www.youtube.com/watch?v=dWExjzS3s8g"]
+      ["Judgement Knights", 100, "https://www.youtube.com/watch?v=Mrj3WaYb95g"]
     ],
     "1021": [
       "DLAppleGamez",
@@ -9413,7 +9441,8 @@
       ["Tartarus", 100, "https://www.youtube.com/watch?v=pVB9Sd8av-g"],
       ["Waterfall", 100, "https://www.youtube.com/watch?v=hrCG6zm2XR4"],
       ["Deimos", 60, "https://t.me/rcgdrating/3992"],
-      ["Thinking Space", 100, "https://www.youtube.com/watch?v=VSKNdPJ1pdo"]
+      ["Thinking Space", 100, "https://www.youtube.com/watch?v=VSKNdPJ1pdo"],
+      ["Renevant", 100, "https://www.youtube.com/watch?v=EmWYCIBfEg4"]
     ],
     "1065": [
       "Luminovsky",
@@ -9470,8 +9499,8 @@
       ["Natural Disaster", 100, "https://www.youtube.com/watch?v=NDPznuJdWQg"],
       ["Oblivion", 100, "https://www.youtube.com/watch?v=msdOFz-KRj0"],
       ["Promethean", 100, "https://www.youtube.com/watch?v=jDcQy8ihm6k"],
-      ["Trotil", 100, "https://www.youtube.com/watch?v=R5l85Hp0OGk"],
-      ["Crimson Planet", 100, "https://www.youtube.com/watch?v=Y8W365oTspo"]
+      ["Renevant", 100, ""],
+      ["Trotil", 100, "https://www.youtube.com/watch?v=R5l85Hp0OGk"]
     ],
     "1072": [
       "Dils thik",
@@ -11083,7 +11112,8 @@
       "BapuaHT",
       ["Sinister Silence", 100, "https://www.youtube.com/watch?v=fslnAdj_GV8"],
       ["Dry Out Copyable 2", 100, "https://www.youtube.com/watch?v=Og4AAO7vK9I"],
-      ["Pandemonium", 100, "https://www.youtube.com/watch?v=nlkU0c11vxU"]
+      ["Pandemonium", 100, "https://www.youtube.com/watch?v=nlkU0c11vxU"],
+      ["Omega Interface", 100, "https://www.youtube.com/watch?v=6nlAXu71sNc"]
     ],
     "1285": [
       "Woold",
@@ -14220,6 +14250,7 @@
       "vscreenz",
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=X9tq8JrQB7s"],
       ["The Golden", 100, "https://www.youtube.com/watch?v=axtIWvMlXHw"],
+      ["poocubed", 80, "https://www.youtube.com/watch?v=tZKPUBqsjGg"],
       ["qoUEO", 100, "https://www.youtube.com/watch?v=MB8OTMHm9lc"],
       ["Cobwebs", 100, "https://www.youtube.com/watch?v=_6z0DRxtxHE"]
     ],
@@ -17776,6 +17807,7 @@
     "2168": [
       "BUNNYGRAM",
       ["LIMBO", 100, "https://www.youtube.com/watch?v=kXYMbaMVOZg"],
+      ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=3hH3s4GLksg"],
       ["Zodiac", 100, "https://www.youtube.com/watch?v=MxgK3AojIug"],
       ["Cognition", 100, "https://www.youtube.com/watch?v=Kk0RS3w7q1s"],
       ["Descent Into Exile", 100, "https://www.youtube.com/watch?v=whtt_WkG_20"],
@@ -19814,8 +19846,9 @@
       ["shimmer", 100, "https://www.youtube.com/watch?v=VOhS2afThPI"]
     ],
     "2493": [
-      "WrWarfe",
+      "Blinkkous",
       ["Terminal Rampancy", 100, "https://www.youtube.com/watch?v=Q8VO6AOvzBQ"],
+      ["Oblivion", 100, ""],
       ["Zodiac", 100, "https://www.youtube.com/watch?v=-Hpldb-LAkg"],
       ["ConClusion", 100, "https://www.youtube.com/watch?v=7iHIQMbu9eQ"]
     ],
@@ -21702,6 +21735,13 @@
     "2845": [
       "506D",
       ["Solar Flare", 100, ""]
+    ],
+    "2846": [
+      "spotty",
+      ["Trueffet", 100, ""],
+      ["Zodiac", 100, ""],
+      ["Trotil", 100, ""],
+      ["Bloodlust", 100, ""]
     ]
   }
 }
