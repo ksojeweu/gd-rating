@@ -4,6 +4,7 @@
 
   {"users": {
     "<ID CoreBoard>": [
+      "ник на CoreBoard",
       ["Название уровня как на CoreBoard", процент, "ссылка"],
       ...
     ],
@@ -82,12 +83,14 @@ def load_existing():
 
 
 def save_users(users):
+    """users: {ID CoreBoard: (ник, [[уровень, процент, ссылка], ...])}. Ник пишется первой строкой над рекордами."""
     items = sorted(users.items(), key=lambda kv: int(kv[0]))
     lines = ['{', '  "users": {']
-    for i, (key, rows) in enumerate(items):
+    for i, (key, (nick, rows)) in enumerate(items):
         lines.append(f'    {json.dumps(key, ensure_ascii=False)}: [')
-        for j, r in enumerate(rows):
-            lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(rows) - 1 else ""))
+        entries = [nick] + rows
+        for j, r in enumerate(entries):
+            lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(entries) - 1 else ""))
         lines.append("    ]" + ("," if i < len(items) - 1 else ""))
     lines += ['  }', '}', '']
     OUT_FILE.parent.mkdir(exist_ok=True)
@@ -138,7 +141,7 @@ def main():
     cache = json.loads(CACHE_FILE.read_text("utf-8")) if CACHE_FILE.exists() else {}
     links = get_links()
 
-    players = []  # (ID CoreBoard, наш ID или None, [(название, процент)])
+    players = []  # (ID CoreBoard, наш ID или None, [(название, процент)], ник)
     no_id = []
     for row in rows:
         cb_id = row.get("id") or cb_by_nick.get(row["name"].casefold())
@@ -148,14 +151,14 @@ def main():
         key = str(cb_id)
         gdr_id = (id_map.get(key) or {}).get("gdr_id")
         recs = [(r["level"], fmt_pct(r["percent"])) for r in row["records"]]
-        players.append((key, str(gdr_id) if gdr_id else None, recs))
+        players.append((key, str(gdr_id) if gdr_id else None, recs, row["name"]))
 
     if no_id:
         print(f"ВНИМАНИЕ: нет ID CoreBoard у {len(no_id)} игроков, пропущены: {', '.join(no_id[:10])}")
     found = {}  # (ключ игрока, уровень, процент) -> ссылка, найденная в этом запуске
     searched = skipped = out_of_time = 0
     now = time.time()
-    for key, gdr_id, recs in players:
+    for key, gdr_id, recs, _nick in players:
         old = existing.get(key, {})
         for level, pct in recs:
             if (lvl_key(level), pct) in old:
@@ -190,16 +193,16 @@ def main():
     existing = load_existing()
 
     users = {}
-    for key, _gdr, recs in players:
+    for key, _gdr, recs, nick in players:
         old = existing.get(key, {})
         out = []
         for level, pct in recs:
             link = old.get((lvl_key(level), pct)) or found.get((key, lvl_key(level), pct), "")
             out.append([level, pct, link])
-        users[key] = out
+        users[key] = (nick, out)
     save_users(users)
-    with_link = sum(1 for v in users.values() for r in v if r[2])
-    total = sum(len(v) for v in users.values())
+    with_link = sum(1 for _n, v in users.values() for r in v if r[2])
+    total = sum(len(v) for _n, v in users.values())
     print(f"Игроков {len(users)}, записей {total}, со ссылкой {with_link}; искали {searched}, найдено {len(found)}, "
           f"пропущено из-за недавней неудачи {skipped}, не хватило времени {out_of_time}")
     if args.commit:
