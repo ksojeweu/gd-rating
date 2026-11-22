@@ -975,3 +975,504 @@
     общие каналы: https://www.youtube.com/@streamy450
     поглощено: pc39484 ([MSTRD] Streamy450), аккаунты: {'pointercrate': [39484, 39487]}
 
+===== 2026-11-22 19:24:01 UTC: склеено групп 125, поглощено записей 125 =====
+СКЛЕЕНО В 45 (Syro)
+    общие каналы: https://www.youtube.com/@syro13371
+    поглощено: cbmain:574 (Syro), аккаунты: {'coreboard': ['main:574']}
+
+СКЛЕЕНО В 1857 (MobileBot)
+    общие каналы: https://www.youtube.com/@mobilebotonpc
+    поглощено: cbmain:534 (Mobile Bot), аккаунты: {'coreboard': ['main:534']}
+
+СКЛЕЕНО В 2950 (zInslanex)
+    общие каналы: https://www.youtube.com/@zInslanex
+    поглощено: cbmain:1713 (zInslanex), аккаунты: {'coreboard': ['main:1713']}
+
+СКЛЕЕНО В 3716 (ked)
+    общие каналы: https://www.youtube.com/@ked4ri
+    поглощено: cbmain:371 (kedi), аккаунты: {'coreboard': ['main:371']}
+
+СКЛЕЕНО В 3719 (Vir3x)
+    общие каналы: https://www.youtube.com/@vir3xxx
+    поглощено: cbmain:1000 (Virex), аккаунты: {'coreboard': ['main:1000']}
+
+СКЛЕЕНО В 3722 (MrMauster)
+    общие каналы: https://www.youtube.com/@Mauster
+    поглощено: cbmain:597 (MrMauster), аккаунты: {'coreboard': ['main:597']}
+
+СКЛЕЕНО В 3730 (numi)
+    общие каналы: https://www.youtube.com/@numi.i
+    поглощено: cbmain:1028 (numi), аккаунты: {'coreboard': ['main:1028']}
+
+СКЛЕЕНО В 5532 (GoldiX)
+    общие каналы: https://www.youtube.com/@goldix3156
+    поглощено: cbmain:884 (GoldiX), аккаунты: {'coreboard': ['main:884']}
+
+СКЛЕЕНО В 5563 (Pozzitif_)
+    общие каналы: https://www.youtube.com/@%D0%9F%D0%BE%D0%B7%D0%B7%D0%B8%D1%82%D0%B8%D1%84
+    поглощено: cbmain:1073 (Поззитиф), аккаунты: {'coreboard': ['main:1073']}
+
+СКЛЕЕНО В 5602 (temakiler.)
+    общие каналы: https://www.youtube.com/@temakilleroff
+    поглощено: cbmain:742 (temakiler), аккаунты: {'coreboard': ['main:742']}
+
+СКЛЕЕНО В 5781 (ViZeris)
+    общие каналы: https://www.youtube.com/@ViZ3ris
+    поглощено: cbmain:694 (ViZeris), аккаунты: {'coreboard': ['main:694']}
+
+СКЛЕЕНО В 5782 (Falaet)
+    общие каналы: https://www.youtube.com/@FalaetZ
+    поглощено: cbmain:977 (Falaet), аккаунты: {'coreboard': ['main:977']}
+
+СКЛЕЕНО В 6103 (Slaughter)
+    общие каналы: https://www.youtube.com/@slaughtergd
+    поглощено: cbmain:75 (Slaughter), аккаунты: {'coreboard': ['main:75']}
+
+СКЛЕЕНО В 6349 (LaeNs)
+    общие каналы: https://www.youtube.com/@LaeNs23
+    поглощено: cbmain:1137 (LaeNs), аккаунты: {'coreboard': ['main:1137']}
+
+СКЛЕЕНО В 6384 (mafioznik)
+    общие каналы: https://www.youtube.com/@gmd_mafioznik
+    поглощено: cbmain:1182 (mafioznik), аккаунты: {'coreboard': ['main:1182']}
+
+СКЛЕЕНО В 6542 (zreal)
+    общие каналы: https://www.youtube.com/@zreal-
+    поглощено: cbmain:1123 (zreal), аккаунты: {'coreboard': ['main:1123']}
+
+СКЛЕЕНО В 6620 (Naiut)
+    общие каналы: https://www.youtube.com/@naiut
+    поглощено: cbmain:1068 (naiut), аккаунты: {'coreboard': ['main:1068']}
+
+СКЛЕЕНО В 6761 (Craf4yk)
+    общие каналы: https://www.youtube.com/@NoRealCraf4yk
+    поглощено: cbmain:1176 (Craf4yk), аккаунты: {'coreboard': ['main:1176']}
+
+СКЛЕЕНО В 6942 (GMD_Zern0)
+    общие каналы: https://www.youtube.com/@GmdZern0-e9c
+    поглощено: cbmain:1201 (GMD_Zern0), аккаунты: {'coreboard': ['main:1201']}
+
+СКЛЕЕНО В 7179 (Xywix)
+    общие каналы: https://www.youtube.com/@realxywix
+    поглощено: cbmain:839 (xywix), аккаунты: {'coreboard': ['main:839']}
+
+СКЛЕЕНО В 7293 (hoagy)
+    общие каналы: https://www.youtube.com/@MarlowReal
+    поглощено: wml5353 (marlow), аккаунты: {'wml': [5353]}
+
+СКЛЕЕНО В 8224 (nightmarri)
+    общие каналы: https://www.youtube.com/@nightmarri
+    поглощено: cbmain:2035 (nightmarri), аккаунты: {'coreboard': ['main:2035']}
+
+СКЛЕЕНО В 8505 (AlanTheJag)
+    общие каналы: https://www.youtube.com/@alanthejag
+    поглощено: cbmain:2130 (AlanTheJag), аккаунты: {'coreboard': ['main:2130']}
+
+СКЛЕЕНО В 8884 (GouQou)
+    общие каналы: https://www.youtube.com/@GouQou
+    поглощено: cbmain:1110 (GouQou), аккаунты: {'coreboard': ['main:1110']}
+
+СКЛЕЕНО В 13461 (l1nxxd)
+    общие каналы: https://www.youtube.com/@l1nxxd
+    поглощено: cbmain:87 (l1nxxd), аккаунты: {'coreboard': ['main:87']}
+
+СКЛЕЕНО В 13462 (Bleamer)
+    общие каналы: https://www.youtube.com/@BleamerGD
+    поглощено: cbmain:495 (Bleamer), аккаунты: {'coreboard': ['main:495']}
+
+СКЛЕЕНО В 13670 (Scep)
+    общие каналы: https://www.youtube.com/@zScep
+    поглощено: cbmain:475 (Scep), аккаунты: {'coreboard': ['main:475']}
+
+СКЛЕЕНО В 13678 (BlazerWolf)
+    общие каналы: https://www.youtube.com/@BlueFreakhound
+    поглощено: cbmain:1566 (BlazerWolf), аккаунты: {'coreboard': ['main:1566']}
+
+СКЛЕЕНО В 13692 (Stav)
+    общие каналы: https://www.youtube.com/@cheezysf
+    поглощено: cbmain:1726 (Stav), аккаунты: {'coreboard': ['main:1726']}
+
+СКЛЕЕНО В 13694 (Terry Pinkleton)
+    общие каналы: https://www.youtube.com/@picksl3940
+    поглощено: cbmain:1782 (Terry Pinkleton), аккаунты: {'coreboard': ['main:1782']}
+
+СКЛЕЕНО В 13712 (Citrus)
+    общие каналы: https://www.youtube.com/@Citrus121322313212321312213
+    поглощено: cbmain:1175 (Citrus), аккаунты: {'coreboard': ['main:1175']}
+
+СКЛЕЕНО В 13741 (Circle)
+    общие каналы: https://www.youtube.com/@circlegd
+    поглощено: cbmain:2700 (Circle), аккаунты: {'coreboard': ['main:2700']}
+
+СКЛЕЕНО В 13813 (Fh1r)
+    общие каналы: https://www.youtube.com/@zFhyr
+    поглощено: cbmain:1918 (Fh1r), аккаунты: {'coreboard': ['main:1918']}
+
+СКЛЕЕНО В 13842 (rSteel)
+    общие каналы: https://www.youtube.com/@rSteel
+    поглощено: cbmain:2088 (rSteel), аккаунты: {'coreboard': ['main:2088']}
+
+СКЛЕЕНО В 14105 (GDonut)
+    общие каналы: https://www.youtube.com/@gdonut
+    поглощено: cbmain:944 (GDonut), аккаунты: {'coreboard': ['main:944']}
+
+СКЛЕЕНО В 14178 (vulcanium4)
+    общие каналы: https://www.youtube.com/@vulcanium4
+    поглощено: cbmain:1593 (vulcanium4), аккаунты: {'coreboard': ['main:1593']}
+
+СКЛЕЕНО В 14191 (Teno)
+    общие каналы: https://www.youtube.com/@TenoGD
+    поглощено: cbmain:535 (Teno), аккаунты: {'coreboard': ['main:535']}
+
+СКЛЕЕНО В 14225 (Technical)
+    общие каналы: https://www.youtube.com/@TechnicalJL
+    поглощено: cbmain:201 (Technical), аккаунты: {'coreboard': ['main:201']}
+
+СКЛЕЕНО В 14259 (SebasLopez)
+    общие каналы: https://www.youtube.com/@SebasLopez
+    поглощено: cbmain:1950 (SebasLopez), аккаунты: {'coreboard': ['main:1950']}
+
+СКЛЕЕНО В 14276 (neoraptor)
+    общие каналы: https://www.youtube.com/@razzyfish
+    поглощено: cbmain:2367 (neoraptor), аккаунты: {'coreboard': ['main:2367']}
+
+СКЛЕЕНО В 14448 (Fluxe)
+    общие каналы: https://www.youtube.com/@Gavin11267
+    поглощено: cbmain:891 (Fluxe), аккаунты: {'coreboard': ['main:891']}
+
+СКЛЕЕНО В 14460 (Pohgii)
+    общие каналы: https://www.youtube.com/@pohgii, https://www.youtube.com/@sloppert
+    поглощено: cbmain:451 (pohgii), аккаунты: {'coreboard': ['main:451']}
+
+СКЛЕЕНО В 14462 (turtle)
+    общие каналы: https://www.youtube.com/@turtlgd
+    поглощено: cbmain:28 (turtle), аккаунты: {'coreboard': ['main:28']}
+
+СКЛЕЕНО В 14467 (Nocturina)
+    общие каналы: https://www.youtube.com/@Nocturina
+    поглощено: cbmain:215 (Nocturina), аккаунты: {'coreboard': ['main:215']}
+
+СКЛЕЕНО В 14476 (PaltaDash)
+    общие каналы: https://www.youtube.com/@PaltaDash
+    поглощено: cbmain:100 (PaltaDash), аккаунты: {'coreboard': ['main:100']}
+
+СКЛЕЕНО В 14489 (Gokill)
+    общие каналы: https://www.youtube.com/@gokillgd
+    поглощено: cbmain:205 (Gokill), аккаунты: {'coreboard': ['main:205']}
+
+СКЛЕЕНО В 14491 (Kyasshukodo)
+    общие каналы: https://www.youtube.com/@Kyass
+    поглощено: cbmain:1397 (Kyasshukodo), аккаунты: {'coreboard': ['main:1397']}
+
+СКЛЕЕНО В 14493 (Victurkey)
+    общие каналы: https://www.youtube.com/@Victurkey
+    поглощено: cbmain:740 (Victurkey), аккаунты: {'coreboard': ['main:740']}
+
+СКЛЕЕНО В 14522 (Mariner)
+    общие каналы: https://www.youtube.com/@marinergmd
+    поглощено: cbmain:157 (Mariner), аккаунты: {'coreboard': ['main:157']}
+
+СКЛЕЕНО В 14526 (Hyperlith)
+    общие каналы: https://www.youtube.com/@Hyperlithh
+    поглощено: cbmain:980 (Hyperlith), аккаунты: {'coreboard': ['main:980']}
+
+СКЛЕЕНО В 14542 (Yuuwi)
+    общие каналы: https://www.youtube.com/@yuuwhiy4344
+    поглощено: cbmain:289 (Yuuwi), аккаунты: {'coreboard': ['main:289']}
+
+СКЛЕЕНО В 14558 (Luqualizer)
+    общие каналы: https://www.youtube.com/@Luqualizer
+    поглощено: cbmain:1494 (Luqualizer), аккаунты: {'coreboard': ['main:1494']}
+
+СКЛЕЕНО В 14582 (Maseh)
+    общие каналы: https://www.youtube.com/@zMaseh
+    поглощено: cbmain:1591 (Maseh), аккаунты: {'coreboard': ['main:1591']}
+
+СКЛЕЕНО В 14585 (necreiP)
+    общие каналы: https://www.youtube.com/@necreiP
+    поглощено: cbmain:2361 (necreiP), аккаунты: {'coreboard': ['main:2361']}
+
+СКЛЕЕНО В 14589 (Zombay)
+    общие каналы: https://www.youtube.com/@zombaygd786
+    поглощено: cbmain:765 (Zombay), аккаунты: {'coreboard': ['main:765']}
+
+СКЛЕЕНО В 14629 (Detrezo)
+    общие каналы: https://www.youtube.com/@detrezo
+    поглощено: cbmain:2257 (Detrezo), аккаунты: {'coreboard': ['main:2257']}
+
+СКЛЕЕНО В 14715 (Flexx)
+    общие каналы: https://www.youtube.com/@flexx5596
+    поглощено: cbmain:518 (Flexx), аккаунты: {'coreboard': ['main:518']}
+
+СКЛЕЕНО В 14721 (XtremeK)
+    общие каналы: https://www.youtube.com/@xtremek1118
+    поглощено: cbmain:2528 (XtremeK), аккаунты: {'coreboard': ['main:2528']}
+
+СКЛЕЕНО В 14725 (Brad)
+    общие каналы: https://www.youtube.com/@iCyborgz
+    поглощено: cbmain:1779 (Brad), аккаунты: {'coreboard': ['main:1779']}
+
+СКЛЕЕНО В 15022 (spcreat)
+    общие каналы: https://www.youtube.com/@spcreat_gmd
+    поглощено: cbmain:473 (spcreat), аккаунты: {'coreboard': ['main:473']}
+
+СКЛЕЕНО В 15191 (rose)
+    общие каналы: https://www.youtube.com/@rosedash
+    поглощено: cbmain:1343 (rose), аккаунты: {'coreboard': ['main:1343']}
+
+СКЛЕЕНО В 15437 (Enzollz)
+    общие каналы: https://www.youtube.com/@enzollz
+    поглощено: cbmain:978 (enzollz), аккаунты: {'coreboard': ['main:978']}
+
+СКЛЕЕНО В 15438 (lamp86)
+    общие каналы: https://www.youtube.com/@lamp86
+    поглощено: cbmain:1006 (lamp86), аккаунты: {'coreboard': ['main:1006']}
+
+СКЛЕЕНО В 15586 (Jaegerdd)
+    общие каналы: https://www.youtube.com/@jaegerdd
+    поглощено: cbmain:868 (Jaegerdd), аккаунты: {'coreboard': ['main:868']}
+
+СКЛЕЕНО В 15854 (Slithium)
+    общие каналы: https://www.youtube.com/@Slithium
+    поглощено: cbmain:805 (Slithium), аккаунты: {'coreboard': ['main:805']}
+
+СКЛЕЕНО В 15861 (polterghast)
+    общие каналы: https://www.youtube.com/@polterghast12
+    поглощено: cbmain:820 (polterghast), аккаунты: {'coreboard': ['main:820']}
+
+СКЛЕЕНО В 16471 (slimepesoz)
+    общие каналы: https://www.youtube.com/@slimepesoz
+    поглощено: cbmain:484 (slimepesoz), аккаунты: {'coreboard': ['main:484']}
+
+СКЛЕЕНО В 16524 (Masa1017)
+    общие каналы: https://www.youtube.com/@masa10170
+    поглощено: cbmain:2674 (Masa1017), аккаунты: {'coreboard': ['main:2674']}
+
+СКЛЕЕНО В 16544 (Doubley123)
+    общие каналы: https://www.youtube.com/@DoubleyToNoob
+    поглощено: cbmain:1004 (Doubley123), аккаунты: {'coreboard': ['main:1004']}
+
+СКЛЕЕНО В 16553 (gdStraightFly)
+    общие каналы: https://www.youtube.com/@gdstraightfly9770
+    поглощено: cbmain:2584 (gdStraightFly), аккаунты: {'coreboard': ['main:2584']}
+
+СКЛЕЕНО В 16554 (IcaroX)
+    общие каналы: https://www.youtube.com/@IcaroX
+    поглощено: cbmain:442 (Icarox), аккаунты: {'coreboard': ['main:442']}
+
+СКЛЕЕНО В 16590 (Tizetre)
+    общие каналы: https://www.youtube.com/@Tizetre
+    поглощено: cbmain:1884 (Tizetre), аккаунты: {'coreboard': ['main:1884']}
+
+СКЛЕЕНО В 17620 (солесоселовелей)
+    общие каналы: https://www.youtube.com/@%D1%81%D0%BE%D0%BB%D0%B5%D1%81%D0%BE%D1%81%D0%B5%D0%BB%D0%BE%D0%B2%D0%B5%D0%BB%D0%B5%D0%B9
+    поглощено: cbmain:590 (солесоселовелей), аккаунты: {'coreboard': ['main:590']}
+
+СКЛЕЕНО В 17731 (hyperboll)
+    общие каналы: https://www.youtube.com/@hyperboll
+    поглощено: cbmain:764 (hyperboll), аккаунты: {'coreboard': ['main:764']}
+
+СКЛЕЕНО В 17785 (zRendy)
+    общие каналы: https://www.youtube.com/@rendy_gd
+    поглощено: cbmain:1148 (Rendy), аккаунты: {'coreboard': ['main:1148']}
+
+СКЛЕЕНО В 18176 (yoyka)
+    общие каналы: https://www.youtube.com/@yoykafr
+    поглощено: cbmain:592 (yoyka), аккаунты: {'coreboard': ['main:592']}
+
+СКЛЕЕНО В 18245 (seels)
+    общие каналы: https://www.youtube.com/@seels55
+    поглощено: cbmain:306 (seels), аккаунты: {'coreboard': ['main:306']}
+
+СКЛЕЕНО В 18661 (AvainPortti)
+    общие каналы: https://www.youtube.com/@AvainPortti
+    поглощено: cbmain:450 (AvainPortti), аккаунты: {'coreboard': ['main:450']}
+
+СКЛЕЕНО В 18724 (EdwardUKraine)
+    общие каналы: https://www.youtube.com/@edwardukgd
+    поглощено: cbmain:111 (EdwardUK), аккаунты: {'coreboard': ['main:111']}
+
+СКЛЕЕНО В 19049 (yunhr)
+    общие каналы: https://www.youtube.com/@%EC%95%84%EC%9E%89%EB%AA%B0%EB%9D%BC%EC%9A%94
+    поглощено: cbmain:30 (Aing Molayo), аккаунты: {'coreboard': ['main:30']}
+
+СКЛЕЕНО В 19963 (bladersb)
+    общие каналы: https://www.youtube.com/@Bladersb
+    поглощено: cbmain:759 (Bladersb), аккаунты: {'coreboard': ['main:759']}
+
+СКЛЕЕНО В 20081 (Verminity)
+    общие каналы: https://www.youtube.com/@Verminity
+    поглощено: cbmain:2596 (Verminity), аккаунты: {'coreboard': ['main:2596']}
+
+СКЛЕЕНО В 20562 (Polyqueseraine)
+    общие каналы: https://www.youtube.com/@polyqueseraine
+    поглощено: cbmain:2133 (Polyqueseraine), аккаунты: {'coreboard': ['main:2133']}
+
+СКЛЕЕНО В 20595 (Exray49)
+    общие каналы: https://www.youtube.com/@exray49
+    поглощено: cbmain:1965 (Exray49), аккаунты: {'coreboard': ['main:1965']}
+
+СКЛЕЕНО В 20955 (Drkxxx)
+    общие каналы: https://www.youtube.com/@Drkxxx-w4s
+    поглощено: pc73358 (drkie), аккаунты: {'pointercrate': [73358]}
+
+СКЛЕЕНО В 21519 (sinist3rsilence)
+    общие каналы: https://www.youtube.com/@sinist3rsilence
+    поглощено: cbmain:1177 (sinist3rsilence), аккаунты: {'coreboard': ['main:1177']}
+
+СКЛЕЕНО В 21973 (yellowEgg)
+    общие каналы: https://www.youtube.com/@mr.yellowegg
+    поглощено: cbmain:2741 (yellowEgg), аккаунты: {'coreboard': ['main:2741']}
+
+СКЛЕЕНО В 24420 (TimezZaki)
+    общие каналы: https://www.youtube.com/@TimezZaki
+    поглощено: cbmain:2420 (TimezZaki), аккаунты: {'coreboard': ['main:2420']}
+
+СКЛЕЕНО В 24537 (angelictouch)
+    общие каналы: https://www.youtube.com/@angelictouch333
+    поглощено: cbmain:1286 (angelictouch), аккаунты: {'coreboard': ['main:1286']}
+
+СКЛЕЕНО В 25787 (raingmd)
+    общие каналы: https://www.youtube.com/@raingmd
+    поглощено: cbmain:240 (RainGMD), аккаунты: {'coreboard': ['main:240']}
+
+СКЛЕЕНО В 26550 (lisyteam1230)
+    общие каналы: https://www.youtube.com/@lisyteam
+    поглощено: cbmain:865 (lisyteam1230), аккаунты: {'coreboard': ['main:865']}
+
+СКЛЕЕНО В 27236 (graam)
+    общие каналы: https://www.youtube.com/@graam-e8v
+    поглощено: cbmain:626 (graam), аккаунты: {'coreboard': ['main:626']}
+
+СКЛЕЕНО В 27721 (ItzOguzok)
+    общие каналы: https://www.youtube.com/@oguzokll
+    поглощено: cbmain:601 (ItzOguzok), аккаунты: {'coreboard': ['main:601']}
+
+СКЛЕЕНО В 30271 (zFreza)
+    общие каналы: https://www.youtube.com/@frezamfrezam
+    поглощено: cbmain:2802 (zFreza), аккаунты: {'coreboard': ['main:2802']}
+
+СКЛЕЕНО В 30382 (majin)
+    общие каналы: https://www.youtube.com/@mmmajin
+    поглощено: cbmain:384 (majin), аккаунты: {'coreboard': ['main:384']}
+
+СКЛЕЕНО В 30397 (nykolol)
+    общие каналы: https://www.youtube.com/@nykoisDEAD
+    поглощено: cbmain:1738 (nykolol), аккаунты: {'coreboard': ['main:1738']}
+
+СКЛЕЕНО В 30588 (Vallufinland)
+    общие каналы: https://www.youtube.com/@Vallufinland
+    поглощено: cbmain:1305 (Vallufinland), аккаунты: {'coreboard': ['main:1305']}
+
+СКЛЕЕНО В 30753 (Sherbet)
+    общие каналы: https://www.youtube.com/@SherbetGD
+    поглощено: cbmain:1230 (Sherbet), аккаунты: {'coreboard': ['main:1230']}
+
+СКЛЕЕНО В 32436 (geodom)
+    общие каналы: https://www.youtube.com/@geodom85yt40
+    поглощено: cbmain:216 (geodom), аккаунты: {'coreboard': ['main:216']}
+
+СКЛЕЕНО В 35482 (F1sss)
+    общие каналы: https://www.youtube.com/@F1ssssss
+    поглощено: cbmain:656 (F1sss), аккаунты: {'coreboard': ['main:656']}
+
+СКЛЕЕНО В 35510 (Liamkn08)
+    общие каналы: https://www.youtube.com/@Liamkn08
+    поглощено: cbmain:721 (Liamkn08), аккаунты: {'coreboard': ['main:721']}
+
+СКЛЕЕНО В 35542 (expiredcheese)
+    общие каналы: https://www.youtube.com/@xpcheez
+    поглощено: cbmain:1962 (expiredcheese), аккаунты: {'coreboard': ['main:1962']}
+
+СКЛЕЕНО В 38847 (Liz)
+    общие каналы: https://www.youtube.com/@zlizgmd
+    поглощено: cbmain:1756 (Liz), аккаунты: {'coreboard': ['main:1756']}
+
+СКЛЕЕНО В 39353 (ggDashy)
+    общие каналы: https://www.youtube.com/@ggDashy
+    поглощено: pc73441 (ggDashy), аккаунты: {'pointercrate': [73441]}
+
+СКЛЕЕНО В 40025 (kula)
+    общие каналы: https://www.youtube.com/@kulagd
+    поглощено: cbmain:858 (chips), аккаунты: {'coreboard': ['main:858']}
+
+СКЛЕЕНО В 40519 (betomagniv)
+    общие каналы: https://www.youtube.com/@beto2143
+    поглощено: cbmain:947 (Beto), аккаунты: {'coreboard': ['main:947']}
+
+СКЛЕЕНО В 40966 (Korseee)
+    общие каналы: https://www.youtube.com/@korseeuz
+    поглощено: cbmain:1768 (Korseee), аккаунты: {'coreboard': ['main:1768']}
+
+СКЛЕЕНО В 41349 (Craig0)
+    общие каналы: https://www.youtube.com/@truecraig0
+    поглощено: cbmain:61 (craig0), аккаунты: {'coreboard': ['main:61']}
+
+СКЛЕЕНО В 43128 (Rush)
+    общие каналы: https://www.youtube.com/@yesimrush
+    поглощено: cbmain:1374 (Rush), аккаунты: {'coreboard': ['main:1374']}
+
+СКЛЕЕНО В 43975 (neka218)
+    общие каналы: https://www.youtube.com/@neka218
+    поглощено: cbmain:2395 (neka218), аккаунты: {'coreboard': ['main:2395']}
+
+СКЛЕЕНО В 44871 (LotokzBot)
+    общие каналы: https://www.youtube.com/@lotokzbot
+    поглощено: cbmain:1404 (LotokzBot), аккаунты: {'coreboard': ['main:1404']}
+
+СКЛЕЕНО В 46109 (Kvazz297)
+    общие каналы: https://www.youtube.com/@Kvazz-Prod
+    поглощено: wml5200 (Kvazz), аккаунты: {'wml': [5200]}
+
+СКЛЕЕНО В 49631 (Korppu)
+    общие каналы: https://www.youtube.com/@korpppu
+    поглощено: cbmain:192 (Korppu), аккаунты: {'coreboard': ['main:192']}
+
+СКЛЕЕНО В 50913 (zKiysa)
+    общие каналы: https://www.youtube.com/@zKiysa
+    поглощено: cbmain:2031 (zKiysa), аккаунты: {'coreboard': ['main:2031']}
+
+СКЛЕЕНО В 51306 (karkito)
+    общие каналы: https://www.youtube.com/@fopcarus
+    поглощено: cbmain:29 (karkito), аккаунты: {'coreboard': ['main:29']}
+
+СКЛЕЕНО В 51317 (Cryostazz)
+    общие каналы: https://www.youtube.com/@cryostazz
+    поглощено: cbmain:26 (Cryostaz), аккаунты: {'coreboard': ['main:26']}
+
+СКЛЕЕНО В 51346 (wFishe)
+    общие каналы: https://www.youtube.com/@fisheta
+    поглощено: cbmain:295 (wFishe), аккаунты: {'coreboard': ['main:295']}
+
+СКЛЕЕНО В 56185 (tux)
+    общие каналы: https://www.youtube.com/@ggtux
+    поглощено: cbmain:346 (tux), аккаунты: {'coreboard': ['main:346']}
+
+СКЛЕЕНО В 56652 (snorkel)
+    общие каналы: https://www.youtube.com/@snorkelgd
+    поглощено: cbmain:1430 (snorkel), аккаунты: {'coreboard': ['main:1430']}
+
+СКЛЕЕНО В 56740 (Trolly1)
+    общие каналы: https://www.youtube.com/@TrollyGD
+    поглощено: cbmain:227 (Trolly1), аккаунты: {'coreboard': ['main:227']}
+
+СКЛЕЕНО В 56742 (mancersito)
+    общие каналы: https://www.youtube.com/@mancersito
+    поглощено: cbmain:255 (mancersito), аккаунты: {'coreboard': ['main:255']}
+
+СКЛЕЕНО В 58522 (ooma)
+    общие каналы: https://www.youtube.com/@gfhdhfndhndfnhhdn
+    поглощено: cbmain:1439 (ooma), аккаунты: {'coreboard': ['main:1439']}
+
+СКЛЕЕНО В 65449 (Laban)
+    общие каналы: https://www.youtube.com/@gdlaban
+    поглощено: cbmain:206 (Laban), аккаунты: {'coreboard': ['main:206']}
+
+СКЛЕЕНО В 66620 (Streamyy)
+    общие каналы: https://www.youtube.com/@streamy450
+    поглощено: pc39484 ([MSTRD] Streamy450), аккаунты: {'pointercrate': [39484, 39487]}
+
+СКЛЕЕНО В pc73145 (Deforklift)
+    общие каналы: https://www.youtube.com/@deforklift
+    поглощено: cbmain:2535 (Deforklift), аккаунты: {'coreboard': ['main:2535']}
+
