@@ -26,6 +26,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from idmap import load_id_map
@@ -125,6 +126,62 @@ def strip_clan_tags(nick):
     return re.sub(r"\s+", " ", CLAN_TAG_RE.sub("", nick)).strip() or nick
 
 
+def previous_waiting_links():
+    """Ссылки из прошлого опубликованного cbd/missing_players_with_waiting.json: (ник, уровень, процент) -> ссылка."""
+    cache = {}
+    try:
+        users = json.loads((CBD_DIR / "missing_players_with_waiting.json").read_text("utf-8")).get("users", {})
+    except (OSError, ValueError):
+        return cache
+    for info in users.values():
+        if isinstance(info, list) and info:
+            for r in info[1:]:
+                if isinstance(r, list) and len(r) >= 3 and r[2]:
+                    cache[(str(info[0]).casefold(), str(r[0]).casefold(), str(r[1]))] = r[2]
+    return cache
+
+
+def fill_missing_links(result):
+    """У записей без ссылки ищет видео: GlobalList (все аккаунты человека) и Pointercrate. gd-rating кладёт ссылку только
+    у waiting-записей, а принятые рекорды игрока приходят пустыми, хотя видео у них есть на глобале / Pointercrate."""
+    todo = [(info, i) for info in result.values() for i, r in enumerate(info["records"]) if not r[2]]
+    if not todo:
+        return
+    try:
+        from videos import DELAY, find_video_retry, get_links, normalize_link, parse_percent
+        links = get_links()
+    except Exception as error:
+        print(f"Ссылки для missing_players_with_waiting.json не ищу: не загрузились links.json / videos.py ({error})")
+        return
+    previous, found, missing = previous_waiting_links(), 0, []
+    for info, i in todo:
+        record = info["records"][i]
+        name, pct = record[0], record[1]
+        cached = previous.get((info["nick"].casefold(), str(name).casefold(), str(pct)))
+        if cached:
+            record[2], found = cached, found + 1
+            continue
+        level_ids = info.get("level_ids") or []
+        level_id = level_ids[i] if i < len(level_ids) else None
+        percent = parse_percent(pct)
+        if percent is None or not str(level_id).isdigit():
+            missing.append(f"{info.get('gdr_id')} | {info['nick']} | {name} {pct}% | " +
+                           ("непонятный процент" if percent is None else f"уровень {level_id} не из глобала"))
+            continue
+        try:
+            video, source = find_video_retry(info["gdr_id"], level_id, percent, links)
+            time.sleep(DELAY)
+        except Exception as error:
+            video, source = "", f"ОШИБКА: {error}"
+        if video:
+            record[2], found = normalize_link(video), found + 1
+        else:
+            missing.append(f"{info.get('gdr_id')} | {info['nick']} | {name} {pct}% | {source}")
+    (OUT / "missing_players_with_waiting_video_links.txt").write_text("\n".join(missing) + ("\n" if missing else ""), "utf-8")
+    print(f"missing_players_with_waiting.json: ссылок найдено {found} из {len(todo)}, "
+          f"без ссылки {len(missing)} (причины в missing_players_with_waiting_video_links.txt)")
+
+
 def make_players_with_waiting(out, cbd_ids):
     """missing_players_with_waiting.json: игроки, которые набирают меньше 250 очков ТОЛЬКО с waiting-записями.
     Берёт scripts/waiting_new_players.json (его пишет gd-rating --waiting), выбрасывает тех, кто уже есть на
@@ -167,6 +224,8 @@ def make_players_with_waiting(out, cbd_ids):
         else:
             key = gdr_id
         result[key] = {**info, "nick": nick}
+
+    fill_missing_links(result)
 
     with open(out / "missing_players_with_waiting.json", "w", encoding="utf-8") as f:
         f.write('{\n  "users": {\n')
