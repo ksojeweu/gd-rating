@@ -43,7 +43,8 @@ ROOT = HERE.parent
 OUT_FILE = ROOT / "cbd" / "cbd_videos.json"
 CACHE_FILE = HERE / "videocache.json"   # "ключ записи" -> когда в последний раз искали и не нашли
 LEVELS_URL = "https://raw.githubusercontent.com/ksojeweu/gd-rating/main/levels_tp.json"
-RETRY_DAYS = 3
+RETRY_DAYS = 1   # не нашлось: перепроверяем раз в сутки
+MISSING_FILE = HERE / "cbd-videos-missing.txt"   # записи без ссылки и ПОЧЕМУ (для отладки)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--commit", action="store_true")
@@ -156,6 +157,7 @@ def main():
     if no_id:
         print(f"ВНИМАНИЕ: нет ID CoreBoard у {len(no_id)} игроков, пропущены: {', '.join(no_id[:10])}")
     found = {}  # (ключ игрока, уровень, процент) -> ссылка, найденная в этом запуске
+    reasons = {}  # (ключ игрока, уровень, процент) -> почему ссылки нет
     searched = skipped = out_of_time = 0
     now = time.time()
     for key, gdr_id, recs, _nick in players:
@@ -163,26 +165,39 @@ def main():
         for level, pct in recs:
             if (lvl_key(level), pct) in old:
                 continue  # рекорд не изменился: ссылка (в том числе ручная) остаётся
+            rk = (key, lvl_key(level), pct)
             level_id = level_index.get(lvl_key(level))
-            if not gdr_id or not level_id or not level_id.isdigit():
-                continue  # искать негде: нет нашего ID игрока или уровня нет в глобале
+            if not gdr_id:
+                reasons[rk] = "нет нашего ID игрока: этого CoreBoard ID нет в links.json (other_lists.coreboard.main)"
+                continue
+            if not level_id:
+                reasons[rk] = "название уровня не найдено в levels_tp.json (опечатка или нет такого уровня)"
+                continue
+            if not level_id.isdigit():
+                reasons[rk] = f"уровень {level_id} не из глобала: на глобале и Pointercrate записей на него нет"
+                continue
             ck = f"{gdr_id}|{level_id}|{pct}"
             if now - cache.get(ck, 0) < RETRY_DAYS * 86400:
                 skipped += 1
+                reasons[rk] = "уже искали недавно и не нашли, перепроверим позже"
                 continue
             if time.time() > deadline:
                 out_of_time += 1
+                reasons[rk] = "не хватило времени (--budget-min), дойдёт в следующем запуске"
                 continue
             try:
                 video, source = find_video_retry(gdr_id, level_id, int(pct), links)
             except Exception as e:
                 print(f"  {key} {level} {pct}%: ОШИБКА {e}")
+                reasons[rk] = f"ОШИБКА: {e}"
                 continue
             searched += 1
             if video:
-                found[(key, lvl_key(level), pct)] = normalize_link(video)
-            elif not source.startswith("НЕ ПРОВЕРЕНО"):
-                cache[ck] = time.time()  # видео реально нет: не ищем снова несколько дней
+                found[rk] = normalize_link(video)
+            else:
+                reasons[rk] = source  # например "видео с 87% не найдено" или "НЕ ПРОВЕРЕНО из-за ошибок запросов"
+                if not source.startswith("НЕ ПРОВЕРЕНО"):
+                    cache[ck] = time.time()  # видео реально нет: не ищем снова до следующей проверки
             if searched % 50 == 0:
                 print(f"  поиск: {searched}, найдено {len(found)}", flush=True)
                 CACHE_FILE.write_text(json.dumps(cache), "utf-8")
@@ -201,10 +216,18 @@ def main():
             out.append([level, pct, link])
         users[key] = (nick, out)
     save_users(users)
+    missing_lines = []
+    for key, (nick, out) in users.items():
+        for level, pct, link in out:
+            if not link:
+                why = reasons.get((key, lvl_key(level), pct), "причина неизвестна")
+                missing_lines.append(f"{key} | {nick} | {level} | {pct}% | {why}")
+    MISSING_FILE.write_text("\n".join(missing_lines) + ("\n" if missing_lines else ""), "utf-8")
     with_link = sum(1 for _n, v in users.values() for r in v if r[2])
     total = sum(len(v) for _n, v in users.values())
     print(f"Игроков {len(users)}, записей {total}, со ссылкой {with_link}; искали {searched}, найдено {len(found)}, "
           f"пропущено из-за недавней неудачи {skipped}, не хватило времени {out_of_time}")
+    print(f"Записей без ссылки {len(missing_lines)}: причины в {MISSING_FILE.name}")
     if args.commit:
         commit_and_push(f"cbd_videos: {with_link}/{total} ссылок, найдено новых {len(found)} (авто)")
 
