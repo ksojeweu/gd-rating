@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Ищет видео для достижений из <out-dir>/missing_achievements.json и собирает команды /fulladd и /try.
-Вызывается из cbd-update.py:  add-video-links.py --out-dir DIR --id-map coreboard_id_map.json --prev-players cbd/missing_players.json
+Вызывается из cbd-update.py:  add-video-links.py --out-dir DIR --prev-players cbd/missing_players.json
 
 Читает (из DIR):  missing_achievements.json, missing_achievements_with_nicks.json, missing_players.json.
 Пишет (в DIR):    commands.txt, ссылки в оба missing_achievements*.json и в первую запись каждого игрока из
@@ -19,7 +19,7 @@ from videos import (DELAY, find_video_retry, get_global_level, get_json, get_lin
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--out-dir", required=True, help="папка cbd-update")
-parser.add_argument("--id-map", required=True, help="coreboard_id_map.json: в командах вместо нашего ID пишется ник CoreBoard")
+parser.add_argument("--id-map", default=None, help="не используется (ID CoreBoard берутся из links.json через idmap.py), оставлен для совместимости")
 parser.add_argument("--prev-players", required=True,
                     help="прошлый опубликованный cbd/missing_players.json: ссылки, уже найденные в нём, заново не ищутся")
 args = parser.parse_args()
@@ -32,7 +32,7 @@ SOURCES_FILE = OUT_DIR / "video_link_sources.txt"
 COMMANDS_FILE = OUT_DIR / "commands.txt"
 PLAYERS_FILE = OUT_DIR / "missing_players.json"
 PLAYERS_NOT_FOUND_FILE = OUT_DIR / "missing_players_video_links.txt"
-ID_MAP_FILE = Path(args.id_map)
+from idmap import load_id_map
 LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
 LEVELS_URL = "https://raw.githubusercontent.com/gl-ext/gl-ext/main/levels_tp.json"
 
@@ -71,13 +71,10 @@ def save_players_json(players, filename):
 
 
 def load_id_to_nick():
-    """coreboard_id_map.json ({ID CoreBoard: {nick, gdr_id}}) -> {наш ID (gdr_id): ник CoreBoard}."""
-    try:
-        with open(ID_MAP_FILE, encoding="utf-8") as file:
-            id_map = json.load(file)
-    except FileNotFoundError:
-        print(f"ВНИМАНИЕ: не найден {ID_MAP_FILE}, в командах вместо ников будут ID")
-        return {}
+    """links.json (other_lists.coreboard.main) -> {наш ID (gdr_id): ник CoreBoard}."""
+    id_map = load_id_map()
+    if not id_map:
+        print("ВНИМАНИЕ: в links.json нет ID CoreBoard, в командах вместо ников будут ID")
     id_to_nick = {}
     for row in id_map.values():
         if isinstance(row, dict) and row.get("gdr_id") and row.get("nick"):
@@ -134,7 +131,7 @@ def build_commands(command_records, id_to_nick, level_names):
     между записями пустая строка; если видео найдено, перед командами строка «Видео: источник»."""
     blocks = []
     for player_key, player_id, level_id, percent, link, site in command_records:
-        # Ник: сначала из coreboard_id_map.json, потом из ключа "ID — Ник", потом сам ID.
+        # Ник: сначала из links.json, потом из ключа "ID — Ник", потом сам ID.
         nick = id_to_nick.get(normalize_id(player_id))
         if not nick and " — " in str(player_key):
             nick = str(player_key).split(" — ", 1)[1].strip()

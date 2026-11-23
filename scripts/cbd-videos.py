@@ -13,7 +13,7 @@
 
 Шаги:
   1. coreboard-parse.py -> cbd.json (оба топа CoreBoard);
-  2. ID игрока: с сайта (cbd_ids.json) или из coreboard_id_map.json (по нику); игрок без ID пропускается с предупреждением;
+  2. ID игрока: с сайта (cbd_ids.json) или из links.json (other_lists.coreboard.main, по нику); игрок без ID пропускается с предупреждением;
   3. для каждого рекорда: если в уже лежащем cbd/cbd_videos.json есть тот же игрок + уровень + ПРОЦЕНТ, берётся его ссылка
      (в том числе вписанная вручную: скрипт её не трогает); если процент изменился или рекорда не было, ссылка
      ищется заново (GlobalList, Pointercrate), не нашлась - "";
@@ -35,6 +35,7 @@ import time
 from pathlib import Path
 
 import levels as levelsearch
+from idmap import load_id_map
 from videos import find_video_retry, get_json, get_links, normalize_link
 
 HERE = Path(__file__).resolve().parent
@@ -125,9 +126,8 @@ def main():
     if not rows:
         sys.exit("cbd.json пустой. Останавливаюсь.")
 
-    # ID CoreBoard и наш ID (по нему ищем видео) из coreboard_id_map.json: {"<ID CoreBoard>": {"nick", "gdr_id"}}
-    id_map_file = next((p for p in (ROOT / "coreboard_id_map.json", HERE / "coreboard_id_map.json") if p.exists()), None)
-    id_map = json.loads(id_map_file.read_text("utf-8")) if id_map_file else {}
+    # ID CoreBoard и наш ID (по нему ищем видео) из links.json: {"<ID CoreBoard>": {"nick", "gdr_id"}}
+    id_map = load_id_map()
     cb_by_nick = {str(v.get("nick", "")).casefold(): str(k) for k, v in id_map.items()
                   if isinstance(v, dict) and str(k).isdigit()}
 

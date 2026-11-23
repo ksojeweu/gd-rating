@@ -22,6 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import levels as levelsearch
+from idmap import load_id_map
 import lists_core as L
 from jsonfmt import parse_lenient, write_players
 
@@ -329,7 +330,7 @@ def apply_corrections(best_by, info, canon, names):
     Формат: {"delete": {"users": {ID: [...]}}, "add": {"users": {...}}}, записи двух видов (можно мешать):
       новый, как в файлах cbd/:  ID: ["ник", ["Название уровня", процент, "ссылка"], ...]   (ник и ссылка не обязательны)
       старый:                    ID: [[ID уровня, процент, ""], ...]
-    ID игрока: наш ID (как в links.json) или ID CoreBoard (из coreboard_id_map.json). Числа у них пересекаются, поэтому
+    ID игрока: наш ID (как в links.json) или ID CoreBoard (из links.json). Числа у них пересекаются, поэтому
     в правке лучше указывать ник: по нему ID определяется однозначно.
     delete - убрать запись, если у игрока по этому уровню лучший процент совпадает.
     add    - ИСПРАВЛЕНИЕ завышенной записи: добавляется, только если у этого игрока по этому уровню запись реально
@@ -343,7 +344,7 @@ def apply_corrections(best_by, info, canon, names):
         sec = data.get(section) or {}
         return sec.get("users", sec) if isinstance(sec, dict) else {}  # допускаем и {"users": {...}}, и сразу {ID: [...]}
 
-    cb_map = []  # coreboard_id_map.json: читается один раз
+    cb_map = []  # links.json: читается один раз
 
     def same_nick(a, b):
         a, b = str(a or "").casefold().strip(), str(b or "").casefold().strip()
@@ -354,7 +355,7 @@ def apply_corrections(best_by, info, canon, names):
         если указан ник, сверяем по нему; без ника сначала считаем ID нашим."""
         cu = canon(uid)
         if not cb_map:
-            cb_map.append(load_repo_json("coreboard_id_map.json"))
+            cb_map.append(load_id_map())
         row = cb_map[0].get(str(uid).strip())
         gid = canon(row["gdr_id"]) if isinstance(row, dict) and row.get("gdr_id") else None
         if nick:

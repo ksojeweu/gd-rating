@@ -12,7 +12,7 @@
      (игроки, у которых меньше 250 очков только с waiting-записями; ID продолжаются после последнего в
      missing_players.json) в формате jsonfmt.py, коммитит и пушит. commands.txt остаётся только в scripts/cbd-update/.
 
-ID CoreBoard: из cbd_ids.json (с сайта, главнее) и coreboard_id_map.json в корне репозитория. В missing_achievements*.json
+ID CoreBoard: из cbd_ids.json (с сайта, главнее) и links.json (other_lists.coreboard.main), см. idmap.py. В missing_achievements*.json
 вместо наших ID стоят ID CoreBoard, новые игроки получают ID по порядку после самого большого.
 Рабочая папка с полными результатами и отладочными файлами: scripts/cbd-update/.
 
@@ -28,6 +28,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from idmap import load_id_map
 from jsonfmt import write_players
 
 HERE = Path(__file__).resolve().parent          # scripts/
@@ -124,7 +125,7 @@ def strip_clan_tags(nick):
     return re.sub(r"\s+", " ", CLAN_TAG_RE.sub("", nick)).strip() or nick
 
 
-def make_players_with_waiting(out, cbd_ids, id_map):
+def make_players_with_waiting(out, cbd_ids):
     """missing_players_with_waiting.json: игроки, которые набирают меньше 250 очков ТОЛЬКО с waiting-записями.
     Берёт scripts/waiting_new_players.json (его пишет gd-rating --waiting), выбрасывает тех, кто уже есть на
     CoreBoard, выдаёт ID, продолжая после последнего ID в missing_players.json, и делает ники уникальными."""
@@ -134,7 +135,7 @@ def make_players_with_waiting(out, cbd_ids, id_map):
         return
     waiting = json.loads(WAITING_NEW.read_text("utf-8")).get("users", {})
     regular = json.loads((out / "missing_players.json").read_text("utf-8")).get("users", {})
-    map_data = json.loads(id_map.read_text("utf-8")) if id_map.exists() else {}
+    map_data = load_id_map()
     site_ids = json.loads(cbd_ids.read_text("utf-8")) if cbd_ids.exists() else {}
     mapping_file = out / "gdr_to_cb_ids.json"   # наш ID -> ID CoreBoard у тех, кто уже есть на CoreBoard
     on_cbd = {k.casefold() for k in json.loads(mapping_file.read_text("utf-8"))} if mapping_file.exists() else set()
@@ -187,8 +188,6 @@ def main():
             sys.exit(f"Нет файла {f.name} (или он пустой). Останавливаюсь.")
 
     cbd_ids = HERE / "cbd_ids.json"   # ник -> ID с сайта; делает coreboard-parse, когда в ссылках появятся ID
-    id_map = next((p for p in (ROOT / "coreboard_id_map.json", HERE / "coreboard_id_map.json") if p.exists()),
-                  ROOT / "coreboard_id_map.json")
 
     shutil.rmtree(OUT, ignore_errors=True)   # результаты прошлого запуска убираем, чтобы старые команды не приняли за новые
     out = OUT
@@ -206,7 +205,7 @@ def main():
 
     if total or new_players:
         # --prev-players: ссылки, уже найденные в опубликованном cbd/missing_players.json, заново не ищутся
-        run([sys.executable, HERE / "add-video-links.py", "--out-dir", out, "--id-map", id_map,
+        run([sys.executable, HERE / "add-video-links.py", "--out-dir", out,
              "--prev-players", CBD_DIR / "missing_players.json"], "Видео и команды (add-video-links)")
         if not (out / "commands.txt").exists():
             sys.exit("add-video-links.py не создал commands.txt.")
@@ -214,7 +213,7 @@ def main():
         print("В CoreBoard нечего добавлять.")
         (out / "commands.txt").write_text("", "utf-8")
 
-    make_players_with_waiting(out, cbd_ids, id_map)
+    make_players_with_waiting(out, cbd_ids)
     if args.commit:
         publish(out, f"cbd: {len(found)} игроков, {total} записей, новых игроков {new_players} (авто, gdr-not-in-cbd)")
 

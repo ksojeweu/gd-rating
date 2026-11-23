@@ -35,6 +35,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent          # scripts/
 import levels as levelsearch
+from idmap import load_id_map
 from jsonfmt import write_players
 
 ROOT = HERE.parent                              # корень репозитория
@@ -393,17 +394,14 @@ def save_missing(found):
 
 
 def cb_ids():
-    """Откуда берутся ID CoreBoard: (наш ID -> ID CoreBoard, ник -> ID CoreBoard) из coreboard_id_map.json
+    """Откуда берутся ID CoreBoard: (наш ID -> ID CoreBoard, ник -> ID CoreBoard) из links.json (other_lists.coreboard.main)
     ({"<ID CoreBoard>": {"nick", "gdr_id"}}) и cbd_ids.json (ник -> ID с сайта; главнее, если есть)."""
     by_gdr, by_nick = {}, {}
-    id_map = next((p for p in (ROOT / "coreboard_id_map.json", HERE / "coreboard_id_map.json") if p.exists()), None)
-    if id_map:
-        for cb_id, row in json.loads(id_map.read_text("utf-8")).items():
-            if isinstance(row, dict) and str(cb_id).isdigit():
-                if row.get("gdr_id"):
-                    by_gdr[str(row["gdr_id"]).casefold()] = str(cb_id)
-                if row.get("nick"):
-                    by_nick.setdefault(str(row["nick"]).casefold(), str(cb_id))
+    for cb_id, row in load_id_map().items():
+        if row.get("gdr_id"):
+            by_gdr[str(row["gdr_id"]).casefold()] = str(cb_id)
+        if row.get("nick"):
+            by_nick.setdefault(str(row["nick"]).casefold(), str(cb_id))
     site = HERE / "cbd_ids.json"
     if site.exists():
         for nick, cb_id in json.loads(site.read_text("utf-8")).items():
@@ -482,7 +480,7 @@ def main():
             sys.exit(f"Нет файла {f.name} (или он пустой). Останавливаюсь.")
 
     # 3. Сравнение. --include-absent: игроки CoreBoard, которых нет в gdr совсем, но чей ID находится через
-    #    coreboard_id_map.json, сравниваются с пустым gdr: их записи не пропадают из my_extras при пересборке
+    #    links.json, сравниваются с пустым gdr: их записи не пропадают из my_extras при пересборке
     run([sys.executable, HERE / "compare.py", "in-cbd-not-in-gdr", "--cbd", cbd_txt, "--gdr", gdr_txt,
          "--out-dir", work, "--include-absent"], "compare: in-cbd-not-in-gdr")
     found_file = work / "missing_achievements.json"
