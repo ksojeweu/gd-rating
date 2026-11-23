@@ -390,20 +390,36 @@ def _num(x):
 
 
 def unpack_dict_lists(result):
-    """Словари из links.json -> внутренний вид (списки строк "main:12"), чтобы вся остальная логика работала по-старому."""
+    """Словари из links.json -> внутренний вид: списки строк "main:12", а ники CoreBoard уходят во временное поле
+    entry["coreboard_nick"] (в файле их место внутри самого блока: {"main": {"id": 12, "nick": "Zoink"}})."""
     for entry in result.values():
         block = entry.get(OTHER) if isinstance(entry, dict) else None
         if not isinstance(block, dict):
             continue
         for name in DICT_LISTS:
             val = block.get(name)
-            if isinstance(val, dict):
-                block[name] = [f"{mode}:{i}" for mode, ids in val.items()
-                               for i in (ids if isinstance(ids, list) else [ids]) if i not in (None, "")]
+            if not isinstance(val, dict):
+                continue
+            accs, nicks = [], {}
+            for mode, ids in val.items():
+                for item in (ids if isinstance(ids, list) else [ids]):
+                    nick = None
+                    if isinstance(item, dict):
+                        item, nick = item.get("id"), item.get("nick")
+                    if item in (None, ""):
+                        continue
+                    accs.append(f"{mode}:{item}")
+                    if nick and mode not in nicks:
+                        nicks[mode] = nick
+            block[name] = accs
+            if nicks:
+                entry["coreboard_nick"] = nicks
 
 
 def pack_dict_lists(result):
-    """Внутренний вид -> формат links.json: {"coreboard": {"main": 12, "mobile": 34}}. Возвращает копию, result не меняет."""
+    """Внутренний вид -> формат links.json: {"coreboard": {"main": {"id": 12, "nick": "Zoink"}, "mobile": 34}}.
+    ID без известного ника пишется просто числом. Если на борде у человека несколько ID, значение списком.
+    Возвращает копию, result не меняет."""
     out = {}
     for key, entry in result.items():
         block = entry.get(OTHER) if isinstance(entry, dict) else None
@@ -411,6 +427,7 @@ def pack_dict_lists(result):
             out[key] = entry
             continue
         block = dict(block)
+        nicks = entry.get("coreboard_nick") if isinstance(entry.get("coreboard_nick"), dict) else {}
         for name in DICT_LISTS:
             vals = block.get(name)
             if isinstance(vals, list):
@@ -418,8 +435,11 @@ def pack_dict_lists(result):
                 for v in vals:
                     mode, _, i = str(v).partition(":")
                     by_mode.setdefault(mode, []).append(_num(i))
-                block[name] = {m: (ids[0] if len(ids) == 1 else ids) for m, ids in by_mode.items()}
-        out[key] = {**entry, OTHER: block}
+                block[name] = {
+                    m: ({"id": ids[0], "nick": nicks[m]} if len(ids) == 1 and nicks.get(m)
+                        else (ids[0] if len(ids) == 1 else ids))
+                    for m, ids in by_mode.items()}
+        out[key] = {k: v for k, v in {**entry, OTHER: block}.items() if k != "coreboard_nick"}
     return out
 
 
@@ -925,6 +945,33 @@ def link_strict(src, data, result, dl, pc, lists_data, review):
         for e in errors[:5]:
             print("    " + e.split("\n")[0])
     return linked, 0
+
+
+def add_coreboard_nicks(result, lists_data):
+    """Ники с CoreBoard (внутреннее поле entry["coreboard_nick"], в файл уходит внутрь блока coreboard) по привязанным профилям.
+    Ник обновляется из свежих данных борда; если борд в этом запуске недоступен, остаётся прошлый.
+    Если профиль с борда снят, его ник убирается. Возвращает, у скольких записей поле изменилось."""
+    changed = 0
+    for src in L.all_lists():
+        if not getattr(src, "strict", False):
+            continue
+        players = (lists_data.get(src.name) or {}).get("players") or {}
+        for entry in result.values():
+            accs = other_accounts(entry)[src.name]
+            old = entry.get("coreboard_nick") if isinstance(entry.get("coreboard_nick"), dict) else {}
+            nicks = {}
+            for a_id in accs:
+                mode = str(a_id).split(":", 1)[0]
+                nick = (players.get(str(a_id)) or {}).get("n") or old.get(mode)
+                if nick and mode not in nicks:
+                    nicks[mode] = nick
+            if nicks != old:
+                changed += 1
+                if nicks:
+                    entry["coreboard_nick"] = nicks
+                else:
+                    entry.pop("coreboard_nick", None)
+    return changed
 
 
 def link_source(src, data, result, dl, pc, lists_data, review, max_accounts=3):
@@ -2356,6 +2403,9 @@ def main():
 
     # Один и тот же канал у разных записей: это один человек, склеиваем
     absorbed, merged_groups, global_shared = merge_by_channels(result, rules, resolve)
+
+    nick_changed = add_coreboard_nicks(result, lists_data)
+    print(f"  ники CoreBoard: изменено у записей {nick_changed}")
 
     # Карта ID CoreBoard: у кого глобал появился (в этом запуске или раньше), меняем pc... на настоящий ID
     fixed_ids, id_report = sync_id_map(result)
