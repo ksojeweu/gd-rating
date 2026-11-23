@@ -182,7 +182,7 @@
     ],
     "21": [
       "Cookie",
-      ["Tidal Wave", 84, "https://x.com/coreboardgd/status/2121097963279696104"],
+      ["Tidal Wave", 100, ""],
       ["Ashley Wave Trials", 100, "https://www.youtube.com/watch?v=C3LsiXWwWEw"],
       ["Silent clubstep", 100, "https://www.youtube.com/watch?v=1szAw9e60fA"],
       ["Avernus", 100, "https://www.youtube.com/watch?v=2gbyaD8f96Q"],
@@ -1063,8 +1063,8 @@
     ],
     "119": [
       "cc478",
+      ["Eternal Silence", 75, ""],
       ["Sakupen circles (Nick24)", 100, "https://www.youtube.com/watch?v=jdd9KZn3HtE"],
-      ["Eternal Silence", 72, "https://www.youtube.com/watch?v=C2ELZa-VeMc"],
       ["Silent clubstep", 100, "https://www.youtube.com/watch?v=kirBhk7FMXg"],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=MXSS62uEgfU"],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=QxwhBJ1LuPE"]
@@ -21728,6 +21728,12 @@
       ["Zodiac", 100, "https://youtu.be/pA_u8_O3-us"],
       ["Trotil", 100, "https://youtu.be/vBfgJmlkmkQ"],
       ["Bloodlust", 100, "https://youtu.be/jObhtAbSDK8"]
+    ],
+    "2847": [
+      "Laneks",
+      ["Sakupen Circles", 100, ""],
+      ["Cobwebs", 100, ""],
+      ["Jesse Pinkman", 100, ""]
     ]
   }
 }
