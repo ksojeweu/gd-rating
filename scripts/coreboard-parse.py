@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Скачивает оба топа CoreBoard (основной /main/board и Топ РК /main/board/rc), объединяет игроков и пишет:
-  cbd.json      полный разбор;
+  cbd.json      полный разбор (у каждого игрока "videos": ссылки его рекордов с борда, их читает cbd_dupes.py);
   cbd.txt       строки в формате gd-rating, их читает compare.py: '5) 🇵🇱 dovvin (ORBIT, Thinking Space II 88%) - 14.41';
   cbd_ids.json  ник -> ID игрока (только если в ссылках на игроков уже стоят числовые ID; иначе файл удаляется).
 Скачанные страницы лежат рядом (cbd_w.html, cbd_rc.html) и считаются свежими час; -r скачивает заново.
@@ -43,16 +43,20 @@ class Rows(HTMLParser):
             self.row = []
         elif tag in ("td", "th") and self.row is not None:
             self.cell = {"cls": (a.get("class") or "").split(), "text": "", "href": None, "link_cls": [],
-                         "head": tag == "th"}
+                         "head": tag == "th", "links": []}
         elif tag == "a" and self.cell is not None:
             self.cell["href"] = a.get("href")
             self.cell["link_cls"] = (a.get("class") or "").split()
+            self.cell["a_from"] = len(self.cell["text"])  # где в тексте ячейки начался текст этой ссылки
 
     def handle_data(self, data):
         if self.cell is not None:
             self.cell["text"] += data
 
     def handle_endtag(self, tag):
+        if tag == "a" and self.cell is not None and self.cell.get("a_from") is not None:
+            self.cell["links"].append((self.cell["text"][self.cell["a_from"]:].strip(), self.cell["href"]))
+            self.cell["a_from"] = None
         if tag in ("td", "th") and self.cell is not None and self.row is not None:
             self.cell["text"] = self.cell["text"].strip()
             self.row.append(self.cell)
@@ -82,6 +86,18 @@ def parse_records(raw):
             continue
         m = PCT.match(part)
         out.append({"level": m.group(1).strip(), "percent": float(m.group(2)) if m.group(2) else 100})
+    return out
+
+
+def parse_videos(links):
+    """Ссылки ячейки с рекордами [(текст, href)] -> [{"level", "percent", "video"}]: рекорд и ссылка на его видео."""
+    out = []
+    for text, href in links:
+        text, href = re.sub(r"\s+", " ", text or "").strip(), (href or "").strip()
+        if not text or text == NO_LEVEL or not href:
+            continue
+        m = PCT.match(text)
+        out.append({"level": m.group(1).strip(), "percent": float(m.group(2)) if m.group(2) else 100, "video": href})
     return out
 
 
@@ -127,7 +143,7 @@ def parse_page(page):
             "rank": int(rank), "id": id_from_href(player_c["href"]),
             "name": player_c["text"], "href": player_c["href"],
             "country": cname, "flag": flag, "points": points,
-            "records": parse_records(raw), "raw": raw,
+            "records": parse_records(raw), "raw": raw, "videos": parse_videos(rec_c.get("links") or []),
         })
     return players
 
@@ -169,9 +185,13 @@ def merge(world, rc):
             if p is None:
                 p = {"name": r["name"], "id": r.get("id"), "country": r["country"], "flag": r["flag"],
                      "points": r["points"],
-                     "world_rank": None, "rc_rank": None, "records": r["records"], "raw": r["raw"]}
+                     "world_rank": None, "rc_rank": None, "records": r["records"], "raw": r["raw"],
+                     "videos": list(r.get("videos") or [])}
                 people[r["name"].lower()] = p
             p[src_name + "_rank"] = r["rank"]
+            for v in r.get("videos") or []:   # ссылки из обоих топов: одинаковые не дублируем
+                if v not in p["videos"]:
+                    p["videos"].append(v)
             if not p.get("id") and r.get("id"):
                 p["id"] = r["id"]
             if src_name == "rc" and p["world_rank"] is not None:
