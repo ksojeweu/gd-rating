@@ -194,9 +194,9 @@
       ["Society", 71, "https://www.youtube.com/watch?v=HHxAs-qzk34"],
       ["Silent clubstep", 100, "https://www.youtube.com/watch?v=YM3S4PMTkS4"],
       ["andromeda", 100, "https://www.youtube.com/watch?v=0K8O00bmv30"],
+      ["Defeated Circles", 100, ""],
       ["Acheron", 100, "https://www.youtube.com/watch?v=Oaop6-ans7g"],
-      ["Subterminal Point", 100, "https://www.youtube.com/watch?v=Jgi6XHqYWJE"],
-      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=ybmUBzQK0Tk"]
+      ["Subterminal Point", 100, "https://www.youtube.com/watch?v=Jgi6XHqYWJE"]
     ],
     "23": [
       "Serpentical",
@@ -2559,7 +2559,7 @@
       ["NOMAD", 100, "https://www.youtube.com/watch?v=-nnwSgEw4Ww"],
       ["LIMBO", 100, "https://www.youtube.com/watch?v=qUCJbD86cKA"],
       ["The Plunge", 100, "https://www.youtube.com/watch?v=hECYuU9O9W8"],
-      ["FIBERGLASS", 70, "https://www.youtube.com/watch?v=FqrPLhFY9WY"]
+      ["Voltage", 83, ""]
     ],
     "286": [
       "RicoLP",
@@ -9690,11 +9690,12 @@
     ],
     "1093": [
       "Abibus",
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=XRWFDXG4Zk4"],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=8qolnKJnAB4"],
+      ["KOCMOC", 82, ""],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=jsomU3Iypss"],
       ["Trueffet", 100, "https://www.youtube.com/watch?v=FVOY9c6Lrcs"],
-      ["SUPERHATEMEWORLD", 100, "https://www.youtube.com/watch?v=194-EHNCeg0"],
-      ["Cobwebs", 100, "https://www.youtube.com/watch?v=WZX_zuL95jM"]
+      ["SUPERHATEMEWORLD", 100, "https://www.youtube.com/watch?v=194-EHNCeg0"]
     ],
     "1094": [
       "cobblestone",
@@ -11928,10 +11929,10 @@
     ],
     "1389": [
       "Cclixgd",
+      ["Sakupen Circles", 100, ""],
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=eRFiaiCwnUk"],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=I_SVfAM3DfI"],
       ["Sanctity", 100, "https://www.youtube.com/watch?v=gPUvFreJu-w"],
-      ["Sakupen Circles", 82, "https://www.youtube.com/watch?v=ezeqMyL4AWU"],
       ["Aerial Gleam", 100, "https://www.youtube.com/watch?v=TwQGFavAf3Y"],
       ["The Nautical", 100, "https://www.youtube.com/watch?v=ieT7mV0VeOI"]
     ],
@@ -14944,6 +14945,7 @@
       "Korseee",
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=SSJ5RGVxTEQ"],
       ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=iUdswCLqH-M"],
+      ["Aerial Gleam", 100, "https://www.youtube.com/watch?v=g3FAnuSs0TM"],
       ["Renevant", 100, "https://www.youtube.com/watch?v=rKot6fM0-3Y"],
       ["Cosmic Cyclone", 100, "https://www.youtube.com/watch?v=ZQzXZ9hVHsM"],
       ["Bloodlust", 100, "https://www.youtube.com/watch?v=KGzvZYf8m0A"]
@@ -18592,7 +18594,7 @@
     ],
     "2291": [
       "chazzzgd",
-      ["Silent clubstep", 53, "https://www.youtube.com/watch?v=c2W_Go6dnr0"]
+      ["Silent clubstep", 100, "https://www.youtube.com/watch?v=ZCUejaNReYw"]
     ],
     "2293": [
       "UberTallCats",
@@ -20128,7 +20130,7 @@
     ],
     "2535": [
       "Deforklift",
-      ["Ultra Paracosm", 46, "https://www.youtube.com/watch?v=YUD7Ii7WVYA"]
+      ["Ultra Paracosm", 100, "https://www.youtube.com/watch?v=kXjU4WYz2lo"]
     ],
     "2536": [
       "mosk14142",
