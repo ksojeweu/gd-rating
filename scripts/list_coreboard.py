@@ -5,7 +5,8 @@
 /<борд>/board/player/<ID> (там тот же список в блоке Records).
 
 ID аккаунта в links.json пишется строкой "<борд>:<ID>" ("main:1", "mobile:7"): у main и mobile ID свои.
-Игрок без пары получает запись с ключом cb<борд>:<ID> (cbmain:1).
+Отдельных записей у CoreBoard нет: игрок, которого не удалось состыковать, это ошибка (links_coreboard_errors.txt).
+Видео CoreBoard нужны только для привязки и каналы людям не добавляют (на CoreBoard ссылки бывают чужие).
 """
 import html
 import re
@@ -19,6 +20,9 @@ from lists_core import Source, register
 BASE = "https://coreboard.pythonanywhere.com"
 BOARDS = ("main", "mobile")  # какие борды качаем; у каждого свои ID игроков
 UA = {"User-Agent": "Mozilla/5.0 (compatible; gd-rating make-links)"}
+# ВРЕМЕННО: борды, которые берём не с сайта, а из файла в репозитории (cbd-videos). Откат этого обновления вернёт сайт.
+# Формат файла: {"<ID>": ["ник", ["уровень", процент, "ссылка на видео"], ...]}. Борд без записи здесь качается с сайта.
+LOCAL_FILES = {"main": "cbd/cbd_videos.json"}
 MAX_PAGES = 200  # на случай, если борд поделён на страницы (?page=N)
 
 
@@ -142,9 +146,35 @@ class CoreBoard(Source):
     tag = "CB"
     short = "cb"
     fetchable = True
+    strict = True     # свои записи не создаёт, видео не участвуют в поиске каналов, ошибки привязки идут в links_coreboard_errors.txt
 
     pause = 0.3
     max_profiles = 300  # сколько профилей максимум открывать для игроков без рекордов в строке борда
+
+    def _local(self, mode, path):
+        """Борд из файла репозитория: [(id, ник, страна, [(уровень, процент, видео)])]."""
+        import json
+        import os
+        here = os.path.dirname(os.path.abspath(__file__))
+        for p in (path, os.path.join(here, "..", path), os.path.join(here, path)):
+            if os.path.exists(p):
+                with open(p, encoding="utf-8") as f:
+                    raw = json.load(f)
+                break
+        else:
+            raise FileNotFoundError(path)
+        out = []
+        for pid, items in raw.items():
+            nick = next((x for x in items if isinstance(x, str)), "")
+            recs = []
+            for x in items:
+                if isinstance(x, list) and x:
+                    pct = x[1] if len(x) > 1 and isinstance(x[1], (int, float)) else 100
+                    url = x[2] if len(x) > 2 and isinstance(x[2], str) and x[2].strip() else None
+                    recs.append((str(x[0]), int(pct), url))
+            out.append((str(pid), nick, None, recs))
+        out.sort(key=lambda r: (not r[0].isdigit(), int(r[0]) if r[0].isdigit() else 0, r[0]))
+        return out
 
     def _board(self, mode, log):
         """[(id, ник, страна, [(уровень, процент, видео)])] всего борда или None."""
@@ -174,6 +204,20 @@ class CoreBoard(Source):
         players, records = {}, []
         for mode in BOARDS:
             old = store.get(mode)
+            if mode in LOCAL_FILES:  # временно: данные из файла репозитория, сайт не трогаем
+                try:
+                    rows = self._local(mode, LOCAL_FILES[mode])
+                except Exception as e:
+                    log(f"  {self.name}/{mode}: файл {LOCAL_FILES[mode]} не прочитался ({e}), борд пропускаю")
+                    continue
+                log(f"  {self.name}/{mode}: из файла {LOCAL_FILES[mode]}")
+                for rank, (pid, nick, cc, recs) in enumerate(rows, 1):
+                    acc = f"{mode}:{pid}"
+                    players[acc] = {"n": nick, "r": None, "c": cc}
+                    for lvl, pct, video in recs:
+                        records.append({"a": acc, "l": lvl, "p": pct, "v": video, "i": None, "pos": None})
+                log(f"  {self.name}/{mode}: игроков {len(rows)}")
+                continue
             try:
                 rows = self._board(mode, log)
                 if not rows:
