@@ -830,9 +830,11 @@ def strict_names():
 STRICT_ERRORS_FILE = "links_{name}_errors.txt"
 
 
-def link_strict(src, data, result, dl, pc, lists_data, review):
+def link_strict(src, data, result, dl, pc, lists_data, review, workers=3):
     """Привязка листа, которому нельзя ошибаться (CoreBoard: видео на нём часто чужие).
-    Аккаунт дописывается в запись, только если ВСЕ его общие видео ведут ровно в одну запись links.json.
+    Доказательства: общие видео И общие каналы (канал видео профиля CoreBoard совпал с каналом записи: у человека на
+    CoreBoard и в листах видео бывают разные, а канал один). Аккаунт дописывается в запись, только если все
+    доказательства ведут ровно в одну запись links.json.
     Отдельных записей не создаём. Ошибка (ничего не вносится) в таких случаях:
       - общих видео нет, то есть состыковать не с кем;
       - видео ведут в несколько записей;
@@ -901,22 +903,82 @@ def link_strict(src, data, result, dl, pc, lists_data, review):
             errors.append("\n".join(lines))
             unlink(key, w)
 
+    # Каналы: каналы видео профиля CoreBoard (по 3 видео на сайт, ответы берём из общего кэша каналов) и каналы записей
+    pending_ws = sorted(w for w in players if w not in owner and w not in dropped)
+    urls_of = defaultdict(list)
+    for r in data["records"]:
+        if r.get("v") and r.get("a") is not None:
+            urls_of[str(r["a"])].append(str(r["v"]))
+    cache = load_json(CACHE_CH, {}) or {}
+    todo, wanted = {}, defaultdict(list)
+    direct = defaultdict(set)  # профиль -> каналы, видные прямо в ссылках (Twitch, X, TikTok)
+    for w in pending_ws:
+        checks = Counter()
+        for u in dict.fromkeys(urls_of.get(w, [])):
+            hit = offline_channel(u)
+            if hit:
+                direct[w].add(hit)
+                continue
+            yid = yt_video_id(u)
+            if yid:
+                prefix, fn, arg = "yt", yt_channel, yid
+            else:
+                bid = bili_video_id(u)
+                if not bid:
+                    continue
+                prefix, fn, arg = "bili", bili_channel, bid
+            if checks[prefix] >= MAX_CHECKS:
+                continue
+            checks[prefix] += 1
+            ck = f"{prefix}:{arg}"
+            wanted[w].append(ck)
+            if ck not in cache:
+                todo[ck] = (fn, arg)
+    if todo:
+        print(f"  {name}: каналов видео для проверки: {len(todo)}")
+        run_jobs(todo, cache, workers)
+        save_json(CACHE_CH, cache)
+
+    def profile_channels(w):
+        out = set(direct.get(w, ()))
+        for ck in wanted.get(w, ()):
+            link = cache.get(ck)
+            if link:
+                out.add((PLATFORM[ck.split(":", 1)[0]], link))
+            if ck.startswith("yt:") and cache.get("ytid:" + ck[3:]):
+                out.add(("youtube_id", cache["ytid:" + ck[3:]]))
+        return {(p, norm_channel(l)) for p, l in out}
+
+    chan_keys = defaultdict(set)  # (платформа, канал) -> записи, у которых он есть
+    for key, entry in result.items():
+        for platform, links in (entry.get("channels") or {}).items():
+            for link in links or []:
+                chan_keys[(platform, norm_channel(link))].add(key)
+
     cand = defaultdict(list)  # (запись, борд) -> [аккаунты, которые к ней просятся]
-    for w in sorted(w for w in players if w not in owner and w not in dropped):
+    for w in pending_ws:
         mine = mine_vids.get(w, set())
         hits = Counter(k for v in mine for k in vid_keys.get(v, ()))
+        mine_ch = profile_channels(w)
+        ch_hits = defaultdict(set)
+        for c in mine_ch:
+            for k in chan_keys.get(c, ()):
+                ch_hits[k].add(c)
+        keys = set(hits) | set(ch_hits)
         if not mine:
             errors.append(f"ОШИБКА: {label(w)} нет видео, состыковать нечем")
-        elif not hits:
-            errors.append(f"ОШИБКА: {label(w)} не состыкован: ни одно его видео не найдено ни у одной записи")
-        elif len(hits) > 1:
+        elif not keys:
+            errors.append(f"ОШИБКА: {label(w)} не состыкован: ни его видео, ни каналы его видео не найдены ни у одной записи")
+        elif len(keys) > 1:
             lines = [f"ОШИБКА: {label(w)} совпал с несколькими записями, не вношу:"]
-            for k in sorted(hits, key=str):
-                lines.append(f"    {who(k)}, общих видео: {hits[k]}")
-                lines.append(vurls(mine & key_vids[k]))
+            for k in sorted(keys, key=str):
+                lines.append(f"    {who(k)}, общих видео: {hits.get(k, 0)}, общих каналов: {len(ch_hits.get(k, ()))}")
+                if mine & key_vids[k]:
+                    lines.append(vurls(mine & key_vids[k]))
+                lines += [f"        канал {p}: {l}" for p, l in sorted(ch_hits.get(k, ()))]
             errors.append("\n".join(lines))
         else:
-            cand[(next(iter(hits)), mode_of(w))].append(w)
+            cand[(next(iter(keys)), mode_of(w))].append(w)
 
     linked = 0
     for (key, mode), ws in sorted(cand.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])):
@@ -2385,12 +2447,8 @@ def main():
     # чтобы видео этих листов тоже участвовали в нём). Порядок листов = порядок регистрации.
     list_stats = {}
     # строгие листы (CoreBoard) идут последними: к тому времени все записи и их видео уже на месте
-    for src in sorted(L.sources(), key=lambda s: bool(getattr(s, "strict", False))):
-        if src.name not in lists_data:
-            continue
-        if getattr(src, "strict", False):
-            list_stats[src.name] = link_strict(src, lists_data[src.name], result, dl, pc, lists_data, review)
-        else:
+    for src in L.sources():
+        if src.name in lists_data and not getattr(src, "strict", False):
             list_stats[src.name] = link_source(src, lists_data[src.name], result, dl, pc, lists_data, review, MAX_ACCOUNTS)
 
     added_channels = None
@@ -2403,6 +2461,11 @@ def main():
 
     # Один и тот же канал у разных записей: это один человек, склеиваем
     absorbed, merged_groups, global_shared = merge_by_channels(result, rules, resolve)
+
+    # Строгие листы (CoreBoard) привязываем после поиска каналов и склейки записей: им нужны готовые каналы людей
+    for src in L.sources():
+        if src.name in lists_data and getattr(src, "strict", False):
+            list_stats[src.name] = link_strict(src, lists_data[src.name], result, dl, pc, lists_data, review, workers)
 
     nick_changed = add_coreboard_nicks(result, lists_data)
     print(f"  ники CoreBoard: изменено у записей {nick_changed}")
