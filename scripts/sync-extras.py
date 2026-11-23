@@ -410,6 +410,22 @@ def cb_ids():
     return by_gdr, by_nick
 
 
+def board_records():
+    """cbd.json (его только что скачал coreboard-parse) -> {ID CoreBoard или "nick:ник": {название уровня: процент}}."""
+    try:
+        rows = json.loads((HERE / "cbd.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        print("waiting_records: cbd.json не прочитался, записи борда не вычитаю")
+        return {}
+    out = {}
+    for row in rows:
+        recs = {levelsearch.normalize(r["level"]): float(r["percent"]) for r in row.get("records", [])}
+        if row.get("id"):
+            out[str(row["id"])] = recs
+        out["nick:" + str(row.get("name", "")).casefold()] = recs
+    return out
+
+
 def publish_waiting():
     """waiting_records.json из scripts/ (ключ - наш ID) -> cbd/ с ключами ID CoreBoard."""
     src, dst = HERE / WAITING.name, WAITING
@@ -417,13 +433,22 @@ def publish_waiting():
         return
     by_gdr, by_nick = cb_ids()
     users = json.loads(src.read_text("utf-8")).get("users", {})
-    out, kept = {}, []
+    on_board = board_records()
+    out, kept, dropped = {}, [], 0
     for gdr_id, (nick, *records) in users.items():
         cb_id = by_gdr.get(gdr_id.casefold()) or by_nick.get(nick.casefold())
         if cb_id is None:
             kept.append(f"{gdr_id} ({nick})")
             cb_id = gdr_id
-        out[cb_id] = (nick, records)
+        # Что уже стоит на борде (такой же или лучший процент), в waiting не нужно. gd-rating сверяется с
+        # missing_achievements.json с GitHub, а он отстаёт на запуск, поэтому только что принятые записи сюда доходили.
+        have = on_board.get(str(cb_id)) or on_board.get("nick:" + nick.casefold()) or {}
+        fresh = [r for r in records if have.get(levelsearch.normalize(r[0]), -1) < float(r[1] if r[1] != "" else 100)]
+        dropped += len(records) - len(fresh)
+        if fresh:
+            out[cb_id] = (nick, fresh)
+    if dropped:
+        print(f"waiting_records: убрано записей, которые уже на борде: {dropped}")
     if kept:
         print(f"waiting_records: нет ID CoreBoard у {len(kept)} игроков, оставил наши ID: {', '.join(kept[:5])}"
               + (" ..." if len(kept) > 5 else ""))
