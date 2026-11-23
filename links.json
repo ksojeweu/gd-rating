@@ -46710,7 +46710,12 @@
         63216
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2860,
+          "nick": "qzerdd"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -51171,7 +51176,12 @@
         66676
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2858,
+          "nick": "malopalgeometry"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -53290,7 +53300,12 @@
         68796
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2857,
+          "nick": "MegaCatMan"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -55449,7 +55464,12 @@
         66396
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2852,
+          "nick": "PowShadowPSH"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -68535,6 +68555,10 @@
         "main": {
           "id": 1284,
           "nick": "BapuaHT"
+        },
+        "mobile": {
+          "id": 10,
+          "nick": "BapuaHT"
         }
       }
     },
@@ -79320,7 +79344,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 1243,
+          "nick": "F0xy1337"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -101016,7 +101045,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2859,
+          "nick": "V1zeth"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -118850,7 +118884,12 @@
         2751,
         3988
       ],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2738,
+          "nick": "ikkyseen"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -122069,7 +122108,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 1231,
+          "nick": "Kinoxas"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -132051,7 +132095,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 1244,
+          "nick": "n0rmalGD"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -154298,7 +154347,12 @@
         66016
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 1921,
+          "nick": "Kiruu"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -156147,7 +156201,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 1233,
+          "nick": "Globbo"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -164810,7 +164869,12 @@
         73441
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2856,
+          "nick": "ggDashy"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -172351,7 +172415,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2291,
+          "nick": "chazzzgd"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -340997,7 +341066,12 @@
         61665
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2855,
+          "nick": "AlexPP223"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -369987,7 +370061,12 @@
         66394
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2850,
+          "nick": "Nathan Gaming Pro"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -385043,7 +385122,12 @@
         69214
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2848,
+          "nick": "Bryyaaa"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -401509,7 +401593,12 @@
         72229
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2849,
+          "nick": "Zenith797"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -402961,7 +403050,12 @@
         72501
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2853,
+          "nick": "wildpunto"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -404353,7 +404447,12 @@
         72802
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2851,
+          "nick": "zBloff"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -406290,7 +406389,12 @@
         73145
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2535,
+          "nick": "Deforklift"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -423351,7 +423455,12 @@
         73385
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2854,
+          "nick": "Titan"
+        }
+      }
     }
   },
   "pc73386": {
