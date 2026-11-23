@@ -1476,3 +1476,8 @@
     общие каналы: https://www.youtube.com/@deforklift
     поглощено: cbmain:2535 (Deforklift), аккаунты: {'coreboard': ['main:2535']}
 
+===== 2026-11-23 01:47:24 UTC: склеено групп 1, поглощено записей 1 =====
+СКЛЕЕНО В pc59896 ([SUN] paroe)
+    общие каналы: https://www.youtube.com/@paaroe
+    поглощено: pc73369 (paroe), аккаунты: {'pointercrate': [73369]}
+
