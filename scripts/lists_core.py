@@ -180,6 +180,7 @@ def accounts_of(entry):
         if not isinstance(vals, (list, dict)):
             vals = entry.get(s.name)
         if isinstance(vals, dict):  # coreboard: {"main": 12, "mobile": 34} -> ["main:12", "mobile:34"]
-            vals = [f"{m}:{i}" for m, ids in vals.items() for i in (ids if isinstance(ids, list) else [ids])]
+            vals = [f"{m}:{i.get('id') if isinstance(i, dict) else i}" for m, ids in vals.items()
+                    for i in (ids if isinstance(ids, list) else [ids])]
         out[s.name] = [str(v).strip() for v in vals if str(v).strip()] if isinstance(vals, list) else []
     return out
