@@ -1481,3 +1481,40 @@
     общие каналы: https://www.youtube.com/@paaroe
     поглощено: pc73369 (paroe), аккаунты: {'pointercrate': [73369]}
 
+===== 2026-11-23 07:43:49 UTC: склеено групп 9, поглощено записей 9 =====
+СКЛЕЕНО В 5466 (ra1n1337)
+    общие каналы: https://www.youtube.com/@ra1n1337gg
+    поглощено: pc73306 (ra1n1337), аккаунты: {'pointercrate': [73306]}
+
+СКЛЕЕНО В 7293 (hoagy)
+    общие каналы: https://www.youtube.com/@MarlowReal
+    поглощено: wml5353 (marlow), аккаунты: {'wml': [5353]}
+
+СКЛЕЕНО В 20955 (Drkxxx)
+    общие каналы: https://www.youtube.com/@Drkxxx-w4s
+    поглощено: pc73358 (drkie), аккаунты: {'pointercrate': [73358]}
+
+СКЛЕЕНО В 29605 (clandd)
+    общие каналы: https://www.youtube.com/@clanddd
+    поглощено: pc73316 (clandd), аккаунты: {'pointercrate': [73316]}
+
+СКЛЕЕНО В 39353 (ggDashy)
+    общие каналы: https://www.youtube.com/@ggDashy
+    поглощено: pc73441 (ggDashy), аккаунты: {'pointercrate': [73441]}
+
+СКЛЕЕНО В 46109 (Kvazz297)
+    общие каналы: https://www.youtube.com/@Kvazz-Prod
+    поглощено: wml5200 (Kvazz), аккаунты: {'wml': [5200]}
+
+СКЛЕЕНО В 60709 (mythicjargon)
+    общие каналы: https://www.youtube.com/@mythicjargon
+    поглощено: pc73305 (mythicjargon), аккаунты: {'pointercrate': [73305]}
+
+СКЛЕЕНО В 66620 (Streamy450)
+    общие каналы: https://www.youtube.com/@streamy450
+    поглощено: pc39484 ([MSTRD] Streamy450), аккаунты: {'pointercrate': [39484, 39487]}
+
+СКЛЕЕНО В pc59896 ([SUN] paroe)
+    общие каналы: https://www.youtube.com/@paaroe
+    поглощено: pc73369 (paroe), аккаунты: {'pointercrate': [73369]}
+
