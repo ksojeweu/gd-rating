@@ -1,6 +1,6 @@
 """Лист CoreBoard (coreboard.pythonanywhere.com): два борда, main (классический) и mobile.
 
-Видео берём прямо со страницы борда /<борд>/board: в каждой строке игрок (ссылка /<борд>/board/player/<ID>),
+Видео берём прямо со страницы борда /<борд>/board (cbd/cbd_videos.json больше не используется): в каждой строке игрок (ссылка /<борд>/board/player/<ID>),
 страна и все его рекорды ссылками на видео. Если у игрока на борде рекордов не видно, открываем его профиль
 /<борд>/board/player/<ID> (там тот же список в блоке Records).
 
@@ -20,9 +20,6 @@ from lists_core import Source, register
 BASE = "https://coreboard.pythonanywhere.com"
 BOARDS = ("main", "mobile")  # какие борды качаем; у каждого свои ID игроков
 UA = {"User-Agent": "Mozilla/5.0 (compatible; gd-rating make-links)"}
-# ВРЕМЕННО: борды, которые берём не с сайта, а из файла в репозитории (cbd-videos). Откат этого обновления вернёт сайт.
-# Формат файла: {"<ID>": ["ник", ["уровень", процент, "ссылка на видео"], ...]}. Борд без записи здесь качается с сайта.
-LOCAL_FILES = {"main": "cbd/cbd_videos.json"}
 MAX_PAGES = 200  # на случай, если борд поделён на страницы (?page=N)
 
 
@@ -154,52 +151,6 @@ class CoreBoard(Source):
     pause = 0.3
     max_profiles = 300  # сколько профилей максимум открывать для игроков без рекордов в строке борда
 
-    def _local(self, mode, path):
-        """Борд из файла репозитория: [(id, ник, страна, [(уровень, процент, видео)])]."""
-        import json
-        import os
-        here = os.path.dirname(os.path.abspath(__file__))
-        for p in (path, os.path.join(here, "..", path), os.path.join(here, path)):
-            if os.path.exists(p):
-                with open(p, encoding="utf-8") as f:
-                    raw = json.load(f)
-                break
-        else:
-            raise FileNotFoundError(path)
-        def find(node, depth=0):
-            """Ищет словарь вида {"<числовой ID>": ["ник", [...], ...]} на любой глубине файла."""
-            if isinstance(node, dict):
-                hit = {k: v for k, v in node.items() if str(k).isdigit() and isinstance(v, list)}
-                if len(hit) >= max(1, len(node) // 2):
-                    return hit
-                for v in node.values():
-                    got = find(v, depth + 1) if depth < 4 else None
-                    if got:
-                        return got
-            elif isinstance(node, list) and depth < 4:
-                for v in node:
-                    got = find(v, depth + 1)
-                    if got:
-                        return got
-            return None
-
-        found = find(raw)
-        if not found:
-            top = list(raw)[:8] if isinstance(raw, dict) else type(raw).__name__
-            raise ValueError(f"в файле не нашёл игроков вида \"ID\": [\"ник\", [...]]; верхний уровень: {top}")
-        out = []
-        for pid, items in found.items():
-            nick = next((x for x in items if isinstance(x, str)), "")
-            recs = []
-            for x in items:
-                if isinstance(x, list) and x:
-                    pct = x[1] if len(x) > 1 and isinstance(x[1], (int, float)) else 100
-                    url = x[2] if len(x) > 2 and isinstance(x[2], str) and x[2].strip() else None
-                    recs.append((str(x[0]), int(pct), url))
-            out.append((str(pid), nick, None, recs))
-        out.sort(key=lambda r: (not r[0].isdigit(), int(r[0]) if r[0].isdigit() else 0, r[0]))
-        return out
-
     def _board(self, mode, log):
         """[(id, ник, страна, [(уровень, процент, видео)])] всего борда или None."""
         rows, seen, queue = [], set(), [f"{BASE}/{mode}/board"]
@@ -226,23 +177,8 @@ class CoreBoard(Source):
 
     def fetch(self, store, workers=3, log=print):
         players, records = {}, []
-        # пока включён LOCAL_FILES, качаем только борды из него (у mobile файла нет, а с сайта видео бывают чужие)
-        for mode in ([m for m in BOARDS if m in LOCAL_FILES] if LOCAL_FILES else BOARDS):
+        for mode in BOARDS:
             old = store.get(mode)
-            if mode in LOCAL_FILES:  # временно: данные из файла репозитория, сайт не трогаем
-                try:
-                    rows = self._local(mode, LOCAL_FILES[mode])
-                except Exception as e:
-                    log(f"  {self.name}/{mode}: файл {LOCAL_FILES[mode]} не прочитался ({e}), борд пропускаю")
-                    continue
-                log(f"  {self.name}/{mode}: из файла {LOCAL_FILES[mode]}")
-                for rank, (pid, nick, cc, recs) in enumerate(rows, 1):
-                    acc = f"{mode}:{pid}"
-                    players[acc] = {"n": nick, "r": None, "c": cc}
-                    for lvl, pct, video in recs:
-                        records.append({"a": acc, "l": lvl, "p": pct, "v": video, "i": None, "pos": None})
-                log(f"  {self.name}/{mode}: игроков {len(rows)}")
-                continue
             try:
                 rows = self._board(mode, log)
                 if not rows:
