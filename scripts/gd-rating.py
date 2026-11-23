@@ -892,12 +892,13 @@ def save_waiting(meta, best_by, info, result, canon_id, removals, owner_of):
     for person in sorted(only_waiting, key=lambda u: (only_waiting[u]["final_score"], u)):
         e = only_waiting[person]
         links = pick_best(e["new"])  # уровень -> (процент, ссылка)
-        records = []
+        records, level_ids = [], []
         for _f, _special, k, pct in top_of(e["final_best"]):
             w = links.get(k)
             records.append([meta[k]["name"], fmt_pct(pct), w[1] if w and w[0] == pct else ""])
+            level_ids.append(k)  # ID уровня: по нему cbd-update.py ищет видео принятых рекордов (в waiting ссылки нет)
         new_players[person] = {"nick": e["nick"], "country_code": (info.get(person) or (None, None))[1] or None,
-                               "gdr_id": person, "records": records}
+                               "gdr_id": person, "records": records, "level_ids": level_ids}
     lines = ['{', '  "users": {']
     items = list(new_players.items())
     for i, (key, val) in enumerate(items):
