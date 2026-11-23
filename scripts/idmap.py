@@ -23,6 +23,11 @@ def _links():
     return {}
 
 
+def load_links():
+    """Весь links.json: {наш ID: запись человека} (для скриптов, которым нужны не только ID CoreBoard, но и каналы)."""
+    return _links()
+
+
 def load_id_map(board="main"):
     out, owner = {}, {}
     for gdr_id, entry in _links().items():
