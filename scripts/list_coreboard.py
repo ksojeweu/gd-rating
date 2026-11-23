@@ -64,6 +64,7 @@ class _Page(HTMLParser):
         self.in_rec = False  # внутри <dd> с рекордами (профиль)
         self.profile = []    # [(текст, ссылка)]
         self.country_buf = ""
+        self.rec_cell = False  # текущая ячейка с рекордами (class="rec")
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -74,6 +75,7 @@ class _Page(HTMLParser):
         elif tag == "td" and self.cur is not None:
             self.td += 1
             self.country_buf = ""
+            self.rec_cell = "rec" in (a.get("class") or "").split()
         elif tag == "a":
             self.href, self.text = a.get("href"), ""
             m = re.search(r"/player/(\d+)", self.href or "")
@@ -89,12 +91,12 @@ class _Page(HTMLParser):
             if self.in_player:
                 self.cur["nick"] = " ".join(self.text.split())
                 self.in_player = False
-            elif self.cur is not None and self.td >= 4 and self.text.strip():
+            elif self.cur is not None and self.rec_cell and self.text.strip():
                 self.cur["recs"].append((self.text, self.href))
             elif self.in_rec and self.text.strip():
                 self.profile.append((self.text, self.href))
             self.href = None
-        elif tag == "td" and self.cur is not None and self.td == 3:
+        elif tag == "td" and self.cur is not None and self.td == 3 and not self.rec_cell:
             self.cur["cc"] = self.country_buf
         elif tag == "tr" and self.cur is not None:
             if self.cur["id"]:
@@ -111,13 +113,14 @@ class _Page(HTMLParser):
             self.text += data
         if self.in_dt:
             self.dt += data
-        if self.cur is not None and self.td == 3 and self.href is None:
+        if self.cur is not None and self.td == 3 and self.href is None and not self.rec_cell:
             self.country_buf += data
 
 
 def _country(s):
     """'🇺🇸United States' -> 'United States' (флаг-эмодзи отбрасываем)."""
-    return re.sub(r"^[\U0001F1E6-\U0001F1FF\s]+", "", s or "").strip() or None
+    s = re.sub(r"^[\U0001F1E6-\U0001F1FF\s]+", "", s or "").strip()
+    return None if not s or re.fullmatch(r"[\d.,]+", s) else s  # у мобильного борда колонки страны может не быть (там очки)
 
 
 def parse_board(text):
@@ -163,8 +166,29 @@ class CoreBoard(Source):
                 break
         else:
             raise FileNotFoundError(path)
+        def find(node, depth=0):
+            """Ищет словарь вида {"<числовой ID>": ["ник", [...], ...]} на любой глубине файла."""
+            if isinstance(node, dict):
+                hit = {k: v for k, v in node.items() if str(k).isdigit() and isinstance(v, list)}
+                if len(hit) >= max(1, len(node) // 2):
+                    return hit
+                for v in node.values():
+                    got = find(v, depth + 1) if depth < 4 else None
+                    if got:
+                        return got
+            elif isinstance(node, list) and depth < 4:
+                for v in node:
+                    got = find(v, depth + 1)
+                    if got:
+                        return got
+            return None
+
+        found = find(raw)
+        if not found:
+            top = list(raw)[:8] if isinstance(raw, dict) else type(raw).__name__
+            raise ValueError(f"в файле не нашёл игроков вида \"ID\": [\"ник\", [...]]; верхний уровень: {top}")
         out = []
-        for pid, items in raw.items():
+        for pid, items in found.items():
             nick = next((x for x in items if isinstance(x, str)), "")
             recs = []
             for x in items:
@@ -202,7 +226,8 @@ class CoreBoard(Source):
 
     def fetch(self, store, workers=3, log=print):
         players, records = {}, []
-        for mode in BOARDS:
+        # пока включён LOCAL_FILES, качаем только борды из него (у mobile файла нет, а с сайта видео бывают чужие)
+        for mode in ([m for m in BOARDS if m in LOCAL_FILES] if LOCAL_FILES else BOARDS):
             old = store.get(mode)
             if mode in LOCAL_FILES:  # временно: данные из файла репозитория, сайт не трогаем
                 try:
