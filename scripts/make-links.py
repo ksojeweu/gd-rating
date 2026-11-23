@@ -801,6 +801,132 @@ def account_videos(dl, pc, lists_data):
     return dl_vids, acc
 
 
+def strict_names():
+    """Листы со строгой привязкой (src.strict = True, сейчас CoreBoard): их видео и каналы НИКОГДА не участвуют в поиске
+    каналов и в привязке других листов, отдельных записей у них нет."""
+    return {s.name for s in L.all_lists() if getattr(s, "strict", False)}
+
+
+STRICT_ERRORS_FILE = "links_{name}_errors.txt"
+
+
+def link_strict(src, data, result, dl, pc, lists_data, review):
+    """Привязка листа, которому нельзя ошибаться (CoreBoard: видео на нём часто чужие).
+    Аккаунт дописывается в запись, только если ВСЕ его общие видео ведут ровно в одну запись links.json.
+    Отдельных записей не создаём. Ошибка (ничего не вносится) в таких случаях:
+      - общих видео нет, то есть состыковать не с кем;
+      - видео ведут в несколько записей;
+      - у записи на этом борде уже есть другой профиль или к ней просятся два профиля одного борда
+        (ошибка выдаётся на всех участников; борд = часть ID до двоеточия: main, mobile).
+    Уже привязанные аккаунты (в том числе ручные правки) не трогаем. Ошибки пишутся в links_<лист>_errors.txt.
+    Возвращает (привязано, 0)."""
+    name, tag = src.name, src.tag
+    players = data["players"]
+    strict = strict_names()
+    dl_vids, acc_vids = account_videos(dl, pc, lists_data)
+    mine_vids = acc_vids[name]
+
+    key_vids, vid_keys, owner = {}, defaultdict(set), {}
+    for key, entry in result.items():
+        block = other_accounts(entry)
+        vids = set(dl_vids.get(key, ()))
+        for lst in LISTS:
+            if lst in strict:  # видео строгих листов доказательством не считаются
+                continue
+            for a_id in block[lst]:
+                vids |= acc_vids[lst].get(str(a_id), set())
+        for a_id in block[name]:
+            owner[str(a_id)] = key
+        key_vids[key] = vids
+        for v in vids:
+            vid_keys[v].add(key)
+
+    def mode_of(w):
+        return str(w).split(":", 1)[0]
+
+    def label(w):
+        return f"{tag} {w} ({players[w]['n']})" if w in players else f"{tag} {w}"
+
+    def who(key):
+        return f"{key} ({result[key].get('_name', '')})"
+
+    errors, dropped = [], set()  # dropped: аккаунты, снятые с записи в этом запуске (в этот запуск заново не привязываем)
+
+    def unlink(key, w):
+        lst = other_accounts(result[key])[name]
+        lst[:] = [a for a in lst if str(a) != str(w)]
+        owner.pop(str(w), None)
+        dropped.add(str(w))
+
+    # уже записанное тоже проверяем: дубли на одном борде и профили, чьи видео ведут к другим людям, снимаем
+    for key in list(result):
+        by_mode = defaultdict(list)
+        for a_id in other_accounts(result[key])[name]:
+            by_mode[mode_of(a_id)].append(str(a_id))
+        for mode, ids in by_mode.items():
+            if len(ids) > 1:
+                errors.append(f"ОШИБКА: у записи {who(key)} несколько профилей {tag} на борде {mode}, СНЯТЫ все: "
+                              + ", ".join(label(w) for w in ids))
+                for w in ids:
+                    unlink(key, w)
+    for w, key in sorted(owner.items()):
+        mine = mine_vids.get(w, set())
+        hits = Counter(k for v in mine for k in vid_keys.get(v, ()))
+        foreign = [k for k in hits if k != key]
+        if foreign:
+            lines = [f"ОШИБКА: {label(w)} привязан к {who(key)}, но его видео есть и у других записей, СНЯТ:"]
+            for k in sorted(hits, key=str):
+                lines.append(f"    {who(k)}, общих видео: {hits[k]}")
+                lines.append(vurls(mine & key_vids[k]))
+            errors.append("\n".join(lines))
+            unlink(key, w)
+
+    cand = defaultdict(list)  # (запись, борд) -> [аккаунты, которые к ней просятся]
+    for w in sorted(w for w in players if w not in owner and w not in dropped):
+        mine = mine_vids.get(w, set())
+        hits = Counter(k for v in mine for k in vid_keys.get(v, ()))
+        if not mine:
+            errors.append(f"ОШИБКА: {label(w)} нет видео, состыковать нечем")
+        elif not hits:
+            errors.append(f"ОШИБКА: {label(w)} не состыкован: ни одно его видео не найдено ни у одной записи")
+        elif len(hits) > 1:
+            lines = [f"ОШИБКА: {label(w)} совпал с несколькими записями, не вношу:"]
+            for k in sorted(hits, key=str):
+                lines.append(f"    {who(k)}, общих видео: {hits[k]}")
+                lines.append(vurls(mine & key_vids[k]))
+            errors.append("\n".join(lines))
+        else:
+            cand[(next(iter(hits)), mode_of(w))].append(w)
+
+    linked = 0
+    for (key, mode), ws in sorted(cand.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])):
+        have = [str(a) for a in other_accounts(result[key])[name] if mode_of(a) == mode]
+        if have or len(ws) > 1:
+            lines = [f"ОШИБКА: у записи {who(key)} получается больше одного профиля {tag} на борде {mode}, "
+                     f"не вношу и снимаю все: " + ", ".join(label(w) for w in have + ws)]
+            for w in ws:
+                lines.append(f"  {label(w)}, общие видео с записью:")
+                lines.append(vurls(mine_vids.get(w, set()) & key_vids[key]))
+            errors.append("\n".join(lines))
+            for w in have:  # уже стоявший профиль тоже снимаем: два профиля на борде не допускаются
+                unlink(key, w)
+            continue
+        w = ws[0]
+        other_accounts(result[key])[name].append(int(w) if w.isdigit() else w)
+        owner[w] = key
+        linked += 1
+
+    with open(STRICT_ERRORS_FILE.format(name=name), "w", encoding="utf-8") as f:
+        f.write(f"Ошибки привязки {tag}: эти аккаунты в links.json НЕ внесены. Файл пишется заново.\n\n")
+        f.write("\n\n".join(errors) if errors else "Ошибок нет.")
+        f.write("\n")
+    if errors:
+        print(f"  {name}: ОШИБОК привязки {len(errors)} (подробности в {STRICT_ERRORS_FILE.format(name=name)})")
+        for e in errors[:5]:
+            print("    " + e.split("\n")[0])
+    return linked, 0
+
+
 def link_source(src, data, result, dl, pc, lists_data, review, max_accounts=3):
     """Раскладывает аккаунты листа src по записям links.json (по общим видео, как Pointercrate к глобалу).
     Видео записи = видео её аккаунта глобала и всех её аккаунтов на всех листах (в том числе уже привязанных).
@@ -821,6 +947,8 @@ def link_source(src, data, result, dl, pc, lists_data, review, max_accounts=3):
         block = other_accounts(entry)
         vids = set(dl_vids.get(key, ()))
         for lst in LISTS:
+            if lst in strict_names():  # видео CoreBoard не считаются доказательством
+                continue
             for a_id in block[lst]:
                 vids |= acc_vids[lst].get(str(a_id), set())
         for a_id in block[name]:
@@ -1162,6 +1290,8 @@ def add_channels(result, dl, pc, workers, lists_data=None):
             pc_vids[r["p"]].append(str(r["v"]))
     list_urls = {}  # видео игроков других листов (лежат после видео глобала и Pointercrate): лист -> аккаунт -> ссылки
     for lname, data in (lists_data or {}).items():
+        if lname in strict_names():  # каналы по видео CoreBoard не ищем: ссылки там бывают чужие
+            continue
         list_urls[lname] = defaultdict(list)
         for r in data["records"]:
             if r.get("a") is not None and r.get("v"):
@@ -2043,6 +2173,12 @@ def main():
             sys.exit(1)
 
     unpack_dict_lists(result)  # coreboard: {"main": 12} -> ["main:12"] (до migrate_links)
+    # Записей вида cbmain:123 быть не должно (у CoreBoard нет своих людей): убираем, если остались от старых запусков
+    stale = [k for k in result if not L.is_global(k) and getattr(L.source_of_key(k), "strict", False)]
+    for k in stale:
+        del result[k]
+    if stale:
+        print(f"  удалено записей строгих листов (CoreBoard): {len(stale)}")
     migrated = migrate_links(result)
     if migrated:
         print(f"  формат {OUT}: у {migrated} записей аккаунты других листов перенесены в блок \"{OTHER}\"")
@@ -2201,8 +2337,13 @@ def main():
     # Другие листы: привязываем их аккаунты к записям по общим видео (до поиска каналов,
     # чтобы видео этих листов тоже участвовали в нём). Порядок листов = порядок регистрации.
     list_stats = {}
-    for src in L.sources():
-        if src.name in lists_data:
+    # строгие листы (CoreBoard) идут последними: к тому времени все записи и их видео уже на месте
+    for src in sorted(L.sources(), key=lambda s: bool(getattr(s, "strict", False))):
+        if src.name not in lists_data:
+            continue
+        if getattr(src, "strict", False):
+            list_stats[src.name] = link_strict(src, lists_data[src.name], result, dl, pc, lists_data, review)
+        else:
             list_stats[src.name] = link_source(src, lists_data[src.name], result, dl, pc, lists_data, review, MAX_ACCOUNTS)
 
     added_channels = None
