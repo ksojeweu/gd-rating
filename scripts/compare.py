@@ -455,6 +455,9 @@ if TO_CBD:
     next_cb_id = max_cb_id + 1  # новым игрокам CoreBoard-ID по порядку (в порядке рейтинга gdr)
     unmapped_cbd = [p for pid, p in players2.items() if pid.startswith(NICK_KEY_PREFIX)]
     unmapped_cbd_nicks = {normalize_nick(p["nick"]) for p in unmapped_cbd if p["nick"]}
+    # ники игроков CoreBoard, которые УЖЕ сопоставлены с нашим ID: ник -> наш ID
+    mapped_cbd_by_nick = {normalize_nick(p["nick"]): pid for pid, p in players2.items()
+                          if p["nick"] and not pid.startswith(NICK_KEY_PREFIX)}
 
     for player_id in players_in_file_order(ids_only_in_1, players1):
         p1 = players1[player_id]
@@ -466,6 +469,15 @@ if TO_CBD:
 
         if normalize_nick(nick) in unmapped_cbd_nicks or normalize_nick(strip_clan_tags(nick)) in unmapped_cbd_nicks:
             skipped_players.append(f"{player_id} | {nick} | {p1['score']} | такой ник уже есть в cbd, но не сопоставился по links.json")
+            continue
+        # Ник уже стоит на CoreBoard у сопоставленного игрока, а эта запись пришла под ДРУГИМ нашим ID.
+        # Раньше тут к нику дописывалась цифра (zLevii -> zLevii2) и получался дубль человека.
+        owner = mapped_cbd_by_nick.get(normalize_nick(nick)) or mapped_cbd_by_nick.get(normalize_nick(strip_clan_tags(nick)))
+        if owner is not None and owner != player_id:
+            where = (f"в gdr он есть и под ID {owner}: [{players1[owner]['line']}]" if owner in players1
+                     else f"под ID {owner} его в gdr нет")
+            skipped_players.append(f"{player_id} | {nick} | {p1['score']} | ник уже на CoreBoard у игрока с нашим ID {owner} "
+                                   f"(CoreBoard ID {cb_id_by_gdr.get(owner, '?')}); {where}; эта строка gdr: [{p1['line']}]")
             continue
         twin = next((p for p in unmapped_cbd if len(names & set(p["achievements"])) >= SAME_LEVELS_MIN), None)
         if twin is not None:
