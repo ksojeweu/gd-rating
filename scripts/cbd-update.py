@@ -10,7 +10,10 @@
   4. add-video-links.py -> видео (GlobalList, Pointercrate) и commands.txt;
   5. с --commit кладёт в cbd/ missing_achievements.json, missing_players.json и missing_players_with_waiting.json
      (игроки, у которых меньше 250 очков только с waiting-записями; ID продолжаются после последнего в
-     missing_players.json) в формате jsonfmt.py, коммитит и пушит. commands.txt остаётся только в scripts/cbd-update/.
+     missing_players.json) в формате jsonfmt.py, коммитит и пушит.
+     Игроков, у которых видео или канал такие же, как у игрока, уже стоящего на CoreBoard, в эти два файла не кладёт
+     (это он и есть), см. cbd_dupes.py; кто и почему пропущен: missing_players_skipped.txt и
+     missing_players_with_waiting_skipped.txt в scripts/cbd-update/. commands.txt остаётся только в scripts/cbd-update/.
 
 ID CoreBoard: из cbd_ids.json (с сайта, главнее) и links.json (other_lists.coreboard.main), см. idmap.py. В missing_achievements*.json
 вместо наших ID стоят ID CoreBoard, новые игроки получают ID по порядку после самого большого.
@@ -29,6 +32,7 @@ import sys
 import time
 from pathlib import Path
 
+import cbd_dupes
 from idmap import load_id_map
 from jsonfmt import write_players
 
@@ -182,7 +186,7 @@ def fill_missing_links(result):
           f"без ссылки {len(missing)} (причины в missing_players_with_waiting_video_links.txt)")
 
 
-def make_players_with_waiting(out, cbd_ids):
+def make_players_with_waiting(out, cbd_ids, known):
     """missing_players_with_waiting.json: игроки, которые набирают меньше 250 очков ТОЛЬКО с waiting-записями.
     Берёт scripts/waiting_new_players.json (его пишет gd-rating --waiting), выбрасывает тех, кто уже есть на
     CoreBoard, выдаёт ID, продолжая после последнего ID в missing_players.json, и делает ники уникальными."""
@@ -227,6 +231,18 @@ def make_players_with_waiting(out, cbd_ids):
 
     fill_missing_links(result)
 
+    # Игроки, у которых видео или канал совпали с кем-то на CoreBoard, это уже имеющиеся там люди: не добавляем
+    start_id = next_id - len(result)
+    result, skipped = cbd_dupes.drop_known(result, known)
+    skipped_file = out / "missing_players_with_waiting_skipped.txt"
+    skipped_file.write_text("\n".join(skipped) + ("\n" if skipped else ""), "utf-8")
+    for line in skipped:
+        print("  не добавляю:", line)
+    if skipped and use_cb_ids:   # без дыр в нумерации: ID продолжаются после последнего в missing_players.json
+        result = {str(start_id + i): info for i, info in enumerate(result.values())}
+        next_id = start_id + len(result)
+    print(f"cbd_dupes: missing_players_with_waiting.json: убрано {len(skipped)} (они уже есть на CoreBoard)")
+
     with open(out / "missing_players_with_waiting.json", "w", encoding="utf-8") as f:
         f.write('{\n  "users": {\n')
         items = list(result.items())
@@ -247,6 +263,7 @@ def main():
             sys.exit(f"Нет файла {f.name} (или он пустой). Останавливаюсь.")
 
     cbd_ids = HERE / "cbd_ids.json"   # ник -> ID с сайта; делает coreboard-parse, когда в ссылках появятся ID
+    known = cbd_dupes.Known(HERE / "cbd.json")   # видео и каналы игроков CoreBoard (для проверки «он уже есть»)
 
     shutil.rmtree(OUT, ignore_errors=True)   # результаты прошлого запуска убираем, чтобы старые команды не приняли за новые
     out = OUT
@@ -268,11 +285,13 @@ def main():
              "--prev-players", CBD_DIR / "missing_players.json"], "Видео и команды (add-video-links)")
         if not (out / "commands.txt").exists():
             sys.exit("add-video-links.py не создал commands.txt.")
+        # ссылки на видео уже найдены: выбрасываем тех, кто по видео или каналу совпал с игроком CoreBoard
+        cbd_dupes.filter_file(out / "missing_players.json", out / "missing_players_skipped.txt", known)
     else:
         print("В CoreBoard нечего добавлять.")
         (out / "commands.txt").write_text("", "utf-8")
 
-    make_players_with_waiting(out, cbd_ids)
+    make_players_with_waiting(out, cbd_ids, known)
     if args.commit:
         publish(out, f"cbd: {len(found)} игроков, {total} записей, новых игроков {new_players} (авто, gdr-not-in-cbd)")
 
