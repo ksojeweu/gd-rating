@@ -514,6 +514,9 @@ if TO_CBD:
 
     # Только в missing_players.json ID уровней заменяются названиями
     for player in new_players.values():
+        # ID уровней нужны add-video-links.py: видео ищутся по ID, а в записи ниже ID заменяется названием.
+        # Поле level_ids остаётся только в рабочей папке (в cbd/ cbd-update кладёт лишь ник и записи).
+        player["level_ids"] = [record[0] for record in player["records"]]
         for record in player["records"]:
             record[0] = level_name_for_missing_player(record[0])
     with open(out_path("missing_players.json"), "w", encoding="utf-8") as f:
