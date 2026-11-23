@@ -3,7 +3,7 @@
 Вызывается из cbd-update.py:  add-video-links.py --out-dir DIR --prev-players cbd/missing_players.json
 
 Читает (из DIR):  missing_achievements.json, missing_achievements_with_nicks.json, missing_players.json.
-Пишет (в DIR):    commands.txt, ссылки в оба missing_achievements*.json и в первую запись каждого игрока из
+Пишет (в DIR):    commands.txt, ссылки в оба missing_achievements*.json и в каждую запись игроков из
                   missing_players.json, а для отладки missing_video_links.txt, video_link_sources.txt,
                   missing_players_video_links.txt.
 Видео ищутся в GlobalList (все аккаунты человека) и в Pointercrate.
@@ -177,24 +177,29 @@ def add_links_to_file(command_records, path, index):
 
 
 def load_previous_players_links():
-    """Ссылки из прошлого опубликованного missing_players.json: (игрок, уровень, процент) -> ссылка."""
+    """Ссылки из прошлого опубликованного missing_players.json: (ник, название уровня, процент) -> ссылка.
+    Понимает оба формата: старый {ключ: {"nick", "records"}} и текущий {ключ: ["ник", [уровень, процент, ссылка], ...]}."""
     cache = {}
     try:
         data = json.loads(Path(args.prev_players).read_text("utf-8"))
     except (OSError, ValueError):
         return cache
-    for key, info in (data.get("users", data) or {}).items():
-        # Ключ файла может быть ID CoreBoard; наш ID лежит в gdr_id (в старых файлах ключ и есть наш ID)
-        owner = normalize_id((info.get("gdr_id") if isinstance(info, dict) else None) or key)
-        for record in (info.get("records", []) if isinstance(info, dict) else []):
-            if len(record) >= 3 and record[2]:
-                cache[(owner, str(record[0]), parse_percent(record[1]))] = record[2]
+    for _key, info in (data.get("users", data) or {}).items():
+        if isinstance(info, dict):
+            nick, records = info.get("nick"), info.get("records", [])
+        elif isinstance(info, list) and info:
+            nick, records = info[0], info[1:]
+        else:
+            continue
+        for record in records:
+            if isinstance(record, list) and len(record) >= 3 and record[2]:
+                cache[(str(nick).casefold(), str(record[0]).casefold(), parse_percent(record[1]))] = record[2]
     return cache
 
 
 def add_videos_to_players(links):
-    """Дописывает ссылку в missing_players.json только у ПЕРВОЙ записи каждого игрока (у остальных пусто, видео для
-    них не ищутся). Ссылки, найденные в прошлом опубликованном файле, заново не ищутся."""
+    """Дописывает ссылку в КАЖДУЮ запись игроков из missing_players.json. Видео ищутся по ID уровня (поле level_ids,
+    его пишет compare.py: в самой записи уже название). Ссылки из прошлого опубликованного файла заново не ищутся."""
     if not PLAYERS_FILE.exists():
         print(f"Нет {PLAYERS_FILE}: новых игроков нет, пропускаю")
         return
@@ -206,18 +211,18 @@ def add_videos_to_players(links):
     for key, info in users.items():
         # Ключ - ID на CoreBoard (или наш); видео ищем по нашему ID из gdr_id
         player_id = info.get("gdr_id") or player_id_from_key(key)
-        print(f"\nНовый игрок: {key} ({info.get('nick')}), наш ID {player_id}")
+        nick = info.get("nick")
+        level_ids = info.get("level_ids") or []
+        print(f"\nНовый игрок: {key} ({nick}), наш ID {player_id}")
 
         for record_index, record in enumerate(info.get("records", [])):
             while len(record) < 3:
                 record.append("")
-            if record_index > 0:  # видео только у первой записи
-                record[2] = ""
-                continue
-            level_id, raw_percent = record[0], record[1]
+            level_name, raw_percent = record[0], record[1]
+            level_id = level_ids[record_index] if record_index < len(level_ids) else level_name
             percent = parse_percent(raw_percent)
 
-            cached = previous.get((normalize_id(player_id), str(level_id), percent))
+            cached = previous.get((str(nick).casefold(), str(level_name).casefold(), percent))
             if cached:
                 record[2] = cached
                 continue
@@ -227,20 +232,23 @@ def add_videos_to_players(links):
                 if percent is not None and str(level_id).strip().isdigit():
                     video, source_name = find_video_retry(player_id, level_id, percent, links)
                     time.sleep(DELAY)
+                elif percent is None:
+                    source_name = "непонятный процент"
                 else:
-                    source_name = "непонятный процент или ID уровня"
+                    source_name = "уровень не из глобала (ID не число): на глобале и Pointercrate записей на него нет"
             except Exception as error:
                 source_name = f"ОШИБКА: {error}"
 
             record[2] = normalize_link(video) if video else ""
             if record[2]:
-                print(f"  {level_id} {raw_percent}%: найдено ({source_name})")
+                print(f"  {level_name} {raw_percent}%: найдено ({source_name})")
             else:
-                not_found.append(f"{key} | {info.get('nick')} | level_id={level_id} | {raw_percent}% | {source_name}")
-                print(f"  {level_id} {raw_percent}%: не найдено ({source_name})")
+                not_found.append(f"{key} | {nick} | {level_name} (level_id={level_id}) | {raw_percent}% | {source_name}")
+                print(f"  {level_name} {raw_percent}%: не найдено ({source_name})")
 
     save_players_json(users, PLAYERS_FILE)
     PLAYERS_NOT_FOUND_FILE.write_text("\n".join(not_found) + ("\n" if not_found else ""), encoding="utf-8")
+    print(f"\nНовые игроки: без ссылки осталось {len(not_found)}, список в {PLAYERS_NOT_FOUND_FILE.name}")
 
 
 def main():
