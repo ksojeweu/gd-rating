@@ -425855,5 +425855,15 @@
       "coreboard": {},
       "wml": []
     }
+  },
+  "pc73469": {
+    "_name": "GodlyKitten",
+    "other_lists": {
+      "pointercrate": [
+        73469
+      ],
+      "coreboard": {},
+      "wml": []
+    }
   }
 }
