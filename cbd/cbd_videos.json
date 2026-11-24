@@ -293,9 +293,9 @@
       ["Penumbral", 100, "https://www.youtube.com/watch?v=Bp_d_yXHSIY"],
       ["andromeda", 100, "https://www.youtube.com/watch?v=vAC-fPN81xw"],
       ["Avernus", 100, "https://www.youtube.com/watch?v=MvFMSx88dYI"],
+      ["Abyss of Darkness", 100, ""],
       ["Defeated Circles", 100, "https://www.youtube.com/watch?v=fkTr9sdAtKc"],
-      ["Acheron", 100, "https://www.youtube.com/watch?v=-86PbtsEWv8"],
-      ["Tunnel of Despair", 100, "https://www.youtube.com/watch?v=7Dk6F2DSPBs"]
+      ["Acheron", 100, "https://www.youtube.com/watch?v=-86PbtsEWv8"]
     ],
     "34": [
       "whfyre",
@@ -2182,7 +2182,7 @@
       ["Through The Gates", 100, "https://www.youtube.com/watch?v=Uzb6Y8cf1Eo"],
       ["poocubed", 100, "https://www.youtube.com/watch?v=IqPiT4TfM7w"],
       ["Sevvend Clubstep", 100, "https://www.youtube.com/watch?v=8N2C9OZceQk"],
-      ["Solar Flare", 100, "https://www.youtube.com/watch?v=zspEBwVN7rQ"]
+      ["Ultra Paracosm", 39, "https://www.youtube.com/watch?v=k0FEYyNzdaY"]
     ],
     "244": [
       "Dustabounds",
@@ -2227,7 +2227,7 @@
       ["Snowbound", 100, "https://www.youtube.com/watch?v=SzI1e65fJbA"],
       ["Calibrate", 100, "https://www.youtube.com/watch?v=aGlQHUqRM8g"],
       ["Saul Goodman", 100, "https://www.youtube.com/watch?v=L00fCjUc6tU"],
-      ["Sevvend Clubstep", 100, "https://www.youtube.com/watch?v=4nt6mNO50Nw"]
+      ["Haunted Ship", 100, "https://www.youtube.com/watch?v=MdWGDPaWQ68"]
     ],
     "249": [
       "fxpusphire",
@@ -2433,8 +2433,8 @@
       ["Firework", 100, "https://www.youtube.com/watch?v=0wVHDR-kp-A"],
       ["KOSETSU", 100, "https://www.youtube.com/watch?v=euxFfYCPETg"],
       ["Saul Goodman", 100, "https://www.youtube.com/watch?v=NCVJsO9rsd8"],
-      ["COMBUSTION", 100, "https://www.youtube.com/watch?v=o9Y3FjuMhZE"],
-      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=OH4KQuqAJrw"]
+      ["Acheron", 89, "https://www.youtube.com/watch?v=mIQ3DqNWWAA"],
+      ["COMBUSTION", 100, "https://www.youtube.com/watch?v=o9Y3FjuMhZE"]
     ],
     "272": [
       "mcrawford001",
@@ -2557,9 +2557,9 @@
       ["Spectre", 100, "https://www.youtube.com/watch?v=8rLGy6MqjX8"],
       ["Firework", 100, "https://www.youtube.com/watch?v=tVL_U3TuhsI"],
       ["NOMAD", 100, "https://www.youtube.com/watch?v=-nnwSgEw4Ww"],
+      ["FIBERGLASS", 96, ""],
       ["LIMBO", 100, "https://www.youtube.com/watch?v=qUCJbD86cKA"],
-      ["The Plunge", 100, "https://www.youtube.com/watch?v=hECYuU9O9W8"],
-      ["Voltage", 83, ""]
+      ["The Plunge", 100, "https://www.youtube.com/watch?v=hECYuU9O9W8"]
     ],
     "286": [
       "RicoLP",
@@ -3711,11 +3711,11 @@
     "414": [
       "BigHoss",
       ["Spectre", 100, "https://www.youtube.com/watch?v=6gZd4NtIQ0U"],
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=-prFRpsWmsI"],
       ["Edge of Destiny", 100, "https://www.youtube.com/watch?v=XAtdKoZjAHU"],
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=uC9F9vieh5Y"],
       ["LIMBO", 100, "https://www.youtube.com/watch?v=qzUu-JvIYNY"],
-      ["Tartarus", 100, "https://www.youtube.com/watch?v=9vfW-KXTeHk"],
-      ["The Golden", 100, "https://www.youtube.com/watch?v=OCXdUi4TTS4"]
+      ["Tartarus", 100, "https://www.youtube.com/watch?v=9vfW-KXTeHk"]
     ],
     "415": [
       "DoSh7t",
@@ -6450,7 +6450,7 @@
       "Liamkn08",
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=xC3BiIq03ms"],
       ["Midnight", 100, "https://www.youtube.com/watch?v=PSMk6XJlsGk"],
-      ["KOCMOC", 76, "https://www.youtube.com/watch?v=sHjOmM5Y72g"],
+      ["KOCMOC", 82, "https://www.youtube.com/watch?v=qBbSjvu3OeM"],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=AwEJG3LsXGk"],
       ["Shukketsu", 100, "https://www.youtube.com/watch?v=fwD-_uesnnU"],
       ["Thinking Space", 100, "https://www.youtube.com/watch?v=HJIPVrFCLRI"]
@@ -8219,12 +8219,12 @@
     ],
     "922": [
       "Vink",
+      ["Haunted Ship", 100, "https://www.youtube.com/watch?v=VEcF90PM1KQ"],
       ["Between Duality", 100, "https://www.youtube.com/watch?v=6GmgrmOz3QQ"],
       ["Trickshot", 100, "https://www.youtube.com/watch?v=K1cMbrtWqvY"],
       ["Sanctity", 100, "https://www.youtube.com/watch?v=TsbPuyoJDa8"],
       ["Verdant Landscape", 100, "https://www.youtube.com/watch?v=NgKWfHnotyI"],
-      ["Oblivion", 100, "https://www.youtube.com/watch?v=i_GsoJNBB4Q"],
-      ["Critical Heat", 100, "https://www.youtube.com/watch?v=C6ioXA-twHo"]
+      ["Oblivion", 100, "https://www.youtube.com/watch?v=i_GsoJNBB4Q"]
     ],
     "923": [
       "DuckOfSxness",
@@ -8700,7 +8700,7 @@
       ["THE ROCK HOUSE", 100, "https://www.youtube.com/watch?v=z95O3F0kSN8"],
       ["Aerial Gleam", 100, "https://www.youtube.com/watch?v=yJqlzohku5U"],
       ["Trueffet", 100, "https://www.youtube.com/watch?v=9qXF8qFULR8"],
-      ["Crackhead Circles", 100, "https://www.youtube.com/watch?v=SkdKdZQsrFI"]
+      ["IMPERIAL", 100, ""]
     ],
     "978": [
       "enzollz",
@@ -14013,7 +14013,7 @@
     ],
     "1646": [
       "Gopn",
-      ["Acheron", 85, "https://www.youtube.com/watch?v=bRV22BZw0Yg"],
+      ["Acheron", 94, "https://www.youtube.com/watch?v=6Rk_6lRTbyo"],
       ["Collapse", 100, "https://www.youtube.com/watch?v=HdVkU-fWoV8"],
       ["shimmer", 100, "https://www.youtube.com/watch?v=cXMMqvrKBqQ"]
     ],
@@ -14557,6 +14557,7 @@
     "1718": [
       "Smapalt",
       ["NOMAD", 100, "https://www.youtube.com/watch?v=zy_J2CWOkq8"],
+      ["Tartarus", 100, "https://www.youtube.com/watch?v=XWHoKCCYk-g"],
       ["The Golden", 100, "https://www.youtube.com/watch?v=RRkVpPGmP0A"],
       ["Zodiac", 100, "https://www.youtube.com/watch?v=LcnNanQvG4I"]
     ],
@@ -19657,6 +19658,7 @@
     ],
     "2464": [
       "CursedCat",
+      ["Coalescence", 100, "https://www.youtube.com/watch?v=4W2or60aFGU"],
       ["Verdant Landscape", 100, "https://www.youtube.com/watch?v=lM85DLBUu-8"],
       ["Lotus Flower", 100, "https://www.youtube.com/watch?v=I11xaPuSZuM"],
       ["Lithium", 100, "https://www.youtube.com/watch?v=Wg2KlGSl-TQ"],
@@ -21799,7 +21801,7 @@
     ],
     "2857": [
       "MegaCatMan",
-      ["Amethyst", 42, "https://www.youtube.com/watch?v=9LyrOv5po_s"],
+      ["Amethyst", 52, "https://www.youtube.com/watch?v=A5y3NaANBCg"],
       ["KOCMOC", 82, "https://www.youtube.com/watch?v=t5ogae4QgHY"]
     ],
     "2858": [
