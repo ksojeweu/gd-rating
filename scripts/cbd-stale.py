@@ -51,7 +51,7 @@ DL = "https://api.demonlist.org/"
 WAITING_TTL = 3 * 3600          # как в gd-rating
 LEVEL_TTL = 30 * 86400          # date_created уровня не меняется
 VIDEO_OK_TTL = 3650 * 86400     # дата загрузки видео не меняется
-VIDEO_FAIL_TTL = 86400          # не нашли дату: повторяем завтра
+VIDEO_FAIL_TTL = 1800           # не нашли дату: пробуем снова через полчаса (чтобы после правки не ждать)
 WORKERS = 8
 BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 
@@ -246,34 +246,70 @@ def yt_api_dates(ids, key):
             _cache_video(vid, got.get(vid))
 
 
+VIDEO_WHY = {}      # ID видео -> почему не удалось узнать дату (для отчёта и лога)
+INNERTUBE = [
+    ("WEB", {"clientName": "WEB", "clientVersion": "2.20250101.00.00", "hl": "en"}, BROWSER_UA),
+    ("ANDROID", {"clientName": "ANDROID", "clientVersion": "19.09.37", "androidSdkVersion": 30, "hl": "en"},
+     "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip"),
+]
+
+
+def _open(req, limit=None):
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return r.read(limit) if limit else r.read()
+
+
+def yt_innertube_date(vid, client, ua):
+    """Внутренний API плеера: в ответе есть microformat с датой загрузки. Ключ не нужен."""
+    body = json.dumps({"context": {"client": client}, "videoId": vid}).encode()
+    req = urllib.request.Request("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", data=body,
+                                 headers={"User-Agent": ua, "Content-Type": "application/json", "Accept-Language": "en-US,en;q=0.9"})
+    d = json.loads(_open(req))
+    mf = (d.get("microformat") or {}).get("playerMicroformatRenderer") or {}
+    date = mf.get("uploadDate") or mf.get("publishDate")
+    if date:
+        return date, None
+    st = d.get("playabilityStatus") or {}
+    return None, f"{st.get('status', '?')}: {str(st.get('reason') or '')[:80]}"
+
+
 def yt_page_date(vid):
-    """Дата загрузки со страницы видео (ключ API не нужен). None, если страница не отдала дату."""
-    for i in range(3):
+    """Дата загрузки со страницы видео. (дата или None, причина)."""
+    req = urllib.request.Request(
+        "https://www.youtube.com/watch?v=" + vid,
+        headers={"User-Agent": BROWSER_UA, "Accept-Language": "en-US,en;q=0.9", "Cookie": "SOCS=CAI; CONSENT=YES+1"})
+    text = _open(req, 2_000_000).decode("utf-8", "replace")
+    for rx in YT_DATE:
+        m = rx.search(text)
+        if m:
+            return m.group(1), None
+    if "consent.youtube.com" in text or "Before you continue" in text:
+        return None, "страница согласия с куками YouTube"
+    if "not a bot" in text or "unusual traffic" in text:
+        return None, "YouTube просит подтвердить, что вы не бот"
+    return None, "на странице видео нет даты (видео удалено или закрыто)"
+
+
+def yt_scrape_date(vid):
+    """Без ключа API: внутренний API плеера (WEB, потом ANDROID), потом страница видео. Причину неудачи запоминает."""
+    why = []
+    for name, client, ua in INNERTUBE:
         try:
-            req = urllib.request.Request(
-                "https://www.youtube.com/watch?v=" + vid,
-                headers={"User-Agent": BROWSER_UA, "Accept-Language": "en-US,en;q=0.9",
-                         "Cookie": "CONSENT=YES+1; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg"})
-            with urllib.request.urlopen(req, timeout=30) as r:
-                buf = b""
-                while len(buf) < 1_500_000:
-                    part = r.read(65536)
-                    if not part:
-                        break
-                    buf += part
-                    text = buf.decode("utf-8", "replace")
-                    for rx in YT_DATE:
-                        m = rx.search(text)
-                        if m:
-                            return m.group(1)
-            return None
-        except urllib.error.HTTPError as e:
-            if e.code in (412, 429) or e.code >= 500:
-                time.sleep(2 ** i)
-                continue
-            return None     # 401/403/404: видео нет
-        except Exception:
-            time.sleep(2 ** i)
+            date, r = yt_innertube_date(vid, client, ua)
+            if date:
+                return date
+            why.append(f"{name}: {r}")
+        except Exception as e:
+            why.append(f"{name}: {type(e).__name__} {str(e)[:60]}")
+        time.sleep(0.3)
+    try:
+        date, r = yt_page_date(vid)
+        if date:
+            return date
+        why.append(f"страница: {r}")
+    except Exception as e:
+        why.append(f"страница: {type(e).__name__} {str(e)[:60]}")
+    VIDEO_WHY[vid] = "; ".join(why)
     return None
 
 
@@ -284,18 +320,27 @@ def fill_video_dates(ids):
     if need and key:
         try:
             yt_api_dates(need, key)
+            for v in need:
+                if not _video_cached(v)[1]:
+                    VIDEO_WHY[v] = "YouTube API не вернул видео (удалено или закрыто)"
             need = []
         except Exception as e:
-            print(f"YouTube API не ответил ({e}), беру даты со страниц видео")
+            print(f"YouTube API не ответил ({type(e).__name__}: {e}), беру даты без ключа")
+    elif need:
+        print("YOUTUBE_API_KEY не задан")
     if need:
-        print(f"Даты видео: открываю страницы YouTube ({len(need)})")
+        print(f"Даты видео без ключа API: {len(need)}")
 
         def one(v):
-            d = yt_page_date(v)
-            _cache_video(v, d)
+            _cache_video(v, yt_scrape_date(v))
             time.sleep(0.3)
         pmap(one, need, workers=3)
-    return {v: _video_cached(v)[1] for v in ids}
+    res = {v: _video_cached(v)[1] for v in ids}
+    fails = [v for v, d in res.items() if d is None]
+    print(f"Даты видео: найдено {len(res) - len(fails)} из {len(res)}")
+    for v in fails[:5]:
+        print(f"  {v}: {VIDEO_WHY.get(v, 'нет в кеше (неудача раньше, повтор позже)')}")
+    return res
 
 
 # ---------- вход: что не принято ----------
@@ -410,7 +455,7 @@ def main():
             elif not vid:
                 why = "видео не с YouTube"
             elif vd is None:
-                why = "YouTube не отдал дату видео"
+                why = "YouTube не отдал дату видео: " + VIDEO_WHY.get(vid, "неудача в прошлом запуске, повтор позже")
             else:
                 why = "нет date_created уровня"
             known = ld or vd
