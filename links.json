@@ -425865,5 +425865,31 @@
       "coreboard": {},
       "wml": []
     }
+  },
+  "42518": {
+    "_name": "acquit",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@achillesuui"
+      ]
+    }
+  },
+  "60565": {
+    "_name": "ilpd11",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@ilpd11gd"
+      ]
+    }
   }
 }
