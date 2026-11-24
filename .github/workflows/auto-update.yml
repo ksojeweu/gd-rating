@@ -3,6 +3,7 @@ name: auto-update
 # Один workflow на оба обновления:
 #   1. sync-extras.py: что есть в CoreBoard, а у нас нет  -> my_extras.json, levels_tp.json
 #   2. cbd-update.py:  что есть у нас, а в CoreBoard нет  -> cbd/ (missing_achievements, with_nicks, commands)
+#   3. cbd-stale.py:   рекорды CoreBoard, не принятые больше месяца -> cbd/unaccepted_records.json
 # Старый sync-extras.yml нужно удалить, иначе sync-extras будет запускаться дважды.
 
 on:
@@ -60,6 +61,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: python scripts/cbd-update.py --commit
 
+      # Рекорды CoreBoard, которые больше месяца не принимают -> cbd/unaccepted_records.json.
+      # Нужны root/missing_achievements.json (его пишет sync-extras) и scripts/cbd.json (coreboard-parse).
+      # YOUTUBE_API_KEY необязателен: без него даты видео берутся со страниц YouTube (иногда режутся).
+      - name: Run cbd-stale.py
+        if: ${{ !cancelled() }}
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python scripts/cbd-stale.py --commit
+
       # Промежуточные файлы запуска в репозиторий не коммитятся. Чтобы их посмотреть, скачай артефакт "debug-files":
       # Actions -> нужный запуск -> внизу раздел Artifacts.
       - name: Upload debug files
@@ -73,6 +83,7 @@ jobs:
             scripts/cbd.json
             scripts/cbd_ids.json
             scripts/cbd-update/
+            scripts/cbd-stale/
           if-no-files-found: ignore
           retention-days: 3
 
