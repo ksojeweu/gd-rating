@@ -1,4 +1,816 @@
 {
-  "users": {
-  }
+  "over_month": {"users": {}},
+  "under_month": {"users": {}},
+  "unknown_date": {"users": {
+    "1": [
+      "Zoink",
+      ["Heliopolis", 85, "https://www.youtube.com/watch?v=gO1nQECPU2I", "2026-10-05", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2": [
+      "wPopoff",
+      ["Flamewall", 100, "", "2025-10-16", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "7": [
+      "SerVax",
+      ["Amethyst", 69, "https://www.youtube.com/watch?v=AyrGJ-VGoeY", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Green Bullet", 91, "https://www.youtube.com/live/srZeJx2DYBE?si=uQ98_yKWUMaJcHm0&t=6199", "2026-07-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "9": [
+      "Taiago",
+      ["Sweeping Demon 2", 87, "https://www.youtube.com/watch?v=asjSeDF7x5Y", "2026-10-05", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "17": [
+      "ROZE",
+      ["Tidal Wave", 87, "https://www.youtube.com/watch?v=Y915coQxU0M", "2023-09-11", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "19": [
+      "Hover",
+      ["Silent Acropolis", 96, "https://www.youtube.com/watch?v=pWiwfxTUnDs", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "20": [
+      "ItzDexii",
+      ["Tidal Wave", 73, "https://www.youtube.com/watch?v=Qiy0-b_91WY", "2023-09-11", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "21": [
+      "Cookie",
+      ["Tidal Wave", 100, "", "2023-09-11", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "22": [
+      "ChopBlox",
+      ["Defeated Circles", 100, "", "2025-08-05", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "23": [
+      "Serpentical",
+      ["Tunnel of Serpent", 60, "https://www.youtube.com/watch?v=s3ozJ1OcK24", "2023-09-11", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "25": [
+      "xalval",
+      ["Thinking Space II", 78, "https://www.youtube.com/watch?v=UPp7y0u4nzY&feature=youtu.be", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "26": [
+      "Cryostaz",
+      ["Green Bullet", 73, "https://www.youtube.com/watch?v=kdoyJDUPbTg", "2026-07-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "31": [
+      "Cursed",
+      ["Thinking Space II", 71, "https://www.youtube.com/watch?v=H83uOfkd2RQ", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "32": [
+      "Rediio",
+      ["FOREST OF SPIKES", 100, "https://www.youtube.com/watch?v=ksfvr4_1I3A", "2026-09-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "34": [
+      "whfyre",
+      ["Every End", 61, "https://www.youtube.com/live/z3Cyb4wrXvI?si=90kngHljfTQ0TauH&t=2117", "2025-04-12", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "38": [
+      "noname228gg",
+      ["SARY NEVER CLEAR (Optic Sunflow)", 88, "https://t.me/noname1337gg/2151", "2024-10-03", "видео не с YouTube (известна дата уровня)"],
+      ["Eternal Silence", 74, "https://t.me/noname1337gg/3061", "2025-10-16", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "44": [
+      "DeividG",
+      ["Thinking Space II", 77, "https://www.youtube.com/watch?v=_YUBSubzGOU", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "50": [
+      "clubflocked",
+      ["Thinking Space II", 81, "https://www.youtube.com/watch?v=z7giQCVnJSM&t=6s", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "54": [
+      "teraaa",
+      ["Escalator", 83, "https://www.youtube.com/watch?v=xkBIaHQ9Gmo", "2024-11-17", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "57": [
+      "Whizkid05",
+      ["Nullscapes", 83, "https://www.youtube.com/watch?v=JbpaY1sZk3k", "2024-10-03", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["BOOBAWAMBA", 60, "https://www.youtube.com/watch?v=U_Qv-w2_d1g", "2024-11-17", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "58": [
+      "GuillExprex52",
+      ["Cyberpsychosis", 78, "https://www.youtube.com/watch?v=zT-lZSIt0Ps&t=8s", "2026-08-20", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "75": [
+      "Slaughter",
+      ["Acheron", 100, "", "2020-01-01", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "79": [
+      "Komet01",
+      ["Penumbral", 92, "https://www.youtube.com/post/Ugkxr3HysXkAyhJmbbd8VGjSkndrR8OWfdKj", "2026-03-30", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "81": [
+      "UzuDen",
+      ["Silent clubstep", 65, "https://www.youtube.com/watch?v=H_WaVVv2gaU", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "82": [
+      "9i",
+      ["Thinking Space II", 71, "https://www.youtube.com/live/SCSUKkT-8Hk?si=qf5WPMTcl3LTzmOW&t=1904", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "83": [
+      "monodynamics",
+      ["Antarctic Lights", 67, "https://www.youtube.com/watch?v=IhfUuiasAdo", "2026-08-20", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "85": [
+      "Denni",
+      ["Tidal Wave", 74, "https://www.youtube.com/watch?v=VaHQmC9F_fs", "2023-09-11", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "86": [
+      "Kaza",
+      ["Antarctic Lights", 66, "https://x.com/Kaza_GD/status/2120663747333169432?a=rrHLPUlXwObjf2nmQVA&s=20", "2026-08-20", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "98": [
+      "dewbbs",
+      ["Silent clubstep", 72, "https://www.youtube.com/watch?v=ZgXFWc4E35c", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Silent Circles (Starchman)", 85, "https://www.youtube.com/watch?v=BH3MJHf4pVs", "2023-09-11", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Sakupen circles (Nick24)", 66, "https://www.youtube.com/watch?v=tSdyc2OeKzo", "2026-02-22", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Ashley Wave Trials", 77, "https://www.youtube.com/watch?v=wYLs1iGyLYI&t=2s", "2026-06-02", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "102": [
+      "Slaylarius",
+      ["Slaughterhouse", 95, "https://www.youtube.com/watch?v=KR5AdDyscrU", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Nullscapes", 63, "https://www.youtube.com/watch?v=nQxTYmhUAHI", "2024-10-03", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "110": [
+      "itzhealer",
+      ["Ashley Wave Trials", 93, "https://t.me/itzhealer/318", "2026-06-02", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "119": [
+      "cc478",
+      ["Eternal Silence", 75, "", "2025-10-16", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "121": [
+      "Zeronium",
+      ["Lost in Time 2", 100, "https://www.youtube.com/watch?v=8i5GfTqb6oE&t=8s", "2026-06-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "124": [
+      "steelik",
+      ["Silent clubstep", 65, "https://www.youtube.com/watch?v=pKi1AGOSmZ0", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Penumbral", 96, "https://www.youtube.com/watch?v=QdaMxV5a3OQ", "2026-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "126": [
+      "abb2k",
+      ["Kyouki", 98, "https://x.com/abb2k1/status/2117471498206073186?a=ULCs_hpZmBqUPM9Mr-k&s=20", "2022-11-24", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "134": [
+      "XBelugaX",
+      ["Tidal Wave", 87, "https://x.com/XBelugaX1/status/2097418018506539287?a=Ucrv0r8Od3c11KcVIyw&s=20", "2023-09-11", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "138": [
+      "cudby",
+      ["Penumbral", 92, "https://www.youtube.com/watch?v=0z_VBK-1IuI", "2026-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "143": [
+      "Flashl3ang",
+      ["Every End", 51, "https://www.youtube.com/watch?v=iGBVfnq6wuE&t=7s", "2025-04-12", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "147": [
+      "Duv",
+      ["FIBERGLASS", 100, "https://www.youtube.com/watch?v=-s0x3uomKoo", "2022-11-24", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "161": [
+      "Thelifinof",
+      ["Slaughterhouse", 100, "https://youtu.be/OVKdkOHYsVU", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "162": [
+      "og",
+      ["Abyss of Darkness", 97, "https://www.youtube.com/watch?v=WXpQ7JXTkW0&t=74s", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Eternal Silence", 40, "https://www.youtube.com/watch?v=5ARajqWpon8", "2025-10-16", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "166": [
+      "Dezstro",
+      ["Silent Oppenheimer", 67, "https://www.youtube.com/watch?v=OWllYlnojCs", "2026-08-20", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "167": [
+      "oginn",
+      ["Azure Flare", 52, "https://www.youtube.com/live/W33ajmrhttw?si=83MdTkxuxKhkExVz&t=4243", "2026-11-09", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "168": [
+      "noxell",
+      ["Avernus", 49, "https://www.youtube.com/watch?v=buf6bzy2XKI", "2023-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "172": [
+      "Tihra",
+      ["Silent clubstep", 76, "https://www.youtube.com/watch?v=igl_t8-2jiU", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Sakupen circles (Nick24)", 66, "https://www.youtube.com/watch?v=jINEjpIEC8o", "2026-02-22", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "174": [
+      "Tazik",
+      ["Old Orochi", 55, "https://www.youtube.com/watch?v=vajn_ncnkSs", "2026-11-06", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "175": [
+      "Lamped",
+      ["Avernus", 77, "https://youtu.be/izshr_CYzlg?si=KRHR6Th6z1E91YAt&t=264", "2023-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "180": [
+      "Blebae",
+      ["Anathema", 81, "https://www.youtube.com/watch?v=W9XsC2USFWQ", "2024-12-06", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "182": [
+      "Sm1leX",
+      ["Silent clubstep", 62, "https://www.youtube.com/watch?v=TnB7o1g2mIs", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Quanteuse processing", 84, "https://t.me/sm1lexgd/1616", "2025-12-21", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "207": [
+      "DiamondSplash",
+      ["Anathema", 83, "https://www.youtube.com/watch?v=LpDd8-o_qaE", "2024-12-06", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "214": [
+      "GGonop",
+      ["Labyrinth", 68, "https://www.youtube.com/watch?v=bvU88Sm5Naw", "2026-08-20", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "216": [
+      "geodom",
+      ["FIBERGLASS", 100, "https://www.youtube.com/watch?v=mC1kIZVPS9M", "2022-11-24", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "219": [
+      "LOL123",
+      ["Silent clubstep", 51, "https://www.youtube.com/watch?v=DA3JukIzIwA", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "225": [
+      "Adri420",
+      ["Nullscapes", 82, "https://www.youtube.com/watch?v=Kw5IWq8KyjM", "2024-10-03", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "233": [
+      "Wity",
+      ["Subsuming Vortex", 96, "https://www.youtube.com/watch?v=7A1YYGna_Zk", "2025-12-14", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "234": [
+      "midgatal",
+      ["True Innards", 100, "https://www.youtube.com/watch?v=_5y75tf1pVY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "240": [
+      "RainGMD",
+      ["andromeda", 73, "https://www.youtube.com/watch?v=IWZ-inACXwE", "2025-01-28", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "244": [
+      "Dustabounds",
+      ["Acheron", 100, "https://www.youtube.com/watch?v=FlEJXbmgP1o", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "253": [
+      "notd4n1",
+      ["Acheron", 89, "https://www.youtube.com/watch?v=GepIwB66ltE", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "262": [
+      "Rodmentor",
+      ["BOOBAWAMBA", 54, "https://www.youtube.com/watch?v=rzh4EMeCCrM", "2024-11-17", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Thinking Space II", 77, "https://youtu.be/I1U8kJ7XDIE", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "270": [
+      "TrollFaceGaming",
+      ["Silent clubstep", 76, "https://www.youtube.com/watch?v=2nusDqCeQms", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "277": [
+      "The_Bat0",
+      ["KOCMOC", 85, "https://t.me/rcsleerstvo/5559", "2023-06-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "285": [
+      "Trixsm",
+      ["Voltage", 83, "", "2026-02-27", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "286": [
+      "RicoLP",
+      ["Spectre", 85, "https://www.youtube.com/watch?v=ODg0DD-WkSY&t=7s", "2024-10-12", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "299": [
+      "OneAlphaHelix",
+      ["Flamewall", 47, "https://www.youtube.com/watch?v=Z-TjsZeAob4&t=4801s", "2025-10-16", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "302": [
+      "fungus",
+      ["Spectre", 65, "https://www.youtube.com/watch?v=68iqZB7Ey7k", "2024-10-12", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "306": [
+      "seels",
+      ["Subsuming Vortex", 80, "https://www.youtube.com/watch?v=879SGPBhSNI", "2025-12-14", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "308": [
+      "АБУБУБАБУДЖАК",
+      ["Slaughterhouse", 95, "https://www.youtube.com/watch?v=6svI0H-jP98", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "315": [
+      "Chiikawa",
+      ["Eternal Silence", 72, "https://www.youtube.com/watch?v=pUwrz9IhAxs", "2025-10-16", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "321": [
+      "lovemycorpse",
+      ["Acheron", 100, "https://www.youtube.com/watch?v=x0t7CNA-TlM", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "334": [
+      "stylez",
+      ["Menace", 85, "https://www.youtube.com/watch?v=_M_xgUhYOTc&t=14s", "2024-09-09", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "338": [
+      "VERTOP",
+      ["Avernus", 77, "https://youtu.be/bY6Um4Dmffo?si=QYryWfy3SSgX5jdD&t=135", "2023-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "358": [
+      "Dovi",
+      ["Abyss of Darkness", 78, "https://www.youtube.com/watch?v=ZfsHmlVvQ8E", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "366": [
+      "Wavyy",
+      ["Thinking Space II", 82, "https://youtu.be/JrIDa0KlvBU", "2025-05-25", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "368": [
+      "PixelGqmer",
+      ["Penumbral", 89, "https://www.youtube.com/watch?v=jyBza1VcyBI", "2026-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "378": [
+      "delver",
+      ["Acheron", 94, "https://t.me/rcgdrating/4086", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "379": [
+      "Oblivionus",
+      ["Kyouki", 98, "https://www.youtube.com/watch?v=AUW02laDzWA&t=6s", "2022-11-24", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "385": [
+      "Deez",
+      ["Tunnel of Despair", 69, "https://www.youtube.com/watch?v=VG-dkTJJTR8", "2023-08-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "388": [
+      "Flik",
+      ["Slaughterhouse", 81, "https://t.me/flikgmd/1302", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "396": [
+      "Bladed",
+      ["Acheron", 96, "https://discord.com/channels/395654171422097420/396433111245914112/1551649994476495004", "2020-01-01", "видео не с YouTube (известна дата уровня)"],
+      ["Silent clubstep", 66, "https://discord.com/channels/395654171422097420/396433111245914112/1573573753638621226", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "399": [
+      "playlino",
+      ["Acheron", 100, "https://www.youtube.com/watch?v=u99TZ6wgfsY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Slaughterhouse", 79, "https://www.youtube.com/watch?v=Fcm_iqhdu6Y", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "403": [
+      "Mystery",
+      ["Abyss of Darkness", 77, "https://www.youtube.com/watch?v=SNkM15qnlDI", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "422": [
+      "nikabri",
+      ["Acheron", 83, "https://www.youtube.com/watch?v=I00QOxUu8DU", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Slaughterhouse", 75, "https://www.youtube.com/watch?v=YfmSlzAkTJo", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["poocubed", 100, "https://www.youtube.com/watch?v=Ywc3DW0Oj0o", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "423": [
+      "WozertWW",
+      ["Acheron", 72, "https://www.youtube.com/watch?v=Cd2dLP5yJUs", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "433": [
+      "Saitama",
+      ["Silent clubstep", 66, "https://www.youtube.com/watch?v=H7H94E_pwWY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "436": [
+      "unwill",
+      ["Slaughterhouse", 93, "https://www.youtube.com/watch?v=ZVwpe-a5lhc", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "451": [
+      "pohgii",
+      ["Avernus", 57, "https://www.youtube.com/watch?v=6eEPFRl6M2k", "2023-03-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "454": [
+      "Spoken04",
+      ["Acheron", 94, "https://www.youtube.com/watch?v=0X1o-zuTEKs", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Slaughterhouse", 75, "https://t.me/spokken1337/4923", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "456": [
+      "Za1LX",
+      ["Slaughterhouse", 75, "https://www.youtube.com/watch?v=ufGlahbE0qI", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "472": [
+      "Felps_2106",
+      ["Acheron", 85, "https://www.youtube.com/watch?v=jf_xSUorqHY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "473": [
+      "spcreat",
+      ["Every End", 82, "https://www.youtube.com/watch?v=Jh8BBT927uY", "2025-04-12", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "479": [
+      "Anro",
+      ["Nullscapes", 57, "https://www.youtube.com/watch?v=hc55r9jCaRs", "2024-10-03", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["SARY NEVER CLEAR (Optic Sunflow)", 100, "https://www.youtube.com/watch?v=MbyrV2VzdaM", "2024-10-03", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "480": [
+      "eandis",
+      ["True Innards", 100, "https://www.youtube.com/watch?v=K77leSnLP0Y", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "481": [
+      "sunix.",
+      ["Acheron", 76, "https://www.youtube.com/watch?v=2fqglOGANIk", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "514": [
+      "1qawsz",
+      ["Slaughterhouse", 80, "https://www.youtube.com/watch?v=tLDMI-_196c", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "518": [
+      "Flexx",
+      ["Acheron", 98, "https://www.youtube.com/watch?v=gPB5koYtU6c", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["andromeda", 72, "https://www.youtube.com/watch?v=FSACG7xmf2Y", "2025-01-28", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "520": [
+      "Hellcat",
+      ["poocubed", 92, "https://www.youtube.com/watch?v=MU7-Ma9rxh4", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "540": [
+      "lsdlsdlsdlsd",
+      ["Acheron", 69, "https://www.youtube.com/watch?v=kJCi7h6rlM0", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "544": [
+      "garbag",
+      ["Nullscapes", 59, "https://www.youtube.com/watch?v=hDRiCta4hLA", "2024-10-03", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "547": [
+      "t0xx",
+      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=lkkdjwEVbb8", "2023-05-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "552": [
+      "Cleyck",
+      ["Acheron", 89, "https://t.me/rcgdrating/4390", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "555": [
+      "Thisisfcp",
+      ["Kyouki", 61, "https://www.youtube.com/watch?v=0NnGzog3Tqo", "2022-11-24", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "569": [
+      "untise",
+      ["Slaughterhouse", 90, "https://www.youtube.com/watch?v=s2N2XwFEtY0", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "577": [
+      "Maihem",
+      ["Acheron", 95, "https://www.youtube.com/watch?v=mngBPvwcQoQ", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "581": [
+      "london",
+      ["KOSETSU", 83, "https://www.youtube.com/watch?v=hkdyIsdzQTY", "2024-10-14", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "586": [
+      "Syzygy",
+      ["Snowbound", 82, "https://www.youtube.com/watch?v=fmqZ1yh4kz8", "2025-09-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "587": [
+      "Nexi",
+      ["Lost in Time 2", 82, "https://www.youtube.com/watch?v=SQyLMoerBxA", "2026-06-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "590": [
+      "солесоселовелей",
+      ["Tunnel of Despair", 92, "https://www.youtube.com/watch?v=VFL-iDY0XEQ", "2023-08-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "591": [
+      "FinnyP515",
+      ["Slaughterhouse", 93, "https://www.youtube.com/watch?v=GLlAkftd33k", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "603": [
+      "Slim",
+      ["Abyss of Darkness", 90, "https://www.youtube.com/watch?v=qrhBIo3W2HA", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "618": [
+      "Tuggy",
+      ["Slaughterhouse", 90, "https://www.youtube.com/watch?v=zebjJujQxkE", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "631": [
+      "Vision",
+      ["Eternal Silence", 65, "https://www.youtube.com/watch?v=El4bR4K4xFk", "2025-10-16", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "648": [
+      "Switch",
+      ["Deimos", 100, "https://www.youtube.com/watch?v=_VVjwDcjvFA", "2023-08-08", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "662": [
+      "TRSouLess",
+      ["Deimos", 87, "https://www.youtube.com/watch?v=CqlouDIuqP4", "2023-08-08", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "663": [
+      "Crispynuggs",
+      ["Slaughterhouse", 60, "https://www.youtube.com/watch?v=lcAR2_7tS9g", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "674": [
+      "zontex",
+      ["Sevvend Clubstep", 89, "https://www.youtube.com/watch?v=ZyFoisX2n-Y", "2025-07-07", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "675": [
+      "dmsens",
+      ["Defeated Circles", 55, "https://www.youtube.com/watch?v=cgN5uZ2KLH0", "2025-08-05", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "685": [
+      "Nobelix",
+      ["Slaughterhouse", 95, "https://www.youtube.com/watch?v=1_kFBe4osF8", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["andromeda", 57, "https://www.youtube.com/watch?v=aOKRLVvCNak", "2025-01-28", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "694": [
+      "ViZeris",
+      ["True Innards", 100, "https://www.youtube.com/watch?v=gGRwOTSkR_Y", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "709": [
+      "Zaro7",
+      ["Silent clubstep", 73, "https://www.youtube.com/watch?v=MIClRYUXlxE", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "728": [
+      "fiumba",
+      ["Defeated Circles", 45, "https://www.youtube.com/watch?v=oC1T_FITNIA", "2025-08-05", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "751": [
+      "ArtCZzz",
+      ["Crackhead Circles", 100, "https://www.youtube.com/watch?v=7ACqcvt3QSY", "2023-11-04", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "769": [
+      "KingVince",
+      ["Kyouki", 70, "https://www.youtube.com/watch?v=UiqRcaVBJ6Y", "2022-11-24", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "774": [
+      "Insert Cringe",
+      ["Acheron", 61, "https://www.youtube.com/watch?v=WzJ3QHmJItU", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "787": [
+      "jolpaa",
+      ["Sacrifice", 78, "https://www.youtube.com/watch?v=EhqeKsZ9XZ4", "2026-09-22", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "793": [
+      "frol1k",
+      ["Acheron", 62, "https://youtu.be/BhnoTvRPqoY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "811": [
+      "strderrr",
+      ["Slaughterhouse", 93, "https://www.youtube.com/watch?v=ItYf3OT-19Q", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "848": [
+      "Aquarius",
+      ["Acheron", 61, "https://www.youtube.com/watch?v=pJ-aF1MHcQs", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "865": [
+      "lisyteam1230",
+      ["poocubed", 75, "https://www.youtube.com/watch?v=E_8SmMvsLGk", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "869": [
+      "mrekk",
+      ["Tartarus", 98, "https://www.youtube.com/watch?v=-DwvDOTTufY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "883": [
+      "Tami",
+      ["Abyss of Darkness", 59, "https://youtu.be/ws8pGdFoo-c", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Acheron", 83, "https://www.youtube.com/watch?v=cebbEq5Kjd8", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["poocubed", 88, "https://t.me/tgktami/3001", "2022-11-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "884": [
+      "GoldiX",
+      ["Sakupen Circles", 67, "https://www.youtube.com/watch?v=fL9MOYox288", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "888": [
+      "JTYYY",
+      ["Deimos", 92, "https://www.youtube.com/watch?v=HR12PFElL38", "2023-08-08", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "893": [
+      "Gopso",
+      ["Belladonna", 100, "https://youtu.be/FUmDsbge4Qo?is=FQxhQDVnMFvwhh-N", "2023-11-28", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "902": [
+      "metis",
+      ["Abyss of Darkness", 89, "https://www.youtube.com/watch?v=hUgu_UT6TNY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "912": [
+      "Fragile",
+      ["Tartarus", 92, "https://www.youtube.com/watch?v=k0J45mrs_nQ", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "916": [
+      "Carlos",
+      ["Firework", 65, "https://www.youtube.com/watch?v=K9GeT7bZfnI", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "951": [
+      "WhiteCaten",
+      ["Firework", 76, "https://www.youtube.com/watch?v=qKcPTcfUn3s", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["poocubed", 77, "https://www.youtube.com/watch?v=qKcPTcfUn3s&t=109", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "961": [
+      "Faneria",
+      ["Acheron", 92, "https://t.me/faneria_tg/1826", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "969": [
+      "Sera223",
+      ["poocubed", 94, "https://t.me/mrsera223gd/77", "2022-11-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "985": [
+      "nSwish",
+      ["True Innards", 82, "https://www.youtube.com/watch?v=7mXTrunqWY8", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "993": [
+      "Dystire",
+      ["Defeated Circles", 54, "https://www.youtube.com/watch?v=FlXY68JioXc", "2025-08-05", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1003": [
+      "cardy",
+      ["Sakupen circles (Nick24)", 66, "https://www.youtube.com/watch?v=zI6ZZrubenQ", "2026-02-22", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1010": [
+      "Neiro",
+      ["Acheron", 89, "https://www.youtube.com/watch?v=M_aRBHN9w2k", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1012": [
+      "Waltty",
+      ["IT MEANS EVERYTHING", 100, "https://www.youtube.com/watch?v=_QV11PEwiIo", "2025-10-16", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1019": [
+      "Riot48572",
+      ["Acheron", 89, "https://www.youtube.com/watch?v=1Y_ic_hZueQ", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Deadlier Clubstep", 64, "https://www.youtube.com/watch?v=IXF06_P-rqk", "2024-01-22", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1020": [
+      "Lingherr",
+      ["Tunnel of Despair", 71, "https://www.youtube.com/watch?v=2pRWxHPiEWU", "2023-08-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["blight", 100, "https://www.youtube.com/watch?v=UTA0DLtyI_0", "2024-08-13", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1037": [
+      "Calow",
+      ["Tunnel of Despair", 93, "https://www.youtube.com/watch?v=ljvq0JARjds", "2023-08-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1038": [
+      "TGM05",
+      ["Marks", 100, "https://www.youtube.com/watch?v=cADGRDS4hkA", "2022-12-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1043": [
+      "LogDog13",
+      ["Collapse", 94, "https://www.youtube.com/watch?v=89YUpqETKLE", "2025-01-03", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1063": [
+      "emirhanbanan",
+      ["Silent poltergeist", 72, "https://www.youtube.com/watch?v=EAgjw8ktlHo", "2026-04-11", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1064": [
+      "Pulsarishko",
+      ["Deimos", 60, "https://t.me/rcgdrating/3992", "2023-08-08", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "1065": [
+      "Luminovsky",
+      ["Firework", 94, "https://t.me/rcgdrating/2623", "2020-01-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "1067": [
+      "shiza17",
+      ["poocubed", 92, "https://youtu.be/OzhzhResbEc", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1068": [
+      "naiut",
+      ["KOCMOC", 76, "https://youtu.be/b4UoGsy-76M", "2023-06-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1072": [
+      "Dils thik",
+      ["Old Abyss of Darkness", 100, "https://www.youtube.com/watch?v=RWBEfS4mLbw&t=442s", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1075": [
+      "amikkie",
+      ["poocubed", 83, "https://youtu.be/lU3nM3lAOX4", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1078": [
+      "vatkad",
+      ["Firework", 79, "https://youtu.be/371AMC-kB6c", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Saul Goodman", 68, "https://t.me/rcgdrating/4627?single", "2023-05-30", "видео не с YouTube (известна дата уровня)"],
+      ["KOSETSU", 70, "https://youtu.be/d9m1L--vzFI", "2024-10-14", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1085": [
+      "enthu",
+      ["Acheron", 62, "https://youtu.be/sd4MTa9eONs", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1086": [
+      "avudn",
+      ["poocubed", 60, "https://youtu.be/aWEKg-vrnNM", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1093": [
+      "Abibus",
+      ["KOCMOC", 82, "", "2023-06-01", "на CoreBoard нет ссылки на видео (известна дата уровня)"]
+    ],
+    "1102": [
+      "qAz123",
+      ["Through The Gates", 93, "https://youtu.be/pKGhBxPv12E", "2023-11-07", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1103": [
+      "LoyalVladik",
+      ["Edge of Destiny", 75, "https://youtu.be/aYmGxSmZw38", "2023-03-13", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1104": [
+      "vaflya",
+      ["Firework", 100, "https://www.youtube.com/watch?v=beEOb9QoIU4", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Renevant", 100, "https://www.youtube.com/watch?v=qesJUUTWC8o", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1111": [
+      "cl1ck",
+      ["Sakupen Circles", 100, "https://youtu.be/iDMKthoXPfo?si=mqarBUXqsE2ZAEM9", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1120": [
+      "wetwer",
+      ["poocubed", 98, "https://t.me/wetwerrealm/2247", "2022-11-01", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "1121": [
+      "Weiwot",
+      ["Firework", 88, "https://youtu.be/mEWUroT32Ys", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1131": [
+      "TyakyoFyai",
+      ["Endless Travel", 100, "https://www.youtube.com/watch?v=RzNL0RBL1-s", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1141": [
+      "Layner",
+      ["poocubed", 83, "https://youtu.be/14OkWsdJZjw", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1143": [
+      "mido",
+      ["Slaughterhouse", 64, "https://youtu.be/zljf8EJ46z4", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1145": [
+      "n1ckxd",
+      ["Sakupen Circles", 76, "https://youtu.be/bsDze_wZ4J8", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1146": [
+      "Kitgd",
+      ["Sevvend Clubstep", 72, "https://youtu.be/QUGXS-iO6cU", "2025-07-07", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1172": [
+      "Imbeemed",
+      ["Avernus", 77, "https://t.me/rcgdrating/5060?comment=13457", "2023-03-30", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "1196": [
+      "R",
+      ["poocubed", 88, "https://youtu.be/Uc-hVGL7930", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1201": [
+      "GMD_Zern0",
+      ["Saul Goodman", 86, "https://youtu.be/kAtNrWnXaZQ", "2023-05-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1205": [
+      "cr1stal",
+      ["The Plunge", 87, "https://t.me/rcgdrating/4256", "2025-01-02", "видео не с YouTube (известна дата уровня)"]
+    ],
+    "1220": [
+      "Rotys",
+      ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=PnwraVsq2nk", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["Trotil", 100, "https://www.youtube.com/watch?v=6oKKMXYxzTM", "2023-10-08", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1251": [
+      "Pitbull",
+      ["Tartarus", 95, "https://youtu.be/Od1s6eiOrL8", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1262": [
+      "Noobikgd",
+      ["Decks Dark", 83, "https://youtu.be/RfhQZPDyn80", "2024-01-28", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1286": [
+      "angelictouch",
+      ["poocubed", 71, "https://youtu.be/H0QA9M0IOeo", "2022-11-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1295": [
+      "rgaix6fm",
+      ["Slaughterhouse", 93, "https://www.youtube.com/watch?v=t9kaaHkFAsE", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1389": [
+      "Cclixgd",
+      ["Sakupen Circles", 100, "https://youtu.be/4zTv_mrf4R0", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1479": [
+      "seregiusz",
+      ["WarCora", 63, "https://www.youtube.com/watch?v=m9Lchqhwnis", "2025-12-21", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1503": [
+      "UltravioletRS",
+      ["Saul Goodman", 100, "https://youtu.be/B0_8hx2AZZU", "2023-05-30", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1880": [
+      "TopzeraYT",
+      ["Cold Sweat", 100, "https://www.youtube.com/watch?v=BXb9gvJpk24", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "1921": [
+      "Kiruu",
+      ["Every End", 100, "https://www.youtube.com/watch?v=T6u6iFQ1iEQ", "2025-04-12", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2057": [
+      "Xtra8nuggies",
+      ["andromeda", 65, "https://youtu.be/4KzC93q9c9M", "2025-01-28", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2493": [
+      "Blinkkous",
+      ["Oblivion", 100, "https://www.youtube.com/watch?v=QdnxiYjkHl4", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2588": [
+      "BfirecatB",
+      ["Shardscapes", 100, "https://www.youtube.com/watch?v=pxr5m4Y1-pY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"],
+      ["shimmer", 100, "https://www.youtube.com/watch?v=IWPWKE5KUJM", "2023-10-21", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2661": [
+      "ninfisgoat",
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=hUdDO5Y4-yI&t=4s", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2738": [
+      "ikkyseen",
+      ["Make Paul Dance", 100, "https://www.youtube.com/watch?v=kcEuqXiQ74o", "2026-07-15", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2819": [
+      "tapxyhh",
+      ["Sakupen Circles", 70, "https://youtu.be/7hFdq68AJeY", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2825": [
+      "Nik1le",
+      ["The Plunge", 73, "https://youtu.be/iE8dbZfsAhc", "2025-01-02", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2831": [
+      "SoftLock",
+      ["Sevvend Clubstep", 83, "https://youtu.be/u7kTs039wWU", "2025-07-07", "YouTube не отдал дату видео (известна дата уровня)"]
+    ],
+    "2860": [
+      "qzerdd",
+      ["The Golden", 100, "https://www.youtube.com/watch?v=Pq6s80F5J3Y", "2020-01-01", "YouTube не отдал дату видео (известна дата уровня)"]
+    ]
+  }}
 }
