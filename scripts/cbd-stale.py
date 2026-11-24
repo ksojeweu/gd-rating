@@ -37,7 +37,7 @@ from pathlib import Path
 
 import levels as levelsearch
 from idmap import load_id_map, load_links
-from jsonfmt import parse_lenient, write_players
+from jsonfmt import parse_lenient
 
 HERE = Path(__file__).resolve().parent          # scripts/
 ROOT = HERE.parent                              # корень репозитория
@@ -377,66 +377,90 @@ def main():
             continue
         alive.append(c)
 
-    # 2. видео с CoreBoard
-    todo = []
+    # 2. видео с CoreBoard (нет ссылки: запись всё равно выводится, но без даты видео)
     for c in alive:
-        label = f"{c['cb_id']} | {c['nick']} | {c['name']} {c['pct']:g}%"
+        c["label"] = f"{c['cb_id']} | {c['nick']} | {c['name']} {c['pct']:g}%"
         vids = (c["row"] or {}).get("videos") or []
         names = {norm(c["name"]), norm((tp.get(c["gid"]) or {}).get("name"))}   # алиас: ещё и название самого уровня
         exact = [v for v in vids if norm(v["level"]) in names and abs(float(v["percent"]) - c["pct"]) < 0.01]
         same = [v for v in vids if norm(v["level"]) in names]
         pick = (exact or same or [None])[0]
-        if not pick:
-            report.append(f"{label} | пропущено: на CoreBoard нет ссылки на видео этого рекорда")
-            continue
-        c["video"], c["label"] = pick["video"], label
-        todo.append(c)
+        c["video"] = pick["video"] if pick else ""
 
     # 3. даты: уровня и видео
-    gids = sorted({c["gid"] for c in todo})
+    gids = sorted({c["gid"] for c in alive})
     print(f"Даты уровней: {len(gids)}")
     ldates = {}
     for g, res in zip(gids, pmap(level_date, gids)):
         ldates[g] = None if isinstance(res, Exception) else res
-    vdates = fill_video_dates([v for v in (yt_id(c["video"]) for c in todo) if v])
+    vdates = fill_video_dates([v for v in (yt_id(c["video"]) for c in alive) if v])
 
+    # 4. три раздела: старше --days дней, моложе, дата неизвестна. Дата записи = самая поздняя из двух (видео, уровень)
     now = datetime.now(timezone.utc)
     limit = timedelta(days=args.days)
-    result, kept = {}, 0
-    for c in todo:
+    sections = {"over_month": [], "under_month": [], "unknown_date": []}
+    for c in alive:
         ld, vid = ldates.get(c["gid"]), yt_id(c["video"])
         vd = vdates.get(vid) if vid else None
-        if ld is None:
-            report.append(f"{c['label']} | пропущено: не удалось узнать date_created уровня {c['gid']}")
-            continue
-        if vd is None:
-            why = "видео не с YouTube" if not vid else "YouTube не отдал дату видео (удалено, закрыто или сбой)"
-            report.append(f"{c['label']} | пропущено: дата видео неизвестна ({why}): {c['video']}")
-            continue
-        latest = max(ld, vd)
-        age = now - latest
-        if age <= limit:
-            report.append(f"{c['label']} | рано: самая поздняя дата {latest:%Y-%m-%d} "
-                          f"({'видео' if vd >= ld else 'уровень'}), прошло {age.days} дн.")
-            continue
         pct = int(c["pct"]) if c["pct"] == int(c["pct"]) else c["pct"]
-        nick, recs = result.setdefault(c["cb_id"], (c["nick"], []))
-        recs.append([c["name"], pct, c["video"]])
-        kept += 1
-        report.append(f"{c['label']} | В ФАЙЛ: видео {vd:%Y-%m-%d}, уровень {ld:%Y-%m-%d}, прошло {age.days} дн.")
+        rec = [c["name"], pct, c["video"]]
+        if ld is None or vd is None:
+            if not c["video"]:
+                why = "на CoreBoard нет ссылки на видео"
+            elif not vid:
+                why = "видео не с YouTube"
+            elif vd is None:
+                why = "YouTube не отдал дату видео"
+            else:
+                why = "нет date_created уровня"
+            known = ld or vd
+            rec += [f"{known:%Y-%m-%d}" if known else "", why + (" (известна дата уровня)" if ld and vd is None else "")]
+            sections["unknown_date"].append((c, rec, known))
+            report.append(f"{c['label']} | дата неизвестна: {why}: {c['video']}")
+            continue
+        latest, kind = (vd, "дата видео") if vd >= ld else (ld, "дата уровня")
+        rec += [f"{latest:%Y-%m-%d}", kind]
+        sec = "over_month" if now - latest > limit else "under_month"
+        sections[sec].append((c, rec, latest))
+        report.append(f"{c['label']} | {sec}: {kind} {latest:%Y-%m-%d}, прошло {(now - latest).days} дн.")
 
-    result = dict(sorted(result.items(), key=lambda kv: (not kv[0].isdigit(), int(kv[0]) if kv[0].isdigit() else 0, kv[0])))
-    for _, recs in result.values():
-        recs.sort(key=lambda r: (-float(r[1]), r[0]))
     CBD_DIR.mkdir(exist_ok=True)
-    write_players(OUT_FILE, result)
+    write_sections(OUT_FILE, sections)
     WORK.mkdir(exist_ok=True)
     (WORK / "report.txt").write_text("\n".join(sorted(report)) + "\n", "utf-8")
     save_cache()
-    print(f"\nunaccepted_records.json: игроков {len(result)}, записей {kept} (причины по остальным: scripts/cbd-stale/report.txt)")
+    counts = {k: len(v) for k, v in sections.items()}
+    print(f"\nunaccepted_records.json: старше {args.days} дн. {counts['over_month']}, моложе {counts['under_month']}, "
+          f"дата неизвестна {counts['unknown_date']} (причины пропусков: scripts/cbd-stale/report.txt)")
 
     if args.commit:
-        publish(f"cbd: не принятые больше {args.days} дн. {kept} записей у {len(result)} игроков (авто)")
+        publish(f"cbd: не принятые рекорды: {counts['over_month']} старше {args.days} дн., {counts['under_month']} моложе, "
+                f"{counts['unknown_date']} без даты (авто)")
+
+
+def write_sections(path, sections):
+    """Три блока в формате jsonfmt.py; в каждом игроки по ID CoreBoard, записи от самой старой даты к новой.
+    Запись: [название, процент, ссылка на видео, дата, "дата видео" или "дата уровня"]."""
+    lines = ["{"]
+    names = list(sections)
+    for si, name in enumerate(names):
+        players = {}
+        for c, rec, when in sections[name]:
+            players.setdefault(c["cb_id"], (c["nick"], []))[1].append((when or datetime.max.replace(tzinfo=timezone.utc), rec))
+        order = sorted(players, key=lambda k: (not k.isdigit(), int(k) if k.isdigit() else 0, k))
+        lines.append(f'  {json.dumps(name)}: {{"users": {{' if order else f'  {json.dumps(name)}: {{"users": {{}}}}' + ("," if si < len(names) - 1 else ""))
+        for i, k in enumerate(order):
+            nick, recs = players[k]
+            recs.sort(key=lambda x: (x[0], x[1][0]))
+            lines.append(f'    {json.dumps(k)}: [')
+            lines.append(f'      {json.dumps(nick, ensure_ascii=False)},')
+            for j, (_, r) in enumerate(recs):
+                lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(recs) - 1 else ""))
+            lines.append("    ]" + ("," if i < len(order) - 1 else ""))
+        if order:
+            lines.append("  }}" + ("," if si < len(names) - 1 else ""))
+    lines += ["}", ""]
+    path.write_text("\n".join(lines), "utf-8")
 
 
 # ---------- git ----------
