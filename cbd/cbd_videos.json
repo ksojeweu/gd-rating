@@ -15,8 +15,8 @@
       ["Society", 100, "https://www.youtube.com/watch?v=3CoEaH1CM7o"],
       ["Thinking Space II", 100, "https://www.youtube.com/watch?v=hJHiGeuahTI"],
       ["Amethyst", 100, "https://www.youtube.com/watch?v=4lfkzz1VCbA"],
-      ["Green Bullet", 100, "https://www.youtube.com/watch?v=O3Y_iXT4ZWk"],
-      ["Tidal Wave", 100, "https://www.youtube.com/watch?v=mxR1JQmQyrc"]
+      ["Flamewall", 100, ""],
+      ["Green Bullet", 100, "https://www.youtube.com/watch?v=O3Y_iXT4ZWk"]
     ],
     "3": [
       "Trick",
@@ -669,11 +669,11 @@
     "75": [
       "Slaughter",
       ["andromeda", 100, "https://www.youtube.com/watch?v=LTd7zNrqXLA"],
+      ["Acheron", 100, ""],
       ["Tunnel of Despair", 100, "https://www.youtube.com/watch?v=5qGDPGP9enw"],
       ["Kyouki", 100, "https://www.youtube.com/watch?v=ihasJDlHrpQ"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=n-754j_nP1c"],
-      ["Deimos", 100, "https://www.youtube.com/watch?v=E0Q8h8ZQFWU"],
-      ["KOCMOC", 100, "https://www.youtube.com/watch?v=cafZ2oTj_2s"]
+      ["Deimos", 100, "https://www.youtube.com/watch?v=E0Q8h8ZQFWU"]
     ],
     "76": [
       "Cuatrocientos",
@@ -2359,8 +2359,8 @@
       "thiagar",
       ["Silent clubstep", 100, "https://www.youtube.com/watch?v=mhMwg2lpmco"],
       ["Kyouki", 100, "https://www.youtube.com/watch?v=Yyujl2sjjTY"],
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=QW22w528Z4M"],
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=yuKzzsDoYQQ"],
-      ["Slaughterhouse", 90, "https://www.youtube.com/watch?v=aQb6XafUTZk"],
       ["Climax", 100, "https://www.youtube.com/watch?v=t3AW3GYvhlM"],
       ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=anYIVCSpLUg"]
     ],
@@ -4718,7 +4718,7 @@
       ["Mayhem", 100, "https://www.youtube.com/watch?v=0UsHidHIk2A"],
       ["The Yangire", 100, "https://www.youtube.com/watch?v=hlgB5oC-8jI"],
       ["Midnight", 100, "https://www.youtube.com/watch?v=lAQCv_OEN8g"],
-      ["The Golden", 100, "https://www.youtube.com/watch?v=Wd4JZFpxwmI"]
+      ["Trickshot", 100, "https://www.youtube.com/watch?v=vNvRDmOzhCY"]
     ],
     "527": [
       "CochoGD",
@@ -6602,9 +6602,9 @@
       ["poocubed", 100, "https://www.youtube.com/watch?v=bQI1nblvigE"],
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=dfGb5pbJJTM"],
       ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=10l5nEN-CmM"],
+      ["UNKNOWN", 100, "https://www.youtube.com/watch?v=6SV7WPvh_eM"],
       ["The Golden", 100, "https://www.youtube.com/watch?v=okKgRD_tx8Q"],
-      ["paranoia", 100, "https://www.youtube.com/watch?v=rvnEDabJb6g"],
-      ["Aerial Gleam", 100, "https://www.youtube.com/watch?v=UD9VvljheAA"]
+      ["paranoia", 100, "https://www.youtube.com/watch?v=rvnEDabJb6g"]
     ],
     "739": [
       "terraaiguess",
@@ -17061,7 +17061,8 @@
     ],
     "2057": [
       "Xtra8nuggies",
-      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=OM4SphJ0hXM"]
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=OM4SphJ0hXM"],
+      ["andromeda", 65, ""]
     ],
     "2058": [
       "muni",
@@ -20469,7 +20470,8 @@
     "2587": [
       "MoyaiX",
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=PaspESwEJQ8"],
-      ["Slaughterhouse", 83, "https://www.youtube.com/watch?v=G6u2CMJ3_oI"]
+      ["Slaughterhouse", 83, "https://www.youtube.com/watch?v=G6u2CMJ3_oI"],
+      ["NervHell", 69, "https://www.youtube.com/watch?v=vakQOf4HKhM"]
     ],
     "2588": [
       "BfirecatB",
@@ -20892,7 +20894,7 @@
     ],
     "2661": [
       "ninfisgoat",
-      ["Slaughterhouse", 93, "https://www.youtube.com/watch?v=7YP5vRn5GX0"]
+      ["Slaughterhouse", 100, ""]
     ],
     "2662": [
       "Sklork",
@@ -21821,6 +21823,15 @@
       ["qoUEO", 100, "https://www.youtube.com/watch?v=qxMXtIfMChY"],
       ["RUST", 100, "https://www.youtube.com/watch?v=_PiWi0rlGvY"],
       ["Cobwebs", 100, "https://www.youtube.com/watch?v=Ecrlat2K71Q"]
+    ],
+    "2861": [
+      "Spoony",
+      ["Slaughterhouse", 80, "https://www.youtube.com/watch?v=sW1aXhdovvw"],
+      ["Zodiac", 100, "https://www.youtube.com/watch?v=58l_VXoe_S0"]
+    ],
+    "2862": [
+      "chesswiz",
+      ["LIMBO", 100, "https://www.youtube.com/watch?v=RkynKokvVYs"]
     ]
   }
 }
