@@ -136,12 +136,20 @@ def load_tp():
     return levels
 
 
-def is_cb_src(src):
-    """Лист CoreBoard (cbmain:, cbmobile: ...). Его уровни - это уровни глобала, поэтому сверять их по ID не нужно."""
-    return str(getattr(src, "prefix", "")).lower().startswith("cb") or str(src.name).lower().startswith(("cb", "coreboard"))
-
-
 is_global = L.is_global  # аккаунт глобала: ID начинается с цифры (pc7, wml5 и т.п. глобалом не считаются)
+
+
+def flat_ids(x):
+    """ID аккаунта на листе из links.json. Для CoreBoard допускаем и строку "main:1", и блок
+    {"main": {"id": 1, "nick": "Zoink"}, "mobile": {...}} (или {"main": 1}) - это даёт ключи "main:1", "mobile:..."."""
+    if isinstance(x, dict):
+        out = []
+        for board, v in x.items():
+            cid = v.get("id") if isinstance(v, dict) else v
+            if cid is not None:
+                out.append(f"{board}:{cid}")
+        return out
+    return [x]
 
 
 def link_sites(entry):
@@ -197,15 +205,6 @@ def load_links():
         if x not in lst:
             lst.append(x)
 
-    def cb_source(board):
-        """Имя листа CoreBoard для борда ('main' / 'mobile') или None."""
-        board = str(board).lower()
-        for s in L.sources():
-            if is_cb_src(s) and (str(s.prefix).lower().strip(":_") == "cb" + board
-                                 or str(s.name).lower() in ("cb" + board, "cb_" + board, "coreboard" + board, "coreboard_" + board)):
-                return s.name
-        return None
-
     for main_id, entry in links.items():
         main = canon0(main_id)
         g = grp(main)
@@ -214,15 +213,7 @@ def load_links():
         if is_global(main_id):
             add_uniq(g["dl"], main_id)
         for site, ids in link_sites(entry).items():
-            if str(site).lower() == "coreboard":  # {"main": {"id": 1, "nick": "Zoink"}, "mobile": {...}} или {"main": 1}
-                for x in ids:
-                    for board, v in (x.items() if isinstance(x, dict) else []):
-                        name = cb_source(board)
-                        cid = v.get("id") if isinstance(v, dict) else v
-                        if name in site_map and cid is not None:
-                            site_map[name][str(cid)] = main  # аккаунт CoreBoard -> человек: дубля [CB] не будет
-                            add_uniq(g[name], cid)
-                continue
+            ids = [y for x in ids for y in flat_ids(x)]
             for x in ids:
                 if site in site_map:
                     site_map[site][str(x)] = main
@@ -238,9 +229,10 @@ def load_links():
         add_uniq(g["dl"], main)
         add_uniq(g["dl"], a)
 
-    # Запасной вариант, пока в links.json нет блока coreboard: coreboard_id_map.json (ID CoreBoard -> gdr_id), main-борд
-    cb_main = cb_source("main")
-    if cb_main in site_map:
+    # CoreBoard: ключ аккаунта на листе "main:<ID>" (см. list_coreboard.py). Если в links.json человека ещё нет, берём
+    # запасной вариант - coreboard_id_map.json (ID CoreBoard main-борда -> gdr_id). Иначе игрок выходил бы дважды ([CB]).
+    cb_name = next((s.name for s in L.sources() if getattr(s, "prefix", "") == "cb"), None)
+    if cb_name in site_map:
         try:
             idm = load_id_map()
         except Exception as e:
@@ -249,10 +241,10 @@ def load_links():
         added = 0
         for cid, row in idm.items():
             gid = row.get("gdr_id") if isinstance(row, dict) else None
-            if gid and str(cid) not in site_map[cb_main]:
-                site_map[cb_main][str(cid)] = canon0(gid)
+            if gid and f"main:{cid}" not in site_map[cb_name]:
+                site_map[cb_name][f"main:{cid}"] = canon0(gid)
                 added += 1
-        print(f"CoreBoard: аккаунтов связано {len(site_map[cb_main])} (из coreboard_id_map.json добавлено {added})")
+        print(f"CoreBoard: аккаунтов связано {len(site_map[cb_name])} (из coreboard_id_map.json добавлено {added})")
 
     def canon(uid):
         uid = str(uid)
@@ -1066,8 +1058,7 @@ def main():
                     # Иначе название годится, только если оно ведёт на уровень вне глобала (ключ x...); если ведёт
                     # на уровень глобала (цифры), это ДРУГОЙ уровень с тем же названием.
                     by_id = by_ingame_id.get(str(iid))
-                    # у CoreBoard свои ID уровней и те же уровни, что на глобале: берём по названию
-                    k = by_id if by_id is not None else (k if is_cb_src(src) else (None if k is None or k.isdigit() else k))
+                    k = by_id if by_id is not None else (None if k is None or k.isdigit() else k)
                 found[ck] = k
             k = found[ck]
             if k is None:
