@@ -459,12 +459,12 @@ def main():
             else:
                 why = "нет date_created уровня"
             known = ld or vd
-            rec += [f"{known:%Y-%m-%d}" if known else "", why + (" (известна дата уровня)" if ld and vd is None else "")]
+            rec += [fmt_date(known, now) if known else "", why + (" (известна дата уровня)" if ld and vd is None else "")]
             sections["unknown_date"].append((c, rec, known))
             report.append(f"{c['label']} | дата неизвестна: {why}: {c['video']}")
             continue
         latest, kind = (vd, "дата видео") if vd >= ld else (ld, "дата уровня")
-        rec += [f"{latest:%Y-%m-%d}", kind]
+        rec += [fmt_date(latest, now), kind]
         sec = "over_month" if now - latest > limit else "under_month"
         sections[sec].append((c, rec, latest))
         report.append(f"{c['label']} | {sec}: {kind} {latest:%Y-%m-%d}, прошло {(now - latest).days} дн.")
@@ -483,9 +483,14 @@ def main():
                 f"{counts['unknown_date']} без даты (авто)")
 
 
+def fmt_date(d, now):
+    """'2026-11-23 (2 дн.)': дата и сколько дней с неё прошло."""
+    return f"{d:%Y-%m-%d} ({(now - d).days} дн.)"
+
+
 def write_sections(path, sections):
     """Три блока в формате jsonfmt.py; в каждом игроки по ID CoreBoard, записи от самой старой даты к новой.
-    Запись: [название, процент, ссылка на видео, дата, "дата видео" или "дата уровня"]."""
+    Запись: [название, процент, ссылка на видео, "дата (N дн.)", "дата видео" или "дата уровня"]."""
     lines = ["{"]
     names = list(sections)
     for si, name in enumerate(names):
