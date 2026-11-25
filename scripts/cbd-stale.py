@@ -363,7 +363,7 @@ def level_names(tp):
     return out
 
 
-GROUPS = ("full_in_global", "progress_or_not_in_global")
+GROUPS = ("full_in_global", "progress_in_global", "not_in_global")
 
 
 def main():
@@ -447,8 +447,9 @@ def main():
     # 4. три раздела: старше --days дней, моложе, дата неизвестна. Дата записи = самая поздняя из двух (видео, уровень)
     now = datetime.now(timezone.utc)
     limit = timedelta(days=args.days)
-    sections = {g: {"over_month": [], "under_month": []} for g in GROUPS}
+    sections = {g: {"over_month": [], "under_month": []} for g in GROUPS[:2]}
     sections["unknown_date"] = []
+    sections["not_in_global"] = {"over_month": [], "under_month": []}      # в самом конце файла
     for c in alive:
         special = not c["gid"]      # уровня нет на глобале: даты уровня нет, считаем только по видео
         ld, vid = ldates.get(c["gid"]), yt_id(c["video"])
@@ -475,8 +476,8 @@ def main():
             latest, kind = (vd, "дата видео") if vd >= ld else (ld, "дата уровня")
         rec += [fmt_date(latest, now), kind]
         sec = "over_month" if now - latest > limit else "under_month"
-        # 100% на уровне, который есть на глобале, отдельно от прогрессов и специальных уровней CoreBoard
-        grp = "full_in_global" if (c["gid"] and c["pct"] >= 100) else "progress_or_not_in_global"
+        # 100% на уровнях глобала, прогрессы на уровнях глобала и специальные уровни CoreBoard (их на глобале нет)
+        grp = "not_in_global" if not c["gid"] else "full_in_global" if c["pct"] >= 100 else "progress_in_global"
         sections[grp][sec].append((c, rec, latest))
         report.append(f"{c['label']} | {sec}: {kind} {latest:%Y-%m-%d}, прошло {(now - latest).days} дн.")
 
@@ -527,8 +528,9 @@ def users_block(items, ind):
 
 
 def write_sections(path, sections):
-    """Сначала full_in_global (100% на уровнях, которые есть на глобале), потом progress_or_not_in_global (прогрессы меньше
-    100% и специальные уровни CoreBoard); каждый делится на over_month и under_month. В конце unknown_date одним списком."""
+    """full_in_global (100% на уровнях глобала), progress_in_global (прогрессы меньше 100% на уровнях глобала),
+    unknown_date (дату посчитать нельзя, одним списком) и в самом конце not_in_global (специальные уровни CoreBoard, которых
+    на глобале нет). Все, кроме unknown_date, делятся на over_month и under_month."""
     lines = ["{"]
     names = list(sections)
     for si, name in enumerate(names):
