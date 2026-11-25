@@ -48097,7 +48097,12 @@
         64238
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2865,
+          "nick": "Cryyy"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -75051,7 +75056,9 @@
   "7607": {
     "_name": "ItsStiv",
     "other_lists": {
-      "pointercrate": [],
+      "pointercrate": [
+        73407
+      ],
       "wml": [],
       "coreboard": {
         "main": {
@@ -193512,7 +193519,12 @@
         71120
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2863,
+          "nick": "4cocoya"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -366368,7 +366380,12 @@
         65809
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2864,
+          "nick": "Kepta"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -424241,16 +424258,6 @@
       ]
     }
   },
-  "pc73407": {
-    "_name": "ItsStiv",
-    "other_lists": {
-      "pointercrate": [
-        73407
-      ],
-      "wml": [],
-      "coreboard": {}
-    }
-  },
   "1652": {
     "_name": "8ett",
     "other_lists": {
@@ -425038,6 +425045,11 @@
       ],
       "coreboard": {},
       "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@snooowy23"
+      ]
     }
   },
   "pc73414": {
@@ -425058,6 +425070,11 @@
       ],
       "coreboard": {},
       "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@qrain__"
+      ]
     }
   },
   "pc73416": {
@@ -426142,6 +426159,95 @@
     "other_lists": {
       "pointercrate": [
         73486
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "30307": {
+    "_name": "fsrzhkasooqa",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@srzhksooqa"
+      ]
+    }
+  },
+  "62444": {
+    "_name": "Haine",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@HaineGMD"
+      ]
+    }
+  },
+  "63414": {
+    "_name": "zUnknown",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@zUnkxGMD"
+      ]
+    }
+  },
+  "pc73490": {
+    "_name": "LenuxGD",
+    "other_lists": {
+      "pointercrate": [
+        73490
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73491": {
+    "_name": "Velox",
+    "other_lists": {
+      "pointercrate": [
+        73491
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73495": {
+    "_name": "SYKOVIN",
+    "other_lists": {
+      "pointercrate": [
+        73495
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73496": {
+    "_name": "재현",
+    "other_lists": {
+      "pointercrate": [
+        73496
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73497": {
+    "_name": "balls1",
+    "other_lists": {
+      "pointercrate": [
+        73497
       ],
       "coreboard": {},
       "wml": []
