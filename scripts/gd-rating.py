@@ -760,14 +760,20 @@ COUNTRY = {
 }
 
 
-def flag(country):
-    """Принимает либо название страны (Demonlist), либо готовый ISO-код из 2 букв (Pointercrate)."""
+def country_code(country):
+    """Код страны из 2 букв (PL, RU...) или None. Принимает либо название страны (Demonlist), либо готовый код (Pointercrate)."""
     raw = str(country or "").strip()
     if len(raw) == 2 and raw.isalpha():
         code = raw.upper()
     else:
         code = COUNTRY.get("".join(ch for ch in raw.lower() if ch.isalpha()))
-    if not code or len(code) != 2:
+    return code if code and len(code) == 2 else None
+
+
+def flag(country):
+    """Флаг-эмодзи страны (название или код); белый флаг, если страны нет. Из этого флага compare.py берёт код страны."""
+    code = country_code(country)
+    if not code:
         return "🏳️"
     return "".join(chr(0x1F1E6 + ord(c) - 65) for c in code)
 
@@ -897,7 +903,7 @@ def save_waiting(meta, best_by, info, result, canon_id, removals, owner_of):
             w = links.get(k)
             records.append([meta[k]["name"], fmt_pct(pct), w[1] if w and w[0] == pct else ""])
             level_ids.append(k)  # ID уровня: по нему cbd-update.py ищет видео принятых рекордов (в waiting ссылки нет)
-        new_players[person] = {"nick": e["nick"], "country_code": (info.get(person) or (None, None))[1] or None,
+        new_players[person] = {"nick": e["nick"], "country_code": country_code((info.get(person) or (None, None))[1]),
                                "gdr_id": person, "records": records, "level_ids": level_ids}
     lines = ['{', '  "users": {']
     items = list(new_players.items())
