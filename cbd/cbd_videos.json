@@ -725,9 +725,9 @@
       ["Abyss of Darkness", 100, "https://www.youtube.com/watch?v=MHmAnI0yaj8"],
       ["Defeated Circles", 100, "https://www.youtube.com/watch?v=DPDOHUZlsUc"],
       ["Acheron", 100, "https://www.youtube.com/watch?v=ZP2cfZAYyVg"],
+      ["Ashley Wave Trials", 89, ""],
       ["Thinking Space II (Legacy)", 100, "https://www.youtube.com/watch?v=I3utIbvuCUk"],
-      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=JzgptodqIXQ"],
-      ["Silent clubstep", 65, "https://www.youtube.com/watch?v=H_WaVVv2gaU"]
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=JzgptodqIXQ"]
     ],
     "82": [
       "9i",
@@ -1498,7 +1498,7 @@
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=HImq6vJGyAw"],
       ["KOCMOC", 100, "https://www.youtube.com/watch?v=PCDM5d8RXKg"],
       ["Centipede", 100, "https://www.youtube.com/watch?v=0kYQs2B0GyE"],
-      ["Azure Flare", 52, "https://www.youtube.com/live/W33ajmrhttw?si=83MdTkxuxKhkExVz&t=4243"],
+      ["Azure Flare", 60, ""],
       ["PSYCHOPATH", 100, "https://www.youtube.com/watch?v=C-r0SdiAXuo"]
     ],
     "168": [
@@ -10144,10 +10144,10 @@
       "Rendy",
       ["Tartarus", 100, "https://www.youtube.com/watch?v=zIoXiVsTmCs"],
       ["The Golden", 100, "https://www.youtube.com/watch?v=UpI2P-y8ZCc"],
+      ["Promethean", 100, "https://www.youtube.com/watch?v=cwbuZjrYP4U"],
       ["Renevant", 100, "https://www.youtube.com/watch?v=zPC5jU4m234"],
       ["shimmer", 100, "https://www.youtube.com/watch?v=66Sos8IPpcs"],
-      ["Crimson Planet", 100, "https://www.youtube.com/watch?v=66Sos8IPpcs"],
-      ["Cognition", 100, "https://www.youtube.com/watch?v=C-f7ZkueQug"]
+      ["Crimson Planet", 100, "https://www.youtube.com/watch?v=66Sos8IPpcs"]
     ],
     "1149": [
       "Wirbelwind",
@@ -10555,7 +10555,8 @@
       ["Time Lapse", 100, "https://www.youtube.com/watch?v=DlLPkf1J9xo"],
       ["Widestep", 100, "https://www.youtube.com/watch?v=xNPDdOOhfjo"],
       ["Trotil", 100, "https://www.youtube.com/watch?v=EnRjnTCLB2Q"],
-      ["Cognition", 100, "https://www.youtube.com/watch?v=LT0nG2VfgeE"]
+      ["Cognition", 100, "https://www.youtube.com/watch?v=LT0nG2VfgeE"],
+      ["Mayhem", 69, ""]
     ],
     "1203": [
       "pa1nful",
@@ -21860,6 +21861,13 @@
       ["shimmer", 100, "https://www.youtube.com/watch?v=lQy1mLw2HRY"],
       ["Cognition", 100, "https://www.youtube.com/watch?v=zm3TwuAIyyo"],
       ["Rigel", 100, "https://www.youtube.com/watch?v=QLujf_BByfk"]
+    ],
+    "2866": [
+      "rocky",
+      ["UNKNOWN", 100, ""],
+      ["Sky Shredder", 100, ""],
+      ["Cognition", 100, ""],
+      ["Cobwebs", 100, ""]
     ]
   }
 }
