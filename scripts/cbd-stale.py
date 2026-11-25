@@ -351,18 +351,19 @@ def read_json(path, what):
 
 
 def level_names(tp):
-    """ID уровня (в том числе алиас x...) -> (ID глобала, название на CoreBoard)."""
-    by_name = {norm(e.get("name")): k for k, e in tp.items() if str(k).isdigit()}
+    """Ключ уровня из levels_tp.json -> (ID глобала или None, название на CoreBoard).
+    Ключи x... это специальные уровни CoreBoard, которых на глобале нет: «like» там только уровень, по месту
+    которого CoreBoard считает очки, это другой уровень, поэтому ID глобала у них None."""
     out = {}
     for k, e in tp.items():
         if str(k).isdigit():
             out[str(k)] = (str(k), e.get("name"))
         else:
-            like = e.get("like")
-            gid = by_name.get(norm(like))
-            if gid:
-                out[str(k)] = (gid, e.get("name") or like)
+            out[str(k)] = (None, e.get("name") or e.get("like"))
     return out
+
+
+GROUPS = ("full_in_global", "progress_or_not_in_global")
 
 
 def main():
@@ -410,8 +411,11 @@ def main():
     alive = []
     for c in cand:
         label = f"{c['cb_id']} | {c['nick']} | {c['name'] or c['lvl_key']} {c['pct']:g}%"
-        if not c["gid"]:
-            report.append(f"{label} | пропущено: у уровня нет ID глобала в levels_tp.json")
+        if not c["name"]:
+            report.append(f"{label} | пропущено: ключа уровня {c['lvl_key']} нет в levels_tp.json")
+            continue
+        if not c["gid"]:        # специальный уровень CoreBoard: на глобале его нет, waiting быть не может
+            alive.append(c)
             continue
         accs = accounts(c["uid"])
         if any(a in failed for a in accs):
@@ -426,14 +430,14 @@ def main():
     for c in alive:
         c["label"] = f"{c['cb_id']} | {c['nick']} | {c['name']} {c['pct']:g}%"
         vids = (c["row"] or {}).get("videos") or []
-        names = {norm(c["name"]), norm((tp.get(c["gid"]) or {}).get("name"))}   # алиас: ещё и название самого уровня
+        names = {norm(c["name"])}
         exact = [v for v in vids if norm(v["level"]) in names and abs(float(v["percent"]) - c["pct"]) < 0.01]
         same = [v for v in vids if norm(v["level"]) in names]
         pick = (exact or same or [None])[0]
         c["video"] = pick["video"] if pick else ""
 
     # 3. даты: уровня и видео
-    gids = sorted({c["gid"] for c in alive})
+    gids = sorted({c["gid"] for c in alive if c["gid"]})
     print(f"Даты уровней: {len(gids)}")
     ldates = {}
     for g, res in zip(gids, pmap(level_date, gids)):
@@ -443,13 +447,14 @@ def main():
     # 4. три раздела: старше --days дней, моложе, дата неизвестна. Дата записи = самая поздняя из двух (видео, уровень)
     now = datetime.now(timezone.utc)
     limit = timedelta(days=args.days)
-    sections = {"over_month": [], "under_month": [], "unknown_date": []}
+    sections = {"over_month": {g: [] for g in GROUPS}, "under_month": {g: [] for g in GROUPS}, "unknown_date": []}
     for c in alive:
+        special = not c["gid"]      # уровня нет на глобале: даты уровня нет, считаем только по видео
         ld, vid = ldates.get(c["gid"]), yt_id(c["video"])
         vd = vdates.get(vid) if vid else None
         pct = int(c["pct"]) if c["pct"] == int(c["pct"]) else c["pct"]
         rec = [c["name"], pct, c["video"]]
-        if ld is None or vd is None:
+        if vd is None or (ld is None and not special):
             if not c["video"]:
                 why = "на CoreBoard нет ссылки на видео"
             elif not vid:
@@ -463,10 +468,15 @@ def main():
             sections["unknown_date"].append((c, rec, known))
             report.append(f"{c['label']} | дата неизвестна: {why}: {c['video']}")
             continue
-        latest, kind = (vd, "дата видео") if vd >= ld else (ld, "дата уровня")
+        if special:
+            latest, kind = vd, "дата видео (уровня нет на глобале)"
+        else:
+            latest, kind = (vd, "дата видео") if vd >= ld else (ld, "дата уровня")
         rec += [fmt_date(latest, now), kind]
         sec = "over_month" if now - latest > limit else "under_month"
-        sections[sec].append((c, rec, latest))
+        # 100% на уровне, который есть на глобале, отдельно от прогрессов и специальных уровней CoreBoard
+        grp = "full_in_global" if (c["gid"] and c["pct"] >= 100) else "progress_or_not_in_global"
+        sections[sec][grp].append((c, rec, latest))
         report.append(f"{c['label']} | {sec}: {kind} {latest:%Y-%m-%d}, прошло {(now - latest).days} дн.")
 
     CBD_DIR.mkdir(exist_ok=True)
@@ -474,7 +484,7 @@ def main():
     WORK.mkdir(exist_ok=True)
     (WORK / "report.txt").write_text("\n".join(sorted(report)) + "\n", "utf-8")
     save_cache()
-    counts = {k: len(v) for k, v in sections.items()}
+    counts = {k: (len(v) if isinstance(v, list) else sum(len(x) for x in v.values())) for k, v in sections.items()}
     print(f"\nunaccepted_records.json: старше {args.days} дн. {counts['over_month']}, моложе {counts['under_month']}, "
           f"дата неизвестна {counts['unknown_date']} (причины пропусков: scripts/cbd-stale/report.txt)")
 
@@ -488,27 +498,52 @@ def fmt_date(d, now):
     return f"{d:%Y-%m-%d} ({(now - d).days} дн.)"
 
 
+def users_block(items, ind):
+    """{"users": {...}} в формате jsonfmt.py. Игроки: у кого самая старая запись, тот выше; записи игрока: от старой к новой
+    (то есть по убыванию прошедшего времени). Запись: [название, процент, ссылка, "дата (N дн.)", "дата видео" / "дата уровня"]."""
+    if not items:
+        return ['{"users": {}}']
+    late = datetime.max.replace(tzinfo=timezone.utc)
+    players = {}
+    for c, rec, when in items:
+        players.setdefault(c["cb_id"], (c["nick"], []))[1].append((when or late, rec))
+    for nick, recs in players.values():
+        recs.sort(key=lambda x: (x[0], x[1][0]))
+    order = sorted(players, key=lambda k: (players[k][1][0][0], not k.isdigit(), int(k) if k.isdigit() else 0, k))
+    pad = " " * ind
+    lines = ['{"users": {']
+    for i, k in enumerate(order):
+        nick, recs = players[k]
+        lines.append(f'{pad}  {json.dumps(k)}: [')
+        lines.append(f'{pad}    {json.dumps(nick, ensure_ascii=False)},')
+        for j, (_, r) in enumerate(recs):
+            lines.append(f'{pad}    {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(recs) - 1 else ""))
+        lines.append(f"{pad}  ]" + ("," if i < len(order) - 1 else ""))
+    lines.append(f"{pad}}}}}")
+    return lines
+
+
 def write_sections(path, sections):
-    """Три блока в формате jsonfmt.py; в каждом игроки по ID CoreBoard, записи от самой старой даты к новой.
-    Запись: [название, процент, ссылка на видео, "дата (N дн.)", "дата видео" или "дата уровня"]."""
+    """over_month и under_month делятся на full_in_global (100% на уровнях, которые есть на глобале) и
+    progress_or_not_in_global (прогрессы меньше 100% и специальные уровни CoreBoard), unknown_date один список."""
     lines = ["{"]
     names = list(sections)
     for si, name in enumerate(names):
-        players = {}
-        for c, rec, when in sections[name]:
-            players.setdefault(c["cb_id"], (c["nick"], []))[1].append((when or datetime.max.replace(tzinfo=timezone.utc), rec))
-        order = sorted(players, key=lambda k: (not k.isdigit(), int(k) if k.isdigit() else 0, k))
-        lines.append(f'  {json.dumps(name)}: {{"users": {{' if order else f'  {json.dumps(name)}: {{"users": {{}}}}' + ("," if si < len(names) - 1 else ""))
-        for i, k in enumerate(order):
-            nick, recs = players[k]
-            recs.sort(key=lambda x: (x[0], x[1][0]))
-            lines.append(f'    {json.dumps(k)}: [')
-            lines.append(f'      {json.dumps(nick, ensure_ascii=False)},')
-            for j, (_, r) in enumerate(recs):
-                lines.append(f'      {json.dumps(r, ensure_ascii=False)}' + ("," if j < len(recs) - 1 else ""))
-            lines.append("    ]" + ("," if i < len(order) - 1 else ""))
-        if order:
-            lines.append("  }}" + ("," if si < len(names) - 1 else ""))
+        tail = "," if si < len(names) - 1 else ""
+        data = sections[name]
+        if isinstance(data, list):
+            block = users_block(data, 2)
+            block[0] = f'  {json.dumps(name)}: ' + block[0]
+            block[-1] += tail
+            lines += block
+            continue
+        lines.append(f'  {json.dumps(name)}: {{')
+        for gi, g in enumerate(data):
+            block = users_block(data[g], 4)
+            block[0] = f'    {json.dumps(g)}: ' + block[0]
+            block[-1] += "," if gi < len(data) - 1 else ""
+            lines += block
+        lines.append("  }" + tail)
     lines += ["}", ""]
     path.write_text("\n".join(lines), "utf-8")
 
