@@ -82,9 +82,10 @@ def players_achievements(src, mapping):
 
 
 def players_new(src):
-    """missing_players*.json ({ключ: {"nick", "records", ...}}) -> {ключ: (ник, записи)}."""
+    """missing_players*.json ({ключ: {"nick", "records", "country_code", ...}}) -> {ключ: (ник, записи, код страны или None)}.
+    Страна взята из флага в gdr.txt (compare.py) или из профиля игрока (gd-rating --waiting), отдельно она не ищется."""
     users = json.loads(src.read_text("utf-8")).get("users", {})
-    return {key: (info["nick"], info["records"]) for key, info in users.items()}
+    return {key: (info["nick"], info["records"], info.get("country_code")) for key, info in users.items()}
 
 
 def publish(out, message):
