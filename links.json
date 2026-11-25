@@ -94189,7 +94189,12 @@
     "other_lists": {
       "pointercrate": [],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2866,
+          "nick": "rocky"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -426265,6 +426270,115 @@
     "other_lists": {
       "pointercrate": [
         73498
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "31763": {
+    "_name": "kalikok",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@kalikok"
+      ]
+    }
+  },
+  "38914": {
+    "_name": "Endergame",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@Endergame_GD"
+      ]
+    }
+  },
+  "44164": {
+    "_name": "Xero",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "56006": {
+    "_name": "ziggy",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@Ziggyzig67-jy4om"
+      ]
+    }
+  },
+  "58159": {
+    "_name": "lines",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@lines42meow"
+      ]
+    }
+  },
+  "58682": {
+    "_name": "mihailasevich",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@mihailasevich"
+      ]
+    }
+  },
+  "60336": {
+    "_name": "Con1x",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@Nederiscooter"
+      ]
+    }
+  },
+  "63472": {
+    "_name": "we4k",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@Van1La_YT"
+      ]
+    }
+  },
+  "pc73499": {
+    "_name": "AuriGD",
+    "other_lists": {
+      "pointercrate": [
+        73499
       ],
       "coreboard": {},
       "wml": []
