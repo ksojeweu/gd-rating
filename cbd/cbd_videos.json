@@ -3679,7 +3679,7 @@
       ["COMBUSTION", 100, "https://www.youtube.com/watch?v=mmitmf0af0Y"],
       ["Deadlier Clubstep", 100, "https://www.youtube.com/watch?v=Sbge2WtaNUk"],
       ["Tunnel of Despair", 86, "https://www.youtube.com/watch?v=50a2kCZgKks"],
-      ["Saul Goodman", 88, "https://www.youtube.com/watch?v=rZDtwYyx5SU"]
+      ["Abocto", 100, ""]
     ],
     "411": [
       "SashaKray",
@@ -4398,8 +4398,8 @@
     ],
     "491": [
       "Electrical",
+      ["andromeda", 100, ""],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=-1cegIsMim4"],
-      ["andromeda", 99, "https://www.youtube.com/watch?v=mi-3zK0JT8A"],
       ["Sevvend Clubstep", 100, "https://www.youtube.com/watch?v=_w98xQKqs1M"],
       ["arcturus", 100, "https://www.youtube.com/watch?v=YDRTR-KzywE"],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=-SSjhQqEUQk"],
@@ -17944,7 +17944,7 @@
     ],
     "2187": [
       "Sameh444",
-      ["Silent clubstep", 66, "https://www.youtube.com/watch?v=T8nJ8-6gXI4"]
+      ["Silent clubstep", 76, ""]
     ],
     "2188": [
       "Supy",
@@ -21841,6 +21841,24 @@
     "2862": [
       "chesswiz",
       ["LIMBO", 100, "https://www.youtube.com/watch?v=RkynKokvVYs"]
+    ],
+    "2863": [
+      "4cocoya",
+      ["Waterfall", 100, ""],
+      ["Firework", 86, ""]
+    ],
+    "2864": [
+      "Kepta",
+      ["Slaughterhouse", 81, ""],
+      ["Cold Sweat", 100, ""],
+      ["RUST", 100, ""]
+    ],
+    "2865": [
+      "Cryyy",
+      ["Oblivion", 100, ""],
+      ["shimmer", 100, ""],
+      ["Cognition", 100, ""],
+      ["Rigel", 100, ""]
     ]
   }
 }
