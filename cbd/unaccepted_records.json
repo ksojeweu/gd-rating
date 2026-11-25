@@ -1,6 +1,6 @@
 {
-  "over_month": {
-    "full_in_global": {"users": {
+  "full_in_global": {
+    "over_month": {"users": {
       "1220": [
         "Rotys",
         ["Sonic Wave Infinity", 100, "https://www.youtube.com/watch?v=PnwraVsq2nk", "2025-08-04 (477 дн.)", "дата видео"],
@@ -28,7 +28,84 @@
         ["poocubed", 100, "https://www.youtube.com/watch?v=Ywc3DW0Oj0o", "2026-10-23 (32 дн.)", "дата видео"]
       ]
     }},
-    "progress_or_not_in_global": {"users": {
+    "under_month": {"users": {
+      "1104": [
+        "vaflya",
+        ["Firework", 100, "https://www.youtube.com/watch?v=beEOb9QoIU4", "2026-11-01 (24 дн.)", "дата видео"],
+        ["Renevant", 100, "https://www.youtube.com/watch?v=qesJUUTWC8o", "2026-11-09 (15 дн.)", "дата видео"]
+      ],
+      "321": [
+        "lovemycorpse",
+        ["Acheron", 100, "https://www.youtube.com/watch?v=x0t7CNA-TlM", "2026-11-09 (15 дн.)", "дата видео"]
+      ],
+      "2738": [
+        "ikkyseen",
+        ["Make Paul Dance", 100, "https://www.youtube.com/watch?v=kcEuqXiQ74o", "2026-11-13 (11 дн.)", "дата видео"]
+      ],
+      "244": [
+        "Dustabounds",
+        ["Acheron", 100, "https://www.youtube.com/watch?v=FlEJXbmgP1o", "2026-11-16 (9 дн.)", "дата видео"]
+      ],
+      "399": [
+        "playlino",
+        ["Acheron", 100, "https://www.youtube.com/watch?v=u99TZ6wgfsY", "2026-11-19 (5 дн.)", "дата видео"]
+      ],
+      "1921": [
+        "Kiruu",
+        ["Every End", 100, "https://www.youtube.com/watch?v=T6u6iFQ1iEQ", "2026-11-21 (3 дн.)", "дата видео"]
+      ],
+      "2860": [
+        "qzerdd",
+        ["The Golden", 100, "https://www.youtube.com/watch?v=Pq6s80F5J3Y", "2026-11-21 (3 дн.)", "дата видео"]
+      ],
+      "977": [
+        "Falaet",
+        ["IMPERIAL", 100, "https://youtu.be/keAsgxJAiSE", "2026-11-21 (3 дн.)", "дата видео"]
+      ],
+      "2493": [
+        "Blinkkous",
+        ["Oblivion", 100, "https://www.youtube.com/watch?v=QdnxiYjkHl4", "2026-11-22 (3 дн.)", "дата видео"]
+      ],
+      "1111": [
+        "cl1ck",
+        ["Sakupen Circles", 100, "https://youtu.be/iDMKthoXPfo?si=mqarBUXqsE2ZAEM9", "2026-11-22 (2 дн.)", "дата видео"]
+      ],
+      "161": [
+        "Thelifinof",
+        ["Slaughterhouse", 100, "https://youtu.be/OVKdkOHYsVU", "2026-11-22 (2 дн.)", "дата видео"]
+      ],
+      "893": [
+        "Gopso",
+        ["Belladonna", 100, "https://youtu.be/FUmDsbge4Qo?is=FQxhQDVnMFvwhh-N", "2026-11-22 (2 дн.)", "дата видео"]
+      ],
+      "1503": [
+        "UltravioletRS",
+        ["Saul Goodman", 100, "https://youtu.be/B0_8hx2AZZU", "2026-11-23 (2 дн.)", "дата видео"]
+      ],
+      "1175": [
+        "Citrus",
+        ["The Hallucination", 100, "https://youtu.be/6Dqv4rHh5Q0?t=2771", "2026-11-23 (1 дн.)", "дата видео"]
+      ],
+      "2726": [
+        "CandyCloud22",
+        ["UNKNOWN", 100, "https://youtu.be/SWuCYwi1zRU?si=mLjRL6uYKHHyjHuC", "2026-11-23 (1 дн.)", "дата видео"]
+      ],
+      "1389": [
+        "Cclixgd",
+        ["Sakupen Circles", 100, "https://youtu.be/4zTv_mrf4R0", "2026-11-23 (1 дн.)", "дата видео"]
+      ],
+      "2661": [
+        "ninfisgoat",
+        ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=hUdDO5Y4-yI&t=4s", "2026-11-23 (1 дн.)", "дата видео"]
+      ],
+      "33": [
+        "Sharkified",
+        ["Abyss of Darkness", 100, "https://youtu.be/vAeOO3LJ__Y", "2026-11-24 (0 дн.)", "дата видео"]
+      ]
+    }}
+  },
+  "progress_or_not_in_global": {
+    "over_month": {"users": {
       "1131": [
         "TyakyoFyai",
         ["Endless Travel", 100, "https://www.youtube.com/watch?v=RzNL0RBL1-s", "2021-04-24 (2040 дн.)", "дата видео (уровня нет на глобале)"]
@@ -461,85 +538,8 @@
         "amikkie",
         ["poocubed", 83, "https://youtu.be/lU3nM3lAOX4", "2026-10-25 (30 дн.)", "дата видео"]
       ]
-    }}
-  },
-  "under_month": {
-    "full_in_global": {"users": {
-      "1104": [
-        "vaflya",
-        ["Firework", 100, "https://www.youtube.com/watch?v=beEOb9QoIU4", "2026-11-01 (24 дн.)", "дата видео"],
-        ["Renevant", 100, "https://www.youtube.com/watch?v=qesJUUTWC8o", "2026-11-09 (15 дн.)", "дата видео"]
-      ],
-      "321": [
-        "lovemycorpse",
-        ["Acheron", 100, "https://www.youtube.com/watch?v=x0t7CNA-TlM", "2026-11-09 (15 дн.)", "дата видео"]
-      ],
-      "2738": [
-        "ikkyseen",
-        ["Make Paul Dance", 100, "https://www.youtube.com/watch?v=kcEuqXiQ74o", "2026-11-13 (11 дн.)", "дата видео"]
-      ],
-      "244": [
-        "Dustabounds",
-        ["Acheron", 100, "https://www.youtube.com/watch?v=FlEJXbmgP1o", "2026-11-16 (9 дн.)", "дата видео"]
-      ],
-      "399": [
-        "playlino",
-        ["Acheron", 100, "https://www.youtube.com/watch?v=u99TZ6wgfsY", "2026-11-19 (5 дн.)", "дата видео"]
-      ],
-      "1921": [
-        "Kiruu",
-        ["Every End", 100, "https://www.youtube.com/watch?v=T6u6iFQ1iEQ", "2026-11-21 (3 дн.)", "дата видео"]
-      ],
-      "2860": [
-        "qzerdd",
-        ["The Golden", 100, "https://www.youtube.com/watch?v=Pq6s80F5J3Y", "2026-11-21 (3 дн.)", "дата видео"]
-      ],
-      "977": [
-        "Falaet",
-        ["IMPERIAL", 100, "https://youtu.be/keAsgxJAiSE", "2026-11-21 (3 дн.)", "дата видео"]
-      ],
-      "2493": [
-        "Blinkkous",
-        ["Oblivion", 100, "https://www.youtube.com/watch?v=QdnxiYjkHl4", "2026-11-22 (3 дн.)", "дата видео"]
-      ],
-      "1111": [
-        "cl1ck",
-        ["Sakupen Circles", 100, "https://youtu.be/iDMKthoXPfo?si=mqarBUXqsE2ZAEM9", "2026-11-22 (2 дн.)", "дата видео"]
-      ],
-      "161": [
-        "Thelifinof",
-        ["Slaughterhouse", 100, "https://youtu.be/OVKdkOHYsVU", "2026-11-22 (2 дн.)", "дата видео"]
-      ],
-      "893": [
-        "Gopso",
-        ["Belladonna", 100, "https://youtu.be/FUmDsbge4Qo?is=FQxhQDVnMFvwhh-N", "2026-11-22 (2 дн.)", "дата видео"]
-      ],
-      "1503": [
-        "UltravioletRS",
-        ["Saul Goodman", 100, "https://youtu.be/B0_8hx2AZZU", "2026-11-23 (2 дн.)", "дата видео"]
-      ],
-      "1175": [
-        "Citrus",
-        ["The Hallucination", 100, "https://youtu.be/6Dqv4rHh5Q0?t=2771", "2026-11-23 (1 дн.)", "дата видео"]
-      ],
-      "2726": [
-        "CandyCloud22",
-        ["UNKNOWN", 100, "https://youtu.be/SWuCYwi1zRU?si=mLjRL6uYKHHyjHuC", "2026-11-23 (1 дн.)", "дата видео"]
-      ],
-      "1389": [
-        "Cclixgd",
-        ["Sakupen Circles", 100, "https://youtu.be/4zTv_mrf4R0", "2026-11-23 (1 дн.)", "дата видео"]
-      ],
-      "2661": [
-        "ninfisgoat",
-        ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=hUdDO5Y4-yI&t=4s", "2026-11-23 (1 дн.)", "дата видео"]
-      ],
-      "33": [
-        "Sharkified",
-        ["Abyss of Darkness", 100, "https://youtu.be/vAeOO3LJ__Y", "2026-11-24 (0 дн.)", "дата видео"]
-      ]
     }},
-    "progress_or_not_in_global": {"users": {
+    "under_month": {"users": {
       "2057": [
         "Xtra8nuggies",
         ["andromeda", 65, "https://youtu.be/4KzC93q9c9M", "2026-10-27 (28 дн.)", "дата видео"]
@@ -624,10 +624,6 @@
       "1020": [
         "Lingherr",
         ["Tunnel of Despair", 71, "https://www.youtube.com/watch?v=2pRWxHPiEWU", "2026-11-07 (17 дн.)", "дата видео"]
-      ],
-      "1063": [
-        "emirhanbanan",
-        ["Silent poltergeist", 72, "https://www.youtube.com/watch?v=EAgjw8ktlHo", "2026-11-08 (16 дн.)", "дата видео"]
       ],
       "1143": [
         "mido",
@@ -815,7 +811,7 @@
     ],
     "751": [
       "ArtCZzz",
-      ["Crackhead Circles", 100, "https://www.youtube.com/watch?v=7ACqcvt3QSY", "2023-11-04 (1117 дн.)", "YouTube не отдал дату видео: WEB: LOGIN_REQUIRED: Private video; ANDROID: HTTPError HTTP Error 400: Bad Request; страница: на странице видео нет даты (видео удалено или закрыто) (известна дата уровня)"]
+      ["Crackhead Circles", 100, "https://www.youtube.com/watch?v=7ACqcvt3QSY", "2023-11-04 (1117 дн.)", "YouTube не отдал дату видео: неудача в прошлом запуске, повтор позже (известна дата уровня)"]
     ],
     "1205": [
       "cr1stal",
@@ -848,7 +844,7 @@
     ],
     "147": [
       "Duv",
-      ["FIBERGLASS", 100, "https://www.youtube.com/watch?v=VCp8bv8AM54&t=23s", "", "YouTube не отдал дату видео: WEB: LOGIN_REQUIRED: Sign in to confirm you’re not a bot; ANDROID: HTTPError HTTP Error 400: Bad Request; страница: YouTube просит подтвердить, что вы не бот"]
+      ["FIBERGLASS", 100, "https://www.youtube.com/watch?v=VCp8bv8AM54&t=23s", "", "YouTube не отдал дату видео: неудача в прошлом запуске, повтор позже"]
     ],
     "162": [
       "og",
@@ -856,11 +852,11 @@
     ],
     "216": [
       "geodom",
-      ["FIBERGLASS", 100, "https://www.youtube.com/watch?v=qq1asTLNgqo", "", "YouTube не отдал дату видео: WEB: LOGIN_REQUIRED: Sign in to confirm you’re not a bot; ANDROID: HTTPError HTTP Error 400: Bad Request; страница: YouTube просит подтвердить, что вы не бот"]
+      ["FIBERGLASS", 100, "https://www.youtube.com/watch?v=qq1asTLNgqo", "", "YouTube не отдал дату видео: неудача в прошлом запуске, повтор позже"]
     ],
     "234": [
       "midgatal",
-      ["True Innards", 100, "https://www.youtube.com/watch?v=YFjt-ocwFTM&t=4s", "", "YouTube не отдал дату видео: WEB: LOGIN_REQUIRED: Sign in to confirm you’re not a bot; ANDROID: HTTPError HTTP Error 400: Bad Request; страница: YouTube просит подтвердить, что вы не бот"]
+      ["True Innards", 100, "https://www.youtube.com/watch?v=YFjt-ocwFTM&t=4s", "", "YouTube не отдал дату видео: неудача в прошлом запуске, повтор позже"]
     ]
   }}
 }
