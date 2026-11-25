@@ -447,7 +447,8 @@ def main():
     # 4. три раздела: старше --days дней, моложе, дата неизвестна. Дата записи = самая поздняя из двух (видео, уровень)
     now = datetime.now(timezone.utc)
     limit = timedelta(days=args.days)
-    sections = {"over_month": {g: [] for g in GROUPS}, "under_month": {g: [] for g in GROUPS}, "unknown_date": []}
+    sections = {g: {"over_month": [], "under_month": []} for g in GROUPS}
+    sections["unknown_date"] = []
     for c in alive:
         special = not c["gid"]      # уровня нет на глобале: даты уровня нет, считаем только по видео
         ld, vid = ldates.get(c["gid"]), yt_id(c["video"])
@@ -476,7 +477,7 @@ def main():
         sec = "over_month" if now - latest > limit else "under_month"
         # 100% на уровне, который есть на глобале, отдельно от прогрессов и специальных уровней CoreBoard
         grp = "full_in_global" if (c["gid"] and c["pct"] >= 100) else "progress_or_not_in_global"
-        sections[sec][grp].append((c, rec, latest))
+        sections[grp][sec].append((c, rec, latest))
         report.append(f"{c['label']} | {sec}: {kind} {latest:%Y-%m-%d}, прошло {(now - latest).days} дн.")
 
     CBD_DIR.mkdir(exist_ok=True)
@@ -484,7 +485,9 @@ def main():
     WORK.mkdir(exist_ok=True)
     (WORK / "report.txt").write_text("\n".join(sorted(report)) + "\n", "utf-8")
     save_cache()
-    counts = {k: (len(v) if isinstance(v, list) else sum(len(x) for x in v.values())) for k, v in sections.items()}
+    counts = {"over_month": sum(len(sections[g]["over_month"]) for g in GROUPS),
+              "under_month": sum(len(sections[g]["under_month"]) for g in GROUPS),
+              "unknown_date": len(sections["unknown_date"])}
     print(f"\nunaccepted_records.json: старше {args.days} дн. {counts['over_month']}, моложе {counts['under_month']}, "
           f"дата неизвестна {counts['unknown_date']} (причины пропусков: scripts/cbd-stale/report.txt)")
 
@@ -524,8 +527,8 @@ def users_block(items, ind):
 
 
 def write_sections(path, sections):
-    """over_month и under_month делятся на full_in_global (100% на уровнях, которые есть на глобале) и
-    progress_or_not_in_global (прогрессы меньше 100% и специальные уровни CoreBoard), unknown_date один список."""
+    """Сначала full_in_global (100% на уровнях, которые есть на глобале), потом progress_or_not_in_global (прогрессы меньше
+    100% и специальные уровни CoreBoard); каждый делится на over_month и under_month. В конце unknown_date одним списком."""
     lines = ["{"]
     names = list(sections)
     for si, name in enumerate(names):
