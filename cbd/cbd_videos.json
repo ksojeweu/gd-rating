@@ -21844,21 +21844,21 @@
     ],
     "2863": [
       "4cocoya",
-      ["Waterfall", 100, ""],
-      ["Firework", 86, ""]
+      ["Waterfall", 100, "https://www.youtube.com/watch?v=fJgq2OmaEYk"],
+      ["Firework", 86, "https://www.youtube.com/watch?v=h6035U6BqCI"]
     ],
     "2864": [
       "Kepta",
-      ["Slaughterhouse", 81, ""],
-      ["Cold Sweat", 100, ""],
-      ["RUST", 100, ""]
+      ["Slaughterhouse", 81, "https://www.youtube.com/watch?v=i_yXNXf8pN8"],
+      ["Cold Sweat", 100, "https://www.youtube.com/watch?v=6jOq2tFjU8A"],
+      ["RUST", 100, "https://www.youtube.com/watch?v=rJ_7juuvG60"]
     ],
     "2865": [
       "Cryyy",
-      ["Oblivion", 100, ""],
-      ["shimmer", 100, ""],
-      ["Cognition", 100, ""],
-      ["Rigel", 100, ""]
+      ["Oblivion", 100, "https://www.youtube.com/watch?v=s3P7oiEa7Ak"],
+      ["shimmer", 100, "https://www.youtube.com/watch?v=lQy1mLw2HRY"],
+      ["Cognition", 100, "https://www.youtube.com/watch?v=zm3TwuAIyyo"],
+      ["Rigel", 100, "https://www.youtube.com/watch?v=QLujf_BByfk"]
     ]
   }
 }
