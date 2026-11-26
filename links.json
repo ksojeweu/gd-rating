@@ -1243,7 +1243,12 @@
         55301
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2869,
+          "nick": "realdanish"
+        }
+      }
     }
   },
   "2506": {
@@ -36087,7 +36092,12 @@
       "wml": [
         543
       ],
-      "coreboard": {}
+      "coreboard": {
+        "mobile": {
+          "id": 80,
+          "nick": "Hilo"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -49518,7 +49528,12 @@
         66402
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2868,
+          "nick": "TeoFXC"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -85612,6 +85627,10 @@
         "main": {
           "id": 2155,
           "nick": "WSCKR"
+        },
+        "mobile": {
+          "id": 81,
+          "nick": "Seolha"
         }
       }
     },
@@ -178990,7 +179009,12 @@
         71799
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2867,
+          "nick": "fiyo"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -426625,6 +426649,42 @@
     "other_lists": {
       "pointercrate": [
         73504
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "56836": {
+    "_name": "FFl0wey",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@FFlowey_y"
+      ]
+    }
+  },
+  "66974": {
+    "_name": "janchuks",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@jancispekstins"
+      ]
+    }
+  },
+  "pc73505": {
+    "_name": "[GBLUD] SourCream",
+    "other_lists": {
+      "pointercrate": [
+        73505
       ],
       "coreboard": {},
       "wml": []
