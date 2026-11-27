@@ -1719,11 +1719,11 @@
     ],
     "192": [
       "Korppu",
+      ["Avernus", 100, ""],
       ["Kyouki", 100, "https://www.youtube.com/watch?v=XFleAJr_fQk"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=T31lMLQMycM"],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=ampZ1VAN8Jo"],
       ["Through The Gates", 100, "https://www.youtube.com/watch?v=3S0WFa4ANGM"],
-      ["Avernus", 79, "https://www.youtube.com/watch?v=JO8PPgr7fy0"],
       ["Saul Goodman", 100, "https://www.youtube.com/watch?v=zN3YyDCDXQg"]
     ],
     "193": [
@@ -12216,6 +12216,7 @@
     ],
     "1423": [
       "spaceFL",
+      ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=Kin-oznk3mU"],
       ["Sevvend Clubstep", 100, "https://www.youtube.com/watch?v=K6ccD0xhDV8"],
       ["Solar Flare", 100, "https://www.youtube.com/watch?v=0u5001e6eQQ"],
       ["Oblivion", 100, "https://www.youtube.com/watch?v=xLIbQh6IZUE"],
@@ -13942,6 +13943,7 @@
     ],
     "1635": [
       "Hexzo",
+      ["Acheron", 100, "https://www.youtube.com/watch?v=a-xdwVvKliY"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=C8whei3Xlgk"],
       ["Tartarus", 100, "https://www.youtube.com/watch?v=RuMK0HB-iV4"]
     ],
@@ -21919,6 +21921,12 @@
       ["The Golden", 100, "https://www.youtube.com/watch?v=EIjPSQrteT4"],
       ["SUPERHATEMEWORLD", 100, "https://www.youtube.com/watch?v=UiVNtpF4SnM"],
       ["Bloodlust", 100, "https://www.youtube.com/watch?v=DykQWBRAtr4"]
+    ],
+    "2874": [
+      "ced168",
+      ["walter white", 100, "https://www.youtube.com/watch?v=dJU_S07SAFE"],
+      ["shimmer", 100, "https://www.youtube.com/watch?v=r2e4-HdBBlQ"],
+      ["Bloodlust", 100, "https://www.youtube.com/watch?v=hWxCxIb_6Pk"]
     ]
   }
 }
