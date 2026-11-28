@@ -194,7 +194,7 @@
       ["Society", 71, "https://www.youtube.com/watch?v=HHxAs-qzk34"],
       ["Silent clubstep", 100, "https://www.youtube.com/watch?v=YM3S4PMTkS4"],
       ["andromeda", 100, "https://www.youtube.com/watch?v=0K8O00bmv30"],
-      ["Defeated Circles", 100, ""],
+      ["Defeated Circles", 100, "https://www.youtube.com/watch?v=CNps2HYQDik"],
       ["Acheron", 100, "https://www.youtube.com/watch?v=Oaop6-ans7g"],
       ["Subterminal Point", 100, "https://www.youtube.com/watch?v=Jgi6XHqYWJE"]
     ],
@@ -722,10 +722,10 @@
     ],
     "81": [
       "UzuDen",
+      ["Ashley Wave Trials", 100, ""],
       ["Abyss of Darkness", 100, "https://www.youtube.com/watch?v=MHmAnI0yaj8"],
       ["Defeated Circles", 100, "https://www.youtube.com/watch?v=DPDOHUZlsUc"],
       ["Acheron", 100, "https://www.youtube.com/watch?v=ZP2cfZAYyVg"],
-      ["Ashley Wave Trials", 95, ""],
       ["Thinking Space II (Legacy)", 100, "https://www.youtube.com/watch?v=I3utIbvuCUk"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=JzgptodqIXQ"]
     ],
@@ -1085,7 +1085,7 @@
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=awprxqbQ6a8"],
       ["Deimos", 100, "https://www.youtube.com/watch?v=vNfZjBuUI38"],
       ["Lost in Time 2", 100, "https://www.youtube.com/watch?v=8i5GfTqb6oE&t=8s"],
-      ["poocubed", 100, "https://www.youtube.com/watch?v=U_nuAXxz0yI"]
+      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=v3JW5H4SZ-8"]
     ],
     "122": [
       "BONN GD",
@@ -1494,11 +1494,11 @@
     ],
     "167": [
       "oginn",
+      ["Azure Flare", 100, "https://www.youtube.com/watch?v=8Fc7OliB0PM"],
       ["Anathema", 100, "https://www.youtube.com/watch?v=h6OZvckwT-c"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=HImq6vJGyAw"],
       ["KOCMOC", 100, "https://www.youtube.com/watch?v=PCDM5d8RXKg"],
       ["Centipede", 100, "https://www.youtube.com/watch?v=0kYQs2B0GyE"],
-      ["Azure Flare", 60, ""],
       ["PSYCHOPATH", 100, "https://www.youtube.com/watch?v=C-r0SdiAXuo"]
     ],
     "168": [
@@ -1587,9 +1587,9 @@
       ["Kyouki", 100, "https://www.youtube.com/watch?v=hIGMM2nAAHQ"],
       ["Slaughterhouse", 100, "https://www.youtube.com/watch?v=HG4US4ltFnk"],
       ["Deimos", 100, "https://www.youtube.com/watch?v=XEI4giMTcOM"],
+      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=EKVwLwAY6ao"],
       ["poocubed", 100, "https://www.youtube.com/watch?v=ZVaZzXjtD4w"],
-      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=77klAat41Ns"],
-      ["Sevvend Clubstep", 100, "https://www.youtube.com/watch?v=vIL05QSPcd0"]
+      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=77klAat41Ns"]
     ],
     "178": [
       "miguel6456",
@@ -1821,9 +1821,9 @@
       ["Defeated Circles", 100, "https://www.youtube.com/watch?v=7nsadsvgQUw"],
       ["KOCMOC", 100, "https://www.youtube.com/watch?v=PJVDS5M0BNE"],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=F0yDpSL7qzE"],
+      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=wtG5mhes1qA"],
       ["poocubed", 100, "https://www.youtube.com/watch?v=Gy7U1nR_bcY"],
-      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=KQrd8qAOdNo"],
-      ["The Hallucination", 100, "https://www.youtube.com/watch?v=x4L1cKTuUbM"]
+      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=KQrd8qAOdNo"]
     ],
     "204": [
       "Jabka",
@@ -2001,9 +2001,9 @@
       ["Acheron", 100, "https://www.youtube.com/watch?v=vWkKAZEdkVA"],
       ["Silentlocked", 100, "https://www.youtube.com/watch?v=AId_bFk2S3E"],
       ["Apocalyptic Trilogy", 100, "https://www.youtube.com/watch?v=fhU1c7wayeM"],
+      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=Ydy6qo_Rm2M"],
       ["poocubed", 100, "https://www.youtube.com/watch?v=PwK93jdQblc"],
-      ["MINUSdry", 100, "https://www.youtube.com/watch?v=FNEFkhh_RkU"],
-      ["Pinnacle of Life", 100, "https://www.youtube.com/watch?v=gQl5iY1ekyE"]
+      ["MINUSdry", 100, "https://www.youtube.com/watch?v=FNEFkhh_RkU"]
     ],
     "224": [
       "AlecZD",
@@ -2118,8 +2118,8 @@
       ["Master of Puppets", 100, "https://www.youtube.com/watch?v=JBZ-lrBgkl0"],
       ["Through The Gates", 100, "https://www.youtube.com/watch?v=QtZx4HUCePQ"],
       ["Apocalyptic Trilogy", 100, "https://www.youtube.com/watch?v=qLSRf97JBH4"],
-      ["Calibrate", 100, "https://www.youtube.com/watch?v=TgjgsSBd454"],
-      ["The Hallucination", 100, "https://www.youtube.com/watch?v=m53YIw8NQdo"]
+      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=ff_mQSXwjhU"],
+      ["Calibrate", 100, "https://www.youtube.com/watch?v=TgjgsSBd454"]
     ],
     "237": [
       "Diris:v",
@@ -2341,10 +2341,10 @@
       "Conical",
       ["CHIL", 100, "https://www.youtube.com/watch?v=cwHWYOG6ZfY"],
       ["Sakupen Circles", 100, "https://www.youtube.com/watch?v=8krKrRtEppw"],
+      ["BRITNEY NO SCLEARS", 100, "https://www.youtube.com/watch?v=BhgcFAdPMBU"],
       ["poocubed", 100, "https://www.youtube.com/watch?v=NjaO2HVlS2A"],
       ["Calibrate", 100, "https://www.youtube.com/watch?v=roE2fSsu__0"],
-      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=xe0eeK1-HuE"],
-      ["MINUSdry", 100, "https://www.youtube.com/watch?v=a_sjStF44nY"]
+      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=xe0eeK1-HuE"]
     ],
     "262": [
       "Rodmentor",
@@ -4069,7 +4069,7 @@
       ["Sanctity", 100, "https://www.youtube.com/watch?v=N_RS4shZTTw"]
     ],
     "454": [
-      "Spoken04",
+      "spokeagny04",
       ["Acheron", 94, "https://www.youtube.com/watch?v=0X1o-zuTEKs"],
       ["poocubed", 100, "https://www.youtube.com/watch?v=aT1ViY8HGdI"],
       ["Abyss of Darkness", 82, "https://www.youtube.com/watch?v=LEi5x5XqiFw"],
@@ -9345,10 +9345,10 @@
       "blessedandro",
       ["NervHell", 100, "https://www.youtube.com/watch?v=mFf6lWsRzxA"],
       ["Delta", 100, "https://www.youtube.com/watch?v=4dlOwzIPgE8"],
+      ["Firework", 88, ""],
       ["The Golden", 100, "https://www.youtube.com/watch?v=WUU3Qdjd1aA"],
       ["NEUTRA", 100, "https://www.youtube.com/watch?v=-iSZJJaZu80"],
-      ["Judgement Knights", 100, "https://www.youtube.com/watch?v=-cexaaoCTOE"],
-      ["IRIS", 100, "https://www.youtube.com/watch?v=a7qJWbbcMSw"]
+      ["Judgement Knights", 100, "https://www.youtube.com/watch?v=-cexaaoCTOE"]
     ],
     "1054": [
       "squinset",
@@ -10552,12 +10552,12 @@
     ],
     "1202": [
       "RaQoo",
+      ["Mayhem", 100, ""],
       ["The Golden", 100, "https://www.youtube.com/watch?v=270Q5WnDLMc"],
       ["Time Lapse", 100, "https://www.youtube.com/watch?v=DlLPkf1J9xo"],
       ["Widestep", 100, "https://www.youtube.com/watch?v=xNPDdOOhfjo"],
       ["Trotil", 100, "https://www.youtube.com/watch?v=EnRjnTCLB2Q"],
-      ["Cognition", 100, "https://www.youtube.com/watch?v=LT0nG2VfgeE"],
-      ["Mayhem", 69, ""]
+      ["Cognition", 100, "https://www.youtube.com/watch?v=LT0nG2VfgeE"]
     ],
     "1203": [
       "pa1nful",
@@ -12875,7 +12875,7 @@
     ],
     "1503": [
       "UltravioletRS",
-      ["Saul Goodman", 100, ""],
+      ["Saul Goodman", 100, "https://www.youtube.com/watch?v=B0_8hx2AZZU"],
       ["BPATA MPAKA", 100, "https://www.youtube.com/watch?v=pfqJOC43two"],
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=bhxlF79ukeI"],
       ["Verdant Landscape", 100, "https://www.youtube.com/watch?v=-fDza_-k-Mg"],
@@ -21611,7 +21611,6 @@
     "2819": [
       "tapxyhh",
       ["UNKNOWN", 100, "https://www.youtube.com/watch?v=ZMOpvbs9ov0"],
-      ["Sakupen Circles", 70, "https://youtu.be/7hFdq68AJeY"],
       ["SUPERHATEMEWORLD", 100, "https://www.youtube.com/watch?v=lVVAU6e93tE"],
       ["Cobwebs", 100, "https://www.youtube.com/watch?v=MslhlGMf8Ck"]
     ],
