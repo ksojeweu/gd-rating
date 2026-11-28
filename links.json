@@ -49414,7 +49414,7 @@
       "coreboard": {
         "main": {
           "id": 454,
-          "nick": "Spoken04"
+          "nick": "spokeagny04"
         }
       }
     },
@@ -171730,7 +171730,8 @@
     },
     "channels": {
       "youtube": [
-        "https://www.youtube.com/@ZacAttack198"
+        "https://www.youtube.com/@ZacAttack198",
+        "https://www.youtube.com/@ZacAttack199GD"
       ]
     }
   },
@@ -351660,26 +351661,6 @@
       "coreboard": {}
     }
   },
-  "pc63573": {
-    "_name": "zizo",
-    "other_lists": {
-      "pointercrate": [
-        63573
-      ],
-      "wml": [],
-      "coreboard": {
-        "main": {
-          "id": 1478,
-          "nick": "zizo"
-        }
-      }
-    },
-    "channels": {
-      "youtube": [
-        "https://www.youtube.com/@zizoloid"
-      ]
-    }
-  },
   "pc63576": {
     "_name": "Bread9881",
     "other_lists": {
@@ -400980,6 +400961,11 @@
       ],
       "wml": [],
       "coreboard": {}
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@WangsterGD"
+      ]
     }
   },
   "pc72112": {
@@ -406497,26 +406483,6 @@
     "channels": {
       "youtube": [
         "https://www.youtube.com/@Mrbossman19009"
-      ]
-    }
-  },
-  "pc73145": {
-    "_name": "Deforklift",
-    "other_lists": {
-      "pointercrate": [
-        73145
-      ],
-      "wml": [],
-      "coreboard": {
-        "main": {
-          "id": 2535,
-          "nick": "Deforklift"
-        }
-      }
-    },
-    "channels": {
-      "youtube": [
-        "https://www.youtube.com/@deforklift"
       ]
     }
   },
@@ -414928,21 +414894,6 @@
     "channels": {
       "youtube": [
         "https://www.youtube.com/@Styrophoamix"
-      ]
-    }
-  },
-  "wml2664": {
-    "_name": "Sheiden562",
-    "other_lists": {
-      "pointercrate": [],
-      "wml": [
-        2664
-      ],
-      "coreboard": {}
-    },
-    "channels": {
-      "youtube": [
-        "https://www.youtube.com/@sheiden562"
       ]
     }
   },
@@ -425489,6 +425440,11 @@
       ],
       "coreboard": {},
       "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@darkzGD2505"
+      ]
     }
   },
   "pc73456": {
@@ -425499,6 +425455,11 @@
       ],
       "coreboard": {},
       "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@xemi-y2k"
+      ]
     }
   },
   "pc73457": {
@@ -426189,6 +426150,11 @@
       ],
       "coreboard": {},
       "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@tapirGeometryDashovec"
+      ]
     }
   },
   "pc73473": {
@@ -427116,6 +427082,280 @@
     "other_lists": {
       "pointercrate": [
         73522
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "61977": {
+    "_name": "zizo",
+    "other_lists": {
+      "pointercrate": [
+        63573
+      ],
+      "coreboard": {
+        "main": {
+          "id": 1478,
+          "nick": "zizo"
+        }
+      },
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@zizoloid"
+      ]
+    }
+  },
+  "65350": {
+    "_name": "Deforklift",
+    "other_lists": {
+      "pointercrate": [
+        73145
+      ],
+      "coreboard": {
+        "main": {
+          "id": 2535,
+          "nick": "Deforklift"
+        }
+      },
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@deforklift"
+      ]
+    }
+  },
+  "49012": {
+    "_name": "bebeha",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@bebeha67"
+      ]
+    }
+  },
+  "63642": {
+    "_name": "noemosen",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@%D0%9F%D0%BB%D1%8E%D0%BD%D1%82%D0%B8%D1%88%D0%BA%D0%BE"
+      ]
+    }
+  },
+  "63683": {
+    "_name": "PanbimboGD",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@PanbimboGDS"
+      ]
+    }
+  },
+  "63689": {
+    "_name": "Anchoa",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@AJS8o-z3i"
+      ]
+    }
+  },
+  "63690": {
+    "_name": "Seanboy96",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@seanblume5948"
+      ]
+    }
+  },
+  "63699": {
+    "_name": "AsherReal",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@Asher_Real"
+      ]
+    }
+  },
+  "63707": {
+    "_name": "atole",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@lugi1915"
+      ]
+    }
+  },
+  "63755": {
+    "_name": "suncloudy73degrees",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@suncloudy73degrees"
+      ]
+    }
+  },
+  "64513": {
+    "_name": "DaliDay",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@DaliGD"
+      ]
+    }
+  },
+  "64648": {
+    "_name": "Glowclear",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@glowclearYT"
+      ],
+      "tiktok": [
+        "https://www.tiktok.com/@glowclear2"
+      ]
+    }
+  },
+  "64821": {
+    "_name": "sheiden562",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": [
+        2664
+      ]
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@sheiden562"
+      ]
+    }
+  },
+  "65197": {
+    "_name": "Maxilol4444",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@pasetero"
+      ]
+    }
+  },
+  "65727": {
+    "_name": "McRobin",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@McRobin06"
+      ]
+    }
+  },
+  "pc73529": {
+    "_name": "Seutern",
+    "other_lists": {
+      "pointercrate": [
+        73529
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73530": {
+    "_name": "MunichA",
+    "other_lists": {
+      "pointercrate": [
+        73530
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73531": {
+    "_name": "zKejii",
+    "other_lists": {
+      "pointercrate": [
+        73531
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73532": {
+    "_name": "Daddy Zoink",
+    "other_lists": {
+      "pointercrate": [
+        73532
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73534": {
+    "_name": "Olly-VR",
+    "other_lists": {
+      "pointercrate": [
+        73534
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73535": {
+    "_name": "Glowclear",
+    "other_lists": {
+      "pointercrate": [
+        73535
       ],
       "coreboard": {},
       "wml": []
