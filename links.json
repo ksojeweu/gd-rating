@@ -362292,7 +362292,12 @@
         65161
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2876,
+          "nick": "Ahmeddiaz"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -387072,7 +387077,12 @@
         69581
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2878,
+          "nick": "kriperr"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -421826,7 +421836,12 @@
         73336
       ],
       "wml": [],
-      "coreboard": {}
+      "coreboard": {
+        "main": {
+          "id": 2877,
+          "nick": "Eray2022"
+        }
+      }
     },
     "channels": {
       "youtube": [
@@ -427356,6 +427371,85 @@
     "other_lists": {
       "pointercrate": [
         73535
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "52030": {
+    "_name": "galacaGMD",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@GalacaGMD"
+      ]
+    }
+  },
+  "57860": {
+    "_name": "spectralyplayer",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@kzxbrxsv_zxq"
+      ]
+    }
+  },
+  "59089": {
+    "_name": "va5rdy",
+    "other_lists": {
+      "pointercrate": [],
+      "coreboard": {},
+      "wml": []
+    },
+    "channels": {
+      "youtube": [
+        "https://www.youtube.com/@Va5rdy"
+      ]
+    }
+  },
+  "pc73543": {
+    "_name": "Ksa8",
+    "other_lists": {
+      "pointercrate": [
+        73543
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73544": {
+    "_name": "Blueboy90",
+    "other_lists": {
+      "pointercrate": [
+        73544
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73545": {
+    "_name": "MrMeowser",
+    "other_lists": {
+      "pointercrate": [
+        73545
+      ],
+      "coreboard": {},
+      "wml": []
+    }
+  },
+  "pc73552": {
+    "_name": "the worst player ever",
+    "other_lists": {
+      "pointercrate": [
+        73552
       ],
       "coreboard": {},
       "wml": []
